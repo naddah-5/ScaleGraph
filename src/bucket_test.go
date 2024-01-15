@@ -1,4 +1,4 @@
-package bucket
+package main
 
 import (
 	"fmt"
@@ -7,5 +7,5 @@ import (
 
 func TestNewBucket(t *testing.T) {
 	var testBucket Bucket = NewBucket(2)
-	fmt.Println(testBucket)
+	fmt.Println("bucket is now ", testBucket)
 }

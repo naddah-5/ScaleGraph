@@ -1,4 +1,4 @@
-package bucket
+package main
 
 type Bucket struct {
 	kBucket    []contact
@@ -14,6 +14,8 @@ type contact struct {
 func NewBucket(k int) Bucket {
 	var newBucket Bucket = Bucket{
 		kBucket: make([]contact, k),
+		bucketSize: k,
 	}
+
 	return newBucket
 }
