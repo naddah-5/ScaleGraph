@@ -1,20 +1,14 @@
 package main
 
 type Bucket struct {
-	kBucket    []contact
+	buckets    [KBUCKETS][BUCKETVOLUME]Contact
 	bucketSize int
 }
 
-type contact struct {
-	nodeIP  string
-	udpPort int
-	nodeID  string
-}
-
-func NewBucket(k int) Bucket {
+func NewBucket() Bucket {
 	var newBucket Bucket = Bucket{
-		kBucket: make([]contact, k),
-		bucketSize: k,
+		buckets:    [KBUCKETS][BUCKETVOLUME]Contact{},
+		bucketSize: KBUCKETS,
 	}
 
 	return newBucket

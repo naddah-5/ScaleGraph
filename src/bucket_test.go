@@ -5,7 +5,18 @@ import (
 	"testing"
 )
 
-func TestNewBucket(t *testing.T) {
-	var testBucket Bucket = NewBucket(2)
-	fmt.Println("bucket is now ", testBucket)
+func TestBucketVolume(t *testing.T) {
+	var testBucket Bucket = NewBucket()
+	var expectedNrNodes int = BUCKETVOLUME * KBUCKETS
+	var foundNrNodes int = 0
+
+	for i := 0; i < len(testBucket.buckets); i++ {
+		for j := 0; j < len(testBucket.buckets[i]); j++ {
+			foundNrNodes++
+		}
+	}
+	if expectedNrNodes != foundNrNodes {
+		fmt.Println("[TestBucketVolume] - expected to find : ", expectedNrNodes, " nodes, found : ", foundNrNodes, " nodes")
+		t.FailNow()
+	}
 }
