@@ -12,18 +12,45 @@ type Contact struct {
 	nodeID  string
 }
 
-func NewContact(ip string, udp int, id string) (Contact, error) {
+func NewContact(ip string, port int, id string) (Contact, error) {
 	var newContact Contact
-	err := validateIPStructure(ip)
-	if err != nil {
-		return newContact, err
+	var conErr error = validateContactInfo(ip, port, id)
+	if conErr != nil {
+		return newContact, conErr
 	}
+
 	newContact = Contact{
 		nodeIP:  ip,
-		udpPort: udp,
+		udpPort: port,
 		nodeID:  id,
 	}
 	return newContact, nil
+}
+
+func validateContactInfo(ip string, port int, id string) error {
+	var errMsg []error
+	ipErr := validateIPStructure(ip)
+	if ipErr != nil {
+		errMsg = append(errMsg, ipErr)
+	}
+	udpErr := validateUDPPort(port)
+	if udpErr != nil {
+		errMsg = append(errMsg, udpErr)
+	}
+	nodeErr := validateNodeID(id)
+	if nodeErr != nil {
+		errMsg = append(errMsg, nodeErr)
+	}
+	if len(errMsg) == 0 {
+		return nil
+	} else {
+		var errString string = ""
+		for i := 0; i < len(errMsg); i++ {
+			errString += errString + "\n" + errMsg[i].Error()
+		}
+		err := errors.New(errString)
+		return err
+	}
 }
 
 func validateIPStructure(ip string) error {
@@ -40,5 +67,17 @@ func validateIPStructure(ip string) error {
 			return errors.New("ip segment out of bounds, valid for 0 <= segment <= 255, found: " + segment[i])
 		}
 	}
+	return nil
+}
+
+func validateUDPPort(port int) error {
+	if port < 0 || port > 1023 {
+		return errors.New("forbidden UDP port submitted, use ports in the range; 0 <= port <= 1023")
+	}
+	return nil
+}
+
+func validateNodeID(id string) error {
+	// This will validate id once it is implemented
 	return nil
 }
