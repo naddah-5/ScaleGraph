@@ -12,6 +12,18 @@ type Contact struct {
 	nodeID  string
 }
 
+func (c *Contact) IP() string {
+	return c.nodeIP
+}
+
+func (c *Contact) Port() int {
+	return c.udpPort
+}
+
+func (c *Contact) ID() string {
+	return c.nodeID
+}
+
 func NewContact(ip string, port int, id string) (Contact, error) {
 	var newContact Contact
 	var conErr error = validateContactInfo(ip, port, id)
@@ -56,7 +68,7 @@ func validateContactInfo(ip string, port int, id string) error {
 func validateIPStructure(ip string) error {
 	var segment []string = strings.Split(ip, ".")
 	if len(segment) != 4 {
-		return errors.New("invalid ip length")
+		return errors.New("invalid ip format, must be in the form of: x.x.x.x\t received: " + ip)
 	}
 	for i := 0; i < len(segment); i++ {
 		segValue, err := strconv.Atoi(segment[i])
@@ -64,7 +76,7 @@ func validateIPStructure(ip string) error {
 			return errors.New("could not parse ip segment: " + err.Error())
 		}
 		if segValue < 0 || segValue > 255 {
-			return errors.New("ip segment out of bounds, valid for 0 <= segment <= 255, found: " + segment[i])
+			return errors.New("ip segment out of bounds, valid for 0 <= segment <= 255, received: " + segment[i] + " in address " + ip)
 		}
 	}
 	return nil
@@ -72,7 +84,7 @@ func validateIPStructure(ip string) error {
 
 func validateUDPPort(port int) error {
 	if port < 0 || port > 1023 {
-		return errors.New("forbidden UDP port submitted, use ports in the range; 0 <= port <= 1023")
+		return errors.New("forbidden UDP port submitted, use ports in the range; 0 <= port <= 1023\t received port " + strconv.Itoa(port))
 	}
 	return nil
 }
