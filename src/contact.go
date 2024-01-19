@@ -6,32 +6,32 @@ import (
 	"strings"
 )
 
-type Contact struct {
+type contact struct {
 	nodeIP  string
 	udpPort int
-	nodeID  string
+	nodeID  [5]uint32
 }
 
-func (c *Contact) IP() string {
+func (c *contact) IP() string {
 	return c.nodeIP
 }
 
-func (c *Contact) Port() int {
+func (c *contact) Port() int {
 	return c.udpPort
 }
 
-func (c *Contact) ID() string {
+func (c *contact) ID() [5]uint32 {
 	return c.nodeID
 }
 
-func NewContact(ip string, port int, id string) (Contact, error) {
-	var newContact Contact
+func NewContact(ip string, port int, id [5]uint32) (contact, error) {
+	var newContact contact
 	var conErr error = validateContactInfo(ip, port, id)
 	if conErr != nil {
 		return newContact, conErr
 	}
 
-	newContact = Contact{
+	newContact = contact{
 		nodeIP:  ip,
 		udpPort: port,
 		nodeID:  id,
@@ -39,7 +39,7 @@ func NewContact(ip string, port int, id string) (Contact, error) {
 	return newContact, nil
 }
 
-func validateContactInfo(ip string, port int, id string) error {
+func validateContactInfo(ip string, port int, id [5]uint32) error {
 	var errMsg []error
 	ipErr := validateIPStructure(ip)
 	if ipErr != nil {
@@ -67,17 +67,21 @@ func validateContactInfo(ip string, port int, id string) error {
 
 func validateIPStructure(ip string) error {
 	var segment []string = strings.Split(ip, ".")
+	var errMsg string = ""
 	if len(segment) != 4 {
-		return errors.New("invalid ip format, must be in the form of: x.x.x.x\t received: " + ip)
+		errMsg = errMsg + ("invalid ip format, must be in the form of: x.x.x.x received: " + ip + "\n")
 	}
 	for i := 0; i < len(segment); i++ {
 		segValue, err := strconv.Atoi(segment[i])
 		if err != nil {
-			return errors.New("could not parse ip segment: " + err.Error())
+			errMsg = errMsg + ("could not parse ip segment: " + err.Error() + "\n")
 		}
 		if segValue < 0 || segValue > 255 {
-			return errors.New("ip segment out of bounds, valid for 0 <= segment <= 255, received: " + segment[i] + " in address " + ip)
+			errMsg = errMsg + "ip segment out of bounds, valid for 0 <= segment <= 255, received: " + segment[i] + " in address " + ip + "\n"
 		}
+	}
+	if errMsg != "" {
+		return errors.New(errMsg)
 	}
 	return nil
 }
@@ -89,7 +93,7 @@ func validateUDPPort(port int) error {
 	return nil
 }
 
-func validateNodeID(id string) error {
+func validateNodeID(id [5]uint32) error {
 	// This will validate id once it is implemented
 	return nil
 }

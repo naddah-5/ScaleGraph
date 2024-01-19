@@ -6,7 +6,7 @@ import (
 )
 
 func TestBucketVolume(t *testing.T) {
-	var testBucket Bucket = NewBucket()
+	var testBucket bucket = NewBucket()
 	var expectedNrNodes int = BUCKETVOLUME * KBUCKETS
 	var foundNrNodes int = 0
 

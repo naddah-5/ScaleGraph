@@ -1,13 +1,13 @@
 package main
 
-type Bucket struct {
-	buckets    [KBUCKETS][BUCKETVOLUME]Contact
+type bucket struct {
+	buckets    [KBUCKETS][BUCKETVOLUME]*contact
 	bucketSize int
 }
 
-func NewBucket() Bucket {
-	var newBucket Bucket = Bucket{
-		buckets:    [KBUCKETS][BUCKETVOLUME]Contact{},
+func NewBucket() bucket {
+	var newBucket bucket = bucket{
+		buckets:    [KBUCKETS][BUCKETVOLUME]*contact{},
 		bucketSize: KBUCKETS,
 	}
 
