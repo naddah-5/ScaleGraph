@@ -13,3 +13,12 @@ func NewBucket() bucket {
 
 	return newBucket
 }
+
+func (b *bucket) AddContact(ip string, port int, id [5]uint32) error {
+	_, genErr := NewContact(ip, port, id)
+	if genErr != nil {
+		return genErr
+	}
+	// relDistance, calcErr := _
+	return nil
+}

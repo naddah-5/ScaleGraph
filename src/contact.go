@@ -95,5 +95,6 @@ func validateUDPPort(port int) error {
 
 func validateNodeID(id [5]uint32) error {
 	// This will validate id once it is implemented
+	// i.e. the signing of it or something like that
 	return nil
 }
