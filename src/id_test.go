@@ -102,7 +102,33 @@ func TestHammingDistance4(t *testing.T) {
 func TestPrefixMatch(t *testing.T) {
 	var idA [5]uint32 = [5]uint32{0, 1, 2, 3, 4}
 	var idB [5]uint32 = [5]uint32{1, 2, 3, 4, 5}
-	prefixMatch := prefixLength(idA, idB)
-	fmt.Printf("found prefix of length %d\n", prefixMatch)
+	const expected int = 31
+	prefixMatch := distPrefixLength(idA, idB)
+	if prefixMatch != expected {
+		fmt.Printf("[TestPrefixMatch] - expected prefix length of %d, received %d\n", expected, prefixMatch)
+		t.FailNow()
+	}
 
+}
+
+func TestPrefixMatch1(t *testing.T) {
+	var idA [5]uint32 = [5]uint32{0, 1, 2, 3, 4}
+	var idB [5]uint32 = [5]uint32{0, 2, 3, 4, 5}
+	const expected int = 62
+	prefixMatch := distPrefixLength(idA, idB)
+	if prefixMatch != expected {
+		fmt.Printf("[TestPrefixMatch] - expected prefix length of %d, received %d", expected, prefixMatch)
+		t.FailNow()
+	}
+}
+
+func TestPrefixMatch2(t *testing.T) {
+	var idA [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
+	var idB [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
+	prefixMatch := distPrefixLength(idA, idB)
+	const expected int = 160
+	if prefixMatch != expected {
+		fmt.Printf("[TestPrefixMatch] - expected prefix length of %d, received %d", expected, prefixMatch)
+		t.FailNow()
+	}
 }

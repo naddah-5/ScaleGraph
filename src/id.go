@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math/bits"
 	"math/rand"
 )
@@ -35,29 +34,15 @@ func hammingDistance(a uint32, b uint32) int {
 	return hamDist
 }
 
-func prefixLength(idA [5]uint32, idB [5]uint32) int {
+func distPrefixLength(idA [5]uint32, idB [5]uint32) int {
 	var length int = 0
-	var mask uint32 = 1 << 31
-	fmt.Println(mask)
-	prefixBranch:
 	for i := 0; i < len(idA); i++ {
-		for j := 0; j < 32; j++ {
-			if true {
-				length++
-			} else {
-				break prefixBranch
-			}
+		var segDist int = bits.LeadingZeros32(idA[i]^idB[i])
+		length += segDist
+		if segDist != 32 {
+			break
 		}
 	}
 	return length
 }
 
-func sigMatch(a uint32, b uint32) bool {
-	var mask uint32 = 1 << 31
-	var sigA uint32 = a & mask
-	var sigB uint32 = b & mask
-	if sigA == sigB {
-		return true
-	}
-	return false
-}
