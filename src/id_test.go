@@ -35,7 +35,7 @@ func TestRelativeDistance(t *testing.T) {
 }
 
 func TestRelativeDistancePointing(t *testing.T) {
-	var idA [5]uint32 = [5]uint32{1, 2, 3, 4, 5} 
+	var idA [5]uint32 = [5]uint32{1, 2, 3, 4, 5}
 	var idB [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
 	RelativeDistance(&idA, &idB)
 	if idA[0] != 1 {
@@ -97,4 +97,12 @@ func TestHammingDistance4(t *testing.T) {
 		fmt.Printf("[TestHammingDistance4] - found hamming distance %v, expected hamming distance %v\n", res, expectedHamDist)
 		t.FailNow()
 	}
+}
+
+func TestPrefixMatch(t *testing.T) {
+	var idA [5]uint32 = [5]uint32{0, 1, 2, 3, 4}
+	var idB [5]uint32 = [5]uint32{1, 2, 3, 4, 5}
+	prefixMatch := prefixLength(idA, idB)
+	fmt.Printf("found prefix of length %d\n", prefixMatch)
+
 }
