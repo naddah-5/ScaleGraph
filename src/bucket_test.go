@@ -7,7 +7,7 @@ import (
 
 func TestBucketVolume(t *testing.T) {
 	var testBucket bucket = NewBucket()
-	var expectedNrNodes int = BUCKETVOLUME * KBUCKETS
+	var expectedNrNodes int = BUCKETVOLUME * KBUCKETVOLUME
 	var foundNrNodes int = 0
 
 	for i := 0; i < len(testBucket.buckets); i++ {

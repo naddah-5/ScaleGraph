@@ -34,6 +34,15 @@ func TestRelativeDistance(t *testing.T) {
 	}
 }
 
+func TestRelativeDistancePointing(t *testing.T) {
+	var idA [5]uint32 = [5]uint32{1, 2, 3, 4, 5} 
+	var idB [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
+	RelativeDistance(&idA, &idB)
+	if idA[0] != 1 {
+		t.FailNow()
+	}
+}
+
 func TestHammingDistance(t *testing.T) {
 	var pointA uint32 = uint32(0b10101010101010101)
 	var pointB uint32 = uint32(0b01010101010101010)
