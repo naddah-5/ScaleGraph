@@ -17,19 +17,16 @@ func NewBucket() bucket {
 	return newBucket
 }
 
-func (b *bucket) AddContact(ip string, port int, id [5]uint32) error {
+func (b *bucket) AddContact(newContact contact) error {
 	if b.content.Len() >= b.capacity {
 		return errors.New("bucket is full")
 	}
 	for e := b.content.Front(); e != nil; e = e.Next() {
 		elem := e.Value.(contact)
-		if elem.ID() == id {
-			return errors.New("node already in list")
+		if elem.ID() == newContact.ID() && e != nil {
+			b.content.MoveToBack(e)
+			return nil
 		}
-	}
-	newContact, err := NewContact(ip, port, id)
-	if err != nil {
-		return err
 	}
 	b.content.PushBack(newContact)
 	return nil

@@ -26,9 +26,9 @@ func (c *contact) ID() [5]uint32 {
 
 func NewContact(ip string, port int, id [5]uint32) (contact, error) {
 	var newContact contact
-	var conErr error = validateContactInfo(ip, port, id)
-	if conErr != nil {
-		return newContact, conErr
+	var err error = validateContactInfo(ip, port, id)
+	if err != nil {
+		return newContact, err
 	}
 
 	newContact = contact{
@@ -41,17 +41,17 @@ func NewContact(ip string, port int, id [5]uint32) (contact, error) {
 
 func validateContactInfo(ip string, port int, id [5]uint32) error {
 	var errMsg []error
-	ipErr := validateIPStructure(ip)
-	if ipErr != nil {
-		errMsg = append(errMsg, ipErr)
+	err := validateIPStructure(ip)
+	if err != nil {
+		errMsg = append(errMsg, err)
 	}
-	udpErr := validateUDPPort(port)
-	if udpErr != nil {
-		errMsg = append(errMsg, udpErr)
+	err = validateUDPPort(port)
+	if err != nil {
+		errMsg = append(errMsg, err)
 	}
-	nodeErr := validateNodeID(id)
-	if nodeErr != nil {
-		errMsg = append(errMsg, nodeErr)
+	err = validateNodeID(id)
+	if err != nil {
+		errMsg = append(errMsg, err)
 	}
 	if len(errMsg) == 0 {
 		return nil
