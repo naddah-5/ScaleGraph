@@ -37,15 +37,13 @@ func (b *bucket) AddContact(newContact contact) error {
 }
 
 func (b *bucket) RemoveContact(target contact) error {
-	for e := b.content.Front(); e != nil; e.Next() {
+	for e := b.content.Front(); e != nil; e = e.Next() {
 		elem, ok := e.Value.(contact)
 		if !ok {
 			return errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact, found: %+v", e.Value))
 		}
 		if elem.ID() == target.ID() {
-			fmt.Println("found match")
 			b.content.Remove(e)
-			fmt.Println("removed match")
 			return nil
 		}
 	}

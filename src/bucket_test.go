@@ -156,41 +156,29 @@ func TestRemoveCenterContact(t *testing.T) {
 		fmt.Println("[] - invalid contact construction: ", err.Error())
 	}
 
-	fmt.Println("print 1")
 	err = testBucket.AddContact(contact1)
 	if err != nil {
 		fmt.Println("[TestFillNewBucket] - ", err.Error())
 	}
-	fmt.Println("print 3")
 	err = testBucket.AddContact(contact2)
 	if err != nil {
 		fmt.Println("[TestFillNewBucket] - ", err.Error())
 	}
-	fmt.Println("print 4")
 	err = testBucket.AddContact(contact3)
 	if err != nil {
 		fmt.Println("[TestFillNewBucket] - ", err.Error())
 	}
-	fmt.Println("print 5")
 	err = testBucket.AddContact(contact4)
 	if err != nil {
 		fmt.Println("[TestFillNewBucket] - ", err.Error())
 	}
 
-	fmt.Println("print 6")
-	err = testBucket.RemoveContact(contact3)
-	fmt.Println("print 2")
-	if err != nil {
-		fmt.Println("print 8")
+	errOne := testBucket.RemoveContact(contact3)
+	if errOne != nil {
 		fmt.Println("[TestRemoveCenterContact] - failed to remove contact, error: ", err.Error())
 	}
 
-	fmt.Println("print 7")
-	var counter int = 0
-	fmt.Println(counter)
 	for e := testBucket.content.Front(); e != nil; e = e.Next() {
-		counter++
-		fmt.Println(counter)
 		elem, ok := e.Value.(contact)
 		if !ok {
 			fmt.Printf("[TestRemoveCenterContact] - bucket has been corrupted: expected contact, found: %+v\n", e)
