@@ -64,7 +64,7 @@ func TestCreateContact(t *testing.T) {
 	var expectedIP string = "127.0.0.1"
 	var expectedPort int = 80
 	var expectedID [5]uint32 = *new([5]uint32)
-	newContact, conErr := NewContact(expectedIP, expectedPort, expectedID)
+	newContact, conErr := BuildContact(expectedIP, expectedPort, expectedID)
 	if conErr != nil {
 		errMsg = errMsg + "could not create new contact " + conErr.Error() + "\n"
 	}

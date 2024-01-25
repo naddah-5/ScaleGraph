@@ -49,3 +49,19 @@ func (b *bucket) RemoveContact(target contact) error {
 	}
 	return nil
 }
+
+func (b *bucket) FindContact(target [5]uint32) (contact, error) {
+	var noMatch contact = EmptyContact()
+	for e := b.content.Front(); e != nil; e = e.Next() {
+		elem, ok := e.Value.(contact)
+		if !ok {
+			return noMatch, errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact, found %+v", e.Value))
+		}
+
+		if elem.ID() == target {
+			return elem, nil
+		}
+	}
+	
+	return noMatch, errors.New("no match")
+}

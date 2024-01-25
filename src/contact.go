@@ -24,7 +24,7 @@ func (c *contact) ID() [5]uint32 {
 	return c.nodeID
 }
 
-func NewContact(ip string, port int, id [5]uint32) (contact, error) {
+func BuildContact(ip string, port int, id [5]uint32) (contact, error) {
 	var newContact contact
 	var err error = validateContactInfo(ip, port, id)
 	if err != nil {
@@ -37,6 +37,11 @@ func NewContact(ip string, port int, id [5]uint32) (contact, error) {
 		nodeID:  id,
 	}
 	return newContact, nil
+}
+
+func EmptyContact() contact {
+	var empty contact = contact{}
+	return empty
 }
 
 func validateContactInfo(ip string, port int, id [5]uint32) error {
