@@ -39,6 +39,7 @@ func BuildContact(ip string, port int, id [5]uint32) (contact, error) {
 	return newContact, nil
 }
 
+// Provides a empty contact instance.
 func EmptyContact() contact {
 	var empty contact = contact{}
 	return empty

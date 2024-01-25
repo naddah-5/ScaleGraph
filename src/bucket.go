@@ -68,3 +68,10 @@ func (b *bucket) FindContact(target [5]uint32) (contact, error) {
 	}
 	return noMatch, errors.New("no match")
 }
+
+// Returns up to x closest contacts to the given node id, if the bucket
+// contain less than x contacts all contacts are returned.
+func (b *bucket) FindXClosest(x int, target [5]uint32) ([]contact, error) {
+
+	return nil, nil
+}
