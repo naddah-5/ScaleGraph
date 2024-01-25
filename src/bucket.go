@@ -12,16 +12,16 @@ type bucket struct {
 }
 
 func NewBucket() bucket {
-	var newBucket bucket = bucket{}
-	newBucket.content = list.New()
-	newBucket.capacity = KBUCKETVOLUME
+	var newBucket bucket = bucket{
+		content:  list.New(),
+		capacity: KBUCKETVOLUME,
+	}
 	return newBucket
 }
 
+// Adds the given contact to bucket, returns an error if bucket is full.
+// Updates the contacts position if it already exists in bucket.
 func (b *bucket) AddContact(newContact contact) error {
-	if b.content.Len() >= b.capacity {
-		return errors.New("bucket is full")
-	}
 	for e := b.content.Front(); e != nil; e = e.Next() {
 		elem, ok := e.Value.(contact)
 		if !ok {
@@ -31,6 +31,9 @@ func (b *bucket) AddContact(newContact contact) error {
 			b.content.MoveToBack(e)
 			return nil
 		}
+	}
+	if b.content.Len() >= b.capacity {
+		return errors.New("bucket is full")
 	}
 	b.content.PushBack(newContact)
 	return nil
@@ -50,6 +53,7 @@ func (b *bucket) RemoveContact(target contact) error {
 	return nil
 }
 
+// Searches bucket for a contact matching the given ID, returns error if no match is found. Does not update contacts position in the bucket.
 func (b *bucket) FindContact(target [5]uint32) (contact, error) {
 	var noMatch contact = EmptyContact()
 	for e := b.content.Front(); e != nil; e = e.Next() {
@@ -62,6 +66,5 @@ func (b *bucket) FindContact(target [5]uint32) (contact, error) {
 			return elem, nil
 		}
 	}
-	
 	return noMatch, errors.New("no match")
 }
