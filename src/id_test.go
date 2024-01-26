@@ -144,3 +144,26 @@ func TestPrefixMatch2(t *testing.T) {
 		t.FailNow()
 	}
 }
+
+func TestCloserNode(t *testing.T) {
+	var idA [5]uint32 = [5]uint32{0, 1, 0, 0, 0}
+	var idB [5]uint32 = [5]uint32{5, 11, 12, 13, 9}
+	var target [5]uint32 = [5]uint32{10, 11, 12, 13, 14}
+
+	res := CloserNode(&idA, &idB, &target)
+	if res {
+		fmt.Printf("expected B - %v, to be closer to target - %v, than A - %v\n", idB, target, idA)
+		t.FailNow()
+	}
+}
+
+func TestCloserNodeEqualDistance(t *testing.T) {
+	var node [5]uint32 = [5]uint32{123, 4124, 213, 2312, 231}
+	var target [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
+
+	res := CloserNode(&node, &node, &target)
+	if !res {
+		fmt.Printf("expected res to be true since node A == node B\n")
+		t.FailNow()
+	}
+}

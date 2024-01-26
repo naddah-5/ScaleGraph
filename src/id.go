@@ -46,3 +46,12 @@ func distPrefixLength(idA [5]uint32, idB [5]uint32) int {
 	return length
 }
 
+// Returns true if node A is closer to or the same distance to target node as node B.
+func CloserNode(nodeA *[5]uint32, nodeB *[5]uint32, target *[5]uint32) bool {
+	var relDistA int = RelativeDistance(nodeA, target)
+	var relDistB int = RelativeDistance(nodeB, target)
+	if relDistA <= relDistB {
+		return true
+	}
+	return false
+}
