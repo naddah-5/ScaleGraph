@@ -87,6 +87,8 @@ func (b *bucket) FindXClosest(x int, target [5]uint32) ([]contact, error) {
 }
 
 func sortByDistance(contactList *list.List, target *[5]uint32) error {
-
+	for e := contactList.Front(); e != nil; e = e.Next() {
+		
+	}
 	return nil
 }
