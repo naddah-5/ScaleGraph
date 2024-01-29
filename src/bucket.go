@@ -78,7 +78,7 @@ func (b *bucket) FindXClosest(x int, target [5]uint32) ([]contact, error) {
 	for e := b.content.Front(); e != nil; e = e.Next() {
 		elem, ok := e.Value.(contact)
 		if !ok {
-			return nil, errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact, found %+v", e.Value))
+			return nil, errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact, found %+v\n", e.Value))
 		}
 		res.PushFront(elem)
 	}
@@ -87,8 +87,24 @@ func (b *bucket) FindXClosest(x int, target [5]uint32) ([]contact, error) {
 }
 
 func sortByDistance(contactList *list.List, target *[5]uint32) error {
-	for e := contactList.Front(); e != nil; e = e.Next() {
-		
+	var relDist int
+	var nextDist int
+	for e := contactList.Front(); e.Next() != nil; e = e.Next() {
+		elem, ok := e.Value.(contact)
+		if !ok {
+			return errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact found %+v\n", e.Value))
+		}
+		nextElem, ok := e.Next().Value.(contact)
+		if !ok {
+			return errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact found %+v\n", e.Value))
+		}
+		var id [5]uint32 = elem.ID()
+		var elemID *[5]uint32 = &id
+
+		relDist = RelativeDistance(elemID, target)
+
+
+
 	}
 	return nil
 }
