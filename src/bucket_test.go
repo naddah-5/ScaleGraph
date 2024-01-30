@@ -371,7 +371,7 @@ func TestFindMissingContact(t *testing.T) {
 
 func TestSortContactList(t *testing.T) {
 	var testName string = "TestSortContactList"
-	var testList list.List = *list.New()
+	var testList *list.List = list.New()
 	var targetNode [5]uint32 = [5]uint32{11, 12, 13, 14, 15}
 
 	contact1, err := BuildContact("127.0.0.1", 80, [5]uint32{1, 2, 3, 4, 5})
@@ -406,34 +406,21 @@ func TestSortContactList(t *testing.T) {
 	}
 
 	testList.PushFront(contact1)
-	testList.PushFront(contact2)
-	testList.PushFront(contact3)
 	testList.PushFront(contact4)
+	testList.PushFront(contact3)
 	testList.PushFront(contact5)
+	testList.PushFront(contact2)
 	testList.PushFront(contact6)
-
-	for e := testList.Front(); e.Value != nil; e = e.Next() {
-		fmt.Printf("pre: %+v\n", e.Value)
-	}
 
 	sortByDistance(testList, targetNode)
 
-
-	for e := testList.Front(); e.Value != nil; e = e.Next() {
-		fmt.Printf("post: %+v\n", e.Value)
-	}
-
-	var newList list.List = *list.New()
-	for i := 0; i < 10; i++ {
-		newList.PushFront(i)
-	}
-	for e := newList.Front(); e.Value != nil; e = e.Next() {
-		fmt.Println(e.Value)
-	}
-	for e := newList.Front(); e.Next() != nil; e = e.Next() {
-		newList.MoveAfter(e, e.Next())
-	}
-	for e := newList.Front(); e.Value != nil; e = e.Next() {
-		fmt.Println(e.Value)
+	var prevDist int = 0
+	for e := testList.Front(); e != nil; e = e.Next() {
+		elem := e.Value.(contact)
+		relDist := RelativeDistance(elem.ID(), targetNode)
+		if relDist < prevDist {
+			t.FailNow()
+		}
+		prevDist = relDist
 	}
 }
