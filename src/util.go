@@ -69,7 +69,7 @@ func SortByDistance(contactList *list.List, target [5]uint32) error {
 
 			relDist = RelativeDistance(elem.ID(), target)
 			nextRelDist = RelativeDistance(nextElem.ID(), target)
-			if relDist > nextRelDist && e.Next() != nil {
+			if relDist > nextRelDist  {
 				contactList.MoveAfter(e, e.Next())
 			}
 		}
