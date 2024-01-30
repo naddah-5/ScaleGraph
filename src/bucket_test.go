@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/list"
 	"fmt"
 	"testing"
 )
@@ -366,4 +367,73 @@ func TestFindMissingContact(t *testing.T) {
 		t.FailNow()
 	}
 
+}
+
+func TestSortContactList(t *testing.T) {
+	var testName string = "TestSortContactList"
+	var testList list.List = *list.New()
+	var targetNode [5]uint32 = [5]uint32{11, 12, 13, 14, 15}
+
+	contact1, err := BuildContact("127.0.0.1", 80, [5]uint32{1, 2, 3, 4, 5})
+	if err != nil {
+		fmt.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
+		t.FailNow()
+	}
+	contact2, err := BuildContact("127.0.0.2", 80, [5]uint32{6, 7, 8, 9, 10})
+	if err != nil {
+		fmt.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
+		t.FailNow()
+	}
+	contact3, err := BuildContact("127.0.0.3", 80, [5]uint32{11, 12, 13, 14, 15})
+	if err != nil {
+		fmt.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
+		t.FailNow()
+	}
+	contact4, err := BuildContact("127.0.0.4", 80, [5]uint32{16, 17, 18, 19, 20})
+	if err != nil {
+		fmt.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
+		t.FailNow()
+	}
+	contact5, err := BuildContact("127.0.0.5", 80, [5]uint32{21, 22, 23, 24, 25})
+	if err != nil {
+		fmt.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
+		t.FailNow()
+	}
+	contact6, err := BuildContact("127.0.0.6", 80, [5]uint32{26, 27, 28, 29, 30})
+	if err != nil {
+		fmt.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
+		t.FailNow()
+	}
+
+	testList.PushFront(contact1)
+	testList.PushFront(contact2)
+	testList.PushFront(contact3)
+	testList.PushFront(contact4)
+	testList.PushFront(contact5)
+	testList.PushFront(contact6)
+
+	for e := testList.Front(); e.Value != nil; e = e.Next() {
+		fmt.Printf("pre: %+v\n", e.Value)
+	}
+
+	sortByDistance(testList, targetNode)
+
+
+	for e := testList.Front(); e.Value != nil; e = e.Next() {
+		fmt.Printf("post: %+v\n", e.Value)
+	}
+
+	var newList list.List = *list.New()
+	for i := 0; i < 10; i++ {
+		newList.PushFront(i)
+	}
+	for e := newList.Front(); e.Value != nil; e = e.Next() {
+		fmt.Println(e.Value)
+	}
+	for e := newList.Front(); e.Next() != nil; e = e.Next() {
+		newList.MoveAfter(e, e.Next())
+	}
+	for e := newList.Front(); e.Value != nil; e = e.Next() {
+		fmt.Println(e.Value)
+	}
 }

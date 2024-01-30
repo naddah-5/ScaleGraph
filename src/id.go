@@ -15,9 +15,9 @@ func GenerateID() ([5]uint32, error) {
 	return bitArray, nil
 }
 
-func RelativeDistance(nodeA *[5]uint32, nodeB *[5]uint32) int {
+func RelativeDistance(nodeA [5]uint32, nodeB [5]uint32) int {
 	var relDist int = 0
-	for i := 0; i < len(*nodeA); i++ {
+	for i := 0; i < len(nodeA); i++ {
 		relDist += hammingDistance(nodeA[i], nodeB[i])
 	}
 	return relDist
@@ -47,7 +47,7 @@ func distPrefixLength(idA [5]uint32, idB [5]uint32) int {
 }
 
 // Returns true if node A is closer to or the same distance to target node as node B.
-func CloserNode(nodeA *[5]uint32, nodeB *[5]uint32, target *[5]uint32) bool {
+func CloserNode(nodeA [5]uint32, nodeB [5]uint32, target [5]uint32) bool {
 	var relDistA int = RelativeDistance(nodeA, target)
 	var relDistB int = RelativeDistance(nodeB, target)
 	if relDistA <= relDistB {
