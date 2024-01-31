@@ -26,6 +26,7 @@ func hammingDistance(a uint32, b uint32) int {
 	return hamDist
 }
 
+// Returns the shared prefix length between the supplied ID's
 func DistPrefixLength(idA [5]uint32, idB [5]uint32) int {
 	var length int = 0
 	for i := 0; i < len(idA); i++ {
