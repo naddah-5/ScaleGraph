@@ -70,8 +70,8 @@ func (b *bucket) FindContact(target [5]uint32) (contact, error) {
 }
 
 // Returns up to x closest contacts to the given node id, if the bucket
-// contain less than x contacts all contacts are returned.
-// The result is returned in a sorted list, from closest to target to furthest.
+// contain less than x contacts all contacts are returned along with a "incomplete" error.
+// The result is returned in a sorted list, from closest to target to furthest from target.
 // Note that this method always performs a deep copy of the bucket.
 func (b *bucket) FindXClosest(x int, target [5]uint32) (*list.List, error) {
 	var res *list.List = list.New()
