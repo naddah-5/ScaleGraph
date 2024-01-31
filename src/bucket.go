@@ -82,8 +82,16 @@ func (b *bucket) FindXClosest(x int, target [5]uint32) (*list.List, error) {
 		}
 		res.PushFront(elem)
 	}
+	err := SortByDistance(res, target)
+	if err != nil {
+		return res, err
+	}
 
-	return nil, nil
+	if res.Len() > x {
+		for i := res.Len() - x; i > 0; i-- {
+			res.Remove(res.Back())
+		}
+	}
+
+	return res, nil
 }
-
-

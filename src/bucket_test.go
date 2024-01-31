@@ -368,4 +368,103 @@ func TestFindMissingContact(t *testing.T) {
 
 }
 
+func TestFindXClosest(t *testing.T) {
+	var testName string = "TestFindXClosest"
+	const inspectTest bool = false
+	var target [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
+	var testBucket bucket = NewBucket()
 
+	contact1, err := BuildContact("127.0.0.1", 80, [5]uint32{1, 2, 3, 4, 5})
+	if err != nil {
+		fmt.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
+		t.FailNow()
+	}
+	contact2, err := BuildContact("127.0.0.2", 80, [5]uint32{6, 7, 8, 9, 10})
+	if err != nil {
+		fmt.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
+		t.FailNow()
+	}
+	contact3, err := BuildContact("127.0.0.3", 80, [5]uint32{11, 12, 13, 14, 15})
+	if err != nil {
+		fmt.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
+		t.FailNow()
+	}
+	contact4, err := BuildContact("127.0.0.4", 80, [5]uint32{16, 17, 18, 19, 20})
+	if err != nil {
+		fmt.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
+		t.FailNow()
+	}
+	contact5, err := BuildContact("127.0.0.5", 80, [5]uint32{21, 22, 23, 24, 25})
+	if err != nil {
+		fmt.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
+		t.FailNow()
+	}
+
+	err = testBucket.AddContact(contact1)
+	if err != nil {
+		fmt.Printf("[%s] - %s", testName, err.Error())
+		t.FailNow()
+	}
+	err = testBucket.AddContact(contact2)
+	if err != nil {
+		fmt.Printf("[%s] - %s", testName, err.Error())
+		t.FailNow()
+	}
+	err = testBucket.AddContact(contact3)
+	if err != nil {
+		fmt.Printf("[%s] - %s", testName, err.Error())
+		t.FailNow()
+	}
+	err = testBucket.AddContact(contact4)
+	if err != nil {
+		fmt.Printf("[%s] - %s", testName, err.Error())
+		t.FailNow()
+	}
+	err = testBucket.AddContact(contact5)
+	if err != nil {
+		fmt.Printf("[%s] - %s", testName, err.Error())
+		t.FailNow()
+	}
+
+	if inspectTest {
+		fmt.Println("bucket before:")
+		for e := testBucket.content.Front(); e != nil; e = e.Next() {
+			elem, ok := e.Value.(contact)
+			if !ok {
+				fmt.Printf("corrupted bucket: %+v\n", e.Value)
+			}
+			relDist := RelativeDistance(elem.ID(), target)
+			fmt.Printf("elem: %+v, relDist: %d\n", elem, relDist)
+		}
+	}
+	res, err := testBucket.FindXClosest(2, target)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	if inspectTest {
+		fmt.Println("selected:")
+		for e := res.Front(); e != nil; e = e.Next() {
+			elem := e.Value.(contact)
+			relDist := RelativeDistance(elem.ID(), target)
+			fmt.Printf("elem: %+v, relDist: %d\n", elem, relDist)
+		}
+		fmt.Println("bucket after select")
+		for e := testBucket.content.Front(); e != nil; e = e.Next() {
+			elem := e.Value.(contact)
+			fmt.Printf("elem: %+v\n", elem)
+		}
+	}
+
+	resOne := res.Front().Value.(contact)
+	resTwo := res.Back().Value.(contact)
+	if resOne.ID() != contact1.ID() {
+		fmt.Printf("[%s] - expected to find %+v, found %+v\n", testName, contact1, resOne)
+		t.Fail()
+	}
+	if resTwo.ID() != contact4.ID() {
+		fmt.Printf("[%s] - expected to find %+v, found %+v\n", testName, contact4, resTwo)
+		t.Fail()
+	}
+
+}
