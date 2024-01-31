@@ -93,5 +93,9 @@ func (b *bucket) FindXClosest(x int, target [5]uint32) (*list.List, error) {
 		}
 	}
 
+	if res.Len() < x {
+		return res, errors.New("incomplete")
+	}
+
 	return res, nil
 }
