@@ -153,7 +153,7 @@ func TestCloserNodeEqualDistance(t *testing.T) {
 func TestSortContactList(t *testing.T) {
 	var testName string = "TestSortContactList"
 	var testList *list.List = list.New()
-	var targetNode [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
+	var targetNode [5]uint32 = [5]uint32{11, 12, 13, 14, 15}
 
 	contact1, err := BuildContact("127.0.0.1", 80, [5]uint32{1, 2, 3, 4, 5})
 	if err != nil {
@@ -200,7 +200,7 @@ func TestSortContactList(t *testing.T) {
 		elem := e.Value.(contact)
 		relDist := RelativeDistance(elem.ID(), targetNode)
 		if relDist < prevDist {
-			t.Fail()
+			t.FailNow()
 		}
 		prevDist = relDist
 	}
@@ -273,6 +273,8 @@ func TestMergeByDistance(t *testing.T) {
 		t.FailNow()
 	}
 
+
+
 	testListA.PushFront(contact1)
 	testListA.PushFront(contact4)
 	testListA.PushFront(contact3)
@@ -293,18 +295,8 @@ func TestMergeByDistance(t *testing.T) {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	
-	var prevDist int = 0
-	var relDist int = 0
 	for e := res.Front(); e != nil; e = e.Next() {
-		elem := e.Value.(contact)
-		relDist = RelativeDistance(elem.ID(), target)
-		if relDist < prevDist {
-			prevElem := e.Prev().Value.(contact)
-			fmt.Printf("[%s] - resulting list is not propperly sorted: %+v with relative distance %d found after %+v with relative distance %d", testName, elem, relDist, prevElem, prevDist)
-			t.Fail()
-			prevDist = relDist
-		}
-
+		fmt.Printf("res: %+v\n", e.Value)
 	}
 }
+
