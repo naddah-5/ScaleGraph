@@ -53,7 +53,7 @@ func SortByDistance(contactList *list.List, target [5]uint32) error {
 	var relDist int
 	var nextRelDist int
 	for i := 0; i <= contactList.Len(); i++ {
-		for e := contactList.Front(); e.Next() != nil; e = e.Next() {
+		for e := contactList.Front(); e != nil && e.Next() != nil; e = e.Next() {
 			elem, ok := e.Value.(contact)
 			if !ok {
 				return errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact found %+v\n", e.Value))
