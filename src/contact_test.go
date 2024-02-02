@@ -11,7 +11,7 @@ func TestValidateIPNegative(t *testing.T) {
 	var invalidIP string = "-127.0.0.1"
 	err := validateIPStructure(invalidIP)
 	if err == nil {
-		fmt.Printf("[%s] - %s\n", testName,  err.Error())
+		fmt.Printf("[%s] - %s\n", testName, err.Error())
 		t.FailNow()
 	}
 }
@@ -88,5 +88,18 @@ func TestCreateContact(t *testing.T) {
 	if errMsg != errMsgDiff {
 		fmt.Println(errMsg)
 		t.FailNow()
+	}
+}
+
+func TestNewRandomContact(t *testing.T) {
+	var testName string = "TestNewRandomContact"
+	var verbose bool = false
+	randomContact, err := NewRandomContact()
+	if err != nil {
+		fmt.Printf("[%s] - %s", testName, err.Error())
+		t.Fail()
+	}
+	if verbose {
+		fmt.Printf("contact: %+v", randomContact)
 	}
 }

@@ -65,6 +65,14 @@ func (rt *routingTable) FindXClosest(x int, target [5]uint32) (*list.List, error
 	res, err = rt.router[bucketIndex].FindXClosest(x, target)
 	if err.Error() == "incomplete" {
 		// call split find function in a loop
+		var count int = x - res.Len()
+		addRes, err := rt.findSlider(bucketIndex-1, bucketIndex+1, count, target)
+		if err != nil {
+			return res, err
+		}
+		for e := addRes.Front(); e != nil; e.Next() {
+			res.PushBack(e)
+		}
 	} else if err != nil {
 		return res, err
 	}
@@ -73,49 +81,9 @@ func (rt *routingTable) FindXClosest(x int, target [5]uint32) (*list.List, error
 }
 
 func (rt *routingTable) findSlider(a int, b int, count int, target [5]uint32) (*list.List, error) {
-	// conditional slide
-	var bucketA int
-	if a >= 0 {
-		bucketA = a - 1
-	} else {
-		bucketA = a
-	}
-
-	var bucketB int
-	if b < KEYSPACE {
-		bucketB = b + 1
-	} else {
-		bucketB = b
-	}
-
-	// def
 	var listA *list.List = list.New()
 	var listB *list.List = list.New()
 	var res *list.List = list.New()
 
-	// conditional find
-	if bucketA >= 0 {
-		listA, _ = rt.router[bucketA].FindXClosest(count, target)
-	}
-	if bucketB < KEYSPACE {
-		listB, _ = rt.router[bucketB].FindXClosest(count, target)
-	}
-	res, _ = MergeByDistance(listA, listB, target)
-
-	// base case
-	if bucketA == 0 && bucketB == KEYSPACE {
-		return res, nil
-	}
-
-
-	// recursive case
-	if res.Len() < count {
-		var newCount int = count - res.Len()
-		var recRes *list.List = list.New()
-		recRes, _ = rt.findSlider(bucketA, bucketB, newCount, target)
-		res, _ = MergeByDistance(res, recRes, target)
-	}
-	
-	// unreachable
-	return res, errors.New("reached unreachable code in findSlider")
+	return res, nil
 }

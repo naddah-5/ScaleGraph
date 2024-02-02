@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"math/rand"
 	"strconv"
 	"strings"
 )
@@ -43,6 +44,37 @@ func BuildContact(ip string, port int, id [5]uint32) (contact, error) {
 func EmptyContact() contact {
 	var empty contact = contact{}
 	return empty
+}
+
+// Generates and returns a new, validated, contact with pseudo-random values.
+func NewRandomContact() (contact, error) {
+	var port int = 80
+	var ip string
+	var id [5]uint32 = [5]uint32{rand.Uint32(), rand.Uint32(), rand.Uint32(), rand.Uint32(), rand.Uint32()}
+
+	for i := 0; i < 4; i++ {
+		seg, _ := randU32(0, 256)
+		ip += strconv.FormatUint(uint64(seg), 10)
+		ip += "."
+	}
+	ip = strings.TrimSuffix(ip, ".")
+
+	newContact, err := BuildContact(ip, port, id)
+	if err != nil {
+		return EmptyContact(), err
+	}
+	return newContact, nil
+}
+
+// returns a pseudo-random uint32 in the range (min, max]
+func randU32(min uint32, max uint32) (uint32, error) {
+	if min >= max {
+		return 0, errors.New("invalid range")
+	}
+	var x uint32 = rand.Uint32()
+	x %= (max - min)
+	x += min
+	return x, nil
 }
 
 func validateContactInfo(ip string, port int, id [5]uint32) error {

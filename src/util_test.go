@@ -227,7 +227,7 @@ func TestSortContactList(t *testing.T) {
 
 func TestSortEmptyList(t *testing.T) {
 	var _ string = "TestSortEmptyList"
-	var verbose bool = true
+	var verbose bool = false
 	var testList *list.List = list.New()
 	var targetNode [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
 
