@@ -53,12 +53,7 @@ func SortByDistance(contactList *list.List, target [5]uint32) error {
 	var relDist int
 	var nextRelDist int
 	for i := 0; i <= contactList.Len(); i++ {
-		for e := contactList.Front(); e != nil; e = e.Next() {
-			if e.Next() == nil {
-				// DO NOT REMOVE: The e != nil in the loop header is purely decorative
-				// it does not share scope with the loop body
-				break
-			}
+		for e := contactList.Front(); e.Next() != nil; e = e.Next() {
 			elem, ok := e.Value.(contact)
 			if !ok {
 				return errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact found %+v\n", e.Value))
@@ -71,7 +66,9 @@ func SortByDistance(contactList *list.List, target [5]uint32) error {
 			relDist = RelativeDistance(elem.ID(), target)
 			nextRelDist = RelativeDistance(nextElem.ID(), target)
 			if relDist > nextRelDist {
-				contactList.MoveAfter(e, e.Next())
+				e.Next().Value = elem
+				e.Value = nextElem
+
 			}
 		}
 	}

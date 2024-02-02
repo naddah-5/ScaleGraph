@@ -152,6 +152,7 @@ func TestCloserNodeEqualDistance(t *testing.T) {
 
 func TestSortContactList(t *testing.T) {
 	var testName string = "TestSortContactList"
+	var verbose bool = false
 	var testList *list.List = list.New()
 	var targetNode [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
 
@@ -193,7 +194,25 @@ func TestSortContactList(t *testing.T) {
 	testList.PushFront(contact2)
 	testList.PushFront(contact6)
 
+	if verbose {
+		fmt.Printf("list before sorting:\n")
+		for e := testList.Front(); e != nil; e = e.Next() {
+			elem := e.Value.(contact)
+			var relDist int = RelativeDistance(elem.ID(), targetNode)
+			fmt.Printf("elem: %+v, relDist: %d\n", elem, relDist)
+		}
+	}
+
 	SortByDistance(testList, targetNode)
+
+	if verbose {
+		fmt.Printf("list after sorting:\n")
+		for e := testList.Front(); e != nil; e = e.Next() {
+			elem := e.Value.(contact)
+			var relDist int = RelativeDistance(elem.ID(), targetNode)
+			fmt.Printf("elem: %+v, relDist: %d\n", elem, relDist)
+		}
+	}
 
 	var prevDist int = 0
 	for e := testList.Front(); e != nil; e = e.Next() {
