@@ -85,5 +85,15 @@ func (rt *routingTable) findSlider(a int, b int, count int, target [5]uint32) (*
 	var listB *list.List = list.New()
 	var res *list.List = list.New()
 
+	
+
 	return res, nil
+}
+
+func (rt *routingTable) takeContent(bucket int) *list.List {
+	var res *list.List = list.New()
+	for e := rt.router[bucket].content.Front(); e != nil; e = e.Next() {
+		res.PushBack(e.Value)
+	}
+	return res
 }
