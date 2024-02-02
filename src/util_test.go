@@ -225,6 +225,31 @@ func TestSortContactList(t *testing.T) {
 	}
 }
 
+func TestSortEmptyList(t *testing.T) {
+	var _ string = "TestSortEmptyList"
+	var verbose bool = true
+	var testList *list.List = list.New()
+	var targetNode [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
+
+	if verbose {
+		fmt.Printf("list before sorting:\n")
+		for e := testList.Front(); e != nil; e = e.Next() {
+			elem := e.Value
+			fmt.Printf("elem: %+v\n", elem)
+		}
+	}
+
+	SortByDistance(testList, targetNode)
+
+	if verbose {
+		fmt.Printf("list after sorting:\n")
+		for e := testList.Front(); e != nil; e = e.Next() {
+			elem := e.Value
+			fmt.Printf("elem: %+v", elem)
+		}
+	}
+}
+
 func TestMergeByDistance(t *testing.T) {
 	var testName string = "TestMergeByDistance"
 	var target [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
@@ -312,7 +337,7 @@ func TestMergeByDistance(t *testing.T) {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	
+
 	var prevDist int = 0
 	var relDist int = 0
 	for e := res.Front(); e != nil; e = e.Next() {
