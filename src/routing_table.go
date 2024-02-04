@@ -66,7 +66,7 @@ func (rt *routingTable) FindXClosest(x int, target [5]uint32) (*list.List, error
 	if err.Error() == "incomplete" {
 		// call split find function in a loop
 		var count int = x - res.Len()
-		addRes, err := rt.findSlider(bucketIndex-1, bucketIndex+1, count, target)
+		addRes, err := rt.findSlider(bucketIndex, count, target)
 		if err != nil {
 			return res, err
 		}
@@ -80,12 +80,41 @@ func (rt *routingTable) FindXClosest(x int, target [5]uint32) (*list.List, error
 	return res, nil
 }
 
-func (rt *routingTable) findSlider(a int, b int, count int, target [5]uint32) (*list.List, error) {
-	var listA *list.List = list.New()
-	var listB *list.List = list.New()
+func (rt *routingTable) findSlider(startIndex int, count int, target [5]uint32) (*list.List, error) {
 	var res *list.List = list.New()
+	var leftIndex int = startIndex
+	var rightIndex int = startIndex
 
-	
+	for count > 0 {
+		leftIndex = max(leftIndex-1, -1)
+		rightIndex = min(rightIndex+1, KEYSPACE)
+		var leftBucket *list.List = list.New()
+		var rightBucket *list.List = list.New()
+
+		if leftIndex > -1 {
+			leftBucket = rt.takeContent(leftIndex)
+			SortByDistance(leftBucket, target)
+		}
+
+		if rightIndex < KEYSPACE {
+			rightBucket = rt.takeContent(rightIndex)
+			SortByDistance(rightBucket, target)
+		}
+
+		addRes, err := MergeByDistance(leftBucket, rightBucket, target)
+		if err != nil {
+			fmt.Println(err)
+		}
+		res, err = MergeByDistance(res, addRes, target)
+		if err != nil {
+			fmt.Println(err)
+		}
+		count = count - addRes.Len()
+		fmt.Println("left index: ", leftIndex, " right index: ", rightIndex)
+		if leftIndex <= 0 && rightIndex >= KEYSPACE {
+			break
+		}
+	}
 
 	return res, nil
 }
