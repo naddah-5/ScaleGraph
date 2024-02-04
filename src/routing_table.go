@@ -89,7 +89,7 @@ func (rt *routingTable) FindXClosest(x int, target [5]uint32) (*list.List, error
 func (rt *routingTable) findSlider(startIndex int, count int, target [5]uint32) (*list.List, error) {
 	var res *list.List = list.New()
 
-	for i := max(startIndex, 0); i >= 0; i-- {
+		for i := max(startIndex, 0); i >= 0; i-- {
 		newCont, _ := rt.router[i].FindXClosest(count, target)
 		res, _ = MergeByDistance(res, newCont, target)
 	}
