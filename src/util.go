@@ -92,13 +92,15 @@ func MergeByDistance(contactListA *list.List, contactListB *list.List, target [5
 		listB = contactListA
 	}
 
-	for listA.Len() > 0 {
+	for listA.Len() > 0 && listB.Len() > 0 {
 		elemA, ok := listA.Front().Value.(contact)
 		if !ok {
+			fmt.Printf("bucket has been corrupted: expected a contact found %+v\n", listA.Front())
 			return res, errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact found %+v\n", listA.Front()))
 		}
 		elemB, ok := listB.Front().Value.(contact)
 		if !ok {
+			fmt.Printf("bucket has been corrupted: expected a contact found %+v\n", listB.Front())
 			return res, errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact found %+v\n", listB.Front()))
 		}
 
@@ -112,13 +114,23 @@ func MergeByDistance(contactListA *list.List, contactListB *list.List, target [5
 			listB.Remove(listB.Front())
 		}
 	}
-	if listB.Len() > 0 {
+	if listA.Len() > 0 {
+		for e := listA.Front(); e != nil; e = e.Next() {
+			elem, ok := e.Value.(contact)
+			if !ok {
+				return res, errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact found %+v\n", e.Value))
+			} else {
+				res.PushBack(elem)
+			}
+		}
+	} else if listB.Len() > 0 {
 		for e := listB.Front(); e != nil; e = e.Next() {
 			elem, ok := e.Value.(contact)
 			if !ok {
 				return res, errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact found %+v\n", e.Value))
+			} else {
+				res.PushBack(elem)
 			}
-			res.PushBack(elem)
 		}
 	}
 

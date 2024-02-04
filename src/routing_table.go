@@ -60,18 +60,24 @@ func (rt *routingTable) FindXClosest(x int, target [5]uint32) (*list.List, error
 	var res *list.List = list.New()
 	bucketIndex, err := rt.BucketIndex(target)
 	if err != nil {
+		fmt.Println(err)
 		return res, errors.New(fmt.Sprintf("failed to find %d closest contacts, error: %s", x, err.Error()))
 	}
 	res, err = rt.router[bucketIndex].FindXClosest(x, target)
 	if err.Error() == "incomplete" {
-		// call split find function in a loop
 		var count int = x - res.Len()
 		addRes, err := rt.findSlider(bucketIndex, count, target)
 		if err != nil {
+			fmt.Println(err)
 			return res, err
 		}
-		for e := addRes.Front(); e != nil; e.Next() {
-			res.PushBack(e)
+		for e := addRes.Front(); e != nil; e = e.Next() {
+			elem, ok := e.Value.(contact)
+			if !ok {
+				return res, errors.New(fmt.Sprintf("return from findSlider is corrupted, expected a contact found: %+v", e.Value))
+			} else {
+				res.PushBack(elem)
+			}
 		}
 	} else if err != nil {
 		return res, err
@@ -82,47 +88,25 @@ func (rt *routingTable) FindXClosest(x int, target [5]uint32) (*list.List, error
 
 func (rt *routingTable) findSlider(startIndex int, count int, target [5]uint32) (*list.List, error) {
 	var res *list.List = list.New()
-	var leftIndex int = startIndex
-	var rightIndex int = startIndex
 
-	for count > 0 {
-		leftIndex = max(leftIndex-1, -1)
-		rightIndex = min(rightIndex+1, KEYSPACE)
-		var leftBucket *list.List = list.New()
-		var rightBucket *list.List = list.New()
+	for i := max(startIndex, 0); i >= 0; i-- {
+		newCont, _ := rt.router[i].FindXClosest(count, target)
+		res, _ = MergeByDistance(res, newCont, target)
+	}
 
-		if leftIndex > -1 {
-			leftBucket = rt.takeContent(leftIndex)
-			SortByDistance(leftBucket, target)
+	for i := min(startIndex, KEYSPACE); i < KEYSPACE; i++ {
+		newCont, _ := rt.router[i].FindXClosest(count, target)
+		fmt.Println("appending to res:")
+		for e := newCont.Front(); e != nil; e = e.Next() {
+			elem, ok := e.Value.(contact)
+			if !ok {
+				fmt.Printf("found illegal element: %+v", e.Value)
+			} else {
+				fmt.Printf("elem: %+v", elem)
+			}
 		}
-
-		if rightIndex < KEYSPACE {
-			rightBucket = rt.takeContent(rightIndex)
-			SortByDistance(rightBucket, target)
-		}
-
-		addRes, err := MergeByDistance(leftBucket, rightBucket, target)
-		if err != nil {
-			fmt.Println(err)
-		}
-		res, err = MergeByDistance(res, addRes, target)
-		if err != nil {
-			fmt.Println(err)
-		}
-		count = count - addRes.Len()
-		fmt.Println("left index: ", leftIndex, " right index: ", rightIndex)
-		if leftIndex <= 0 && rightIndex >= KEYSPACE {
-			break
-		}
+		res, _ = MergeByDistance(res, newCont, target)
 	}
 
 	return res, nil
-}
-
-func (rt *routingTable) takeContent(bucket int) *list.List {
-	var res *list.List = list.New()
-	for e := rt.router[bucket].content.Front(); e != nil; e = e.Next() {
-		res.PushBack(e.Value)
-	}
-	return res
 }

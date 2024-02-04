@@ -22,8 +22,12 @@ func TestRoutingTableAddContact(t *testing.T) {
 			bucket := testRT.router[b].content
 			fmt.Printf("bucket: %d\n", b)
 			for e := bucket.Front(); e != nil; e = e.Next() {
-				elem := e.Value.(contact)
-				fmt.Printf("elem: %+v\n", elem)
+				elem, ok := e.Value.(contact)
+				if !ok {
+					fmt.Println("element not a contact")
+				} else {
+					fmt.Printf("elem: %+v\n", elem)
+				}
 			}
 		}
 	}
@@ -60,25 +64,17 @@ func TestRoutingTableFindContact(t *testing.T) {
 	}
 	testRT.AddContact(targetContact)
 
-	if verbose {
-		fmt.Printf("routing table after insertion:\n")
-		for b := 0; b < KEYSPACE; b++ {
-			bucket := testRT.router[b].content
-			fmt.Printf("bucket: %d\n", b)
-			for e := bucket.Front(); e != nil; e = e.Next() {
-				elem := e.Value.(contact)
-				fmt.Printf("elem: %+v\n", elem)
-			}
-		}
-	}
-
 	foundContacts, err := testRT.FindXClosest(3, [5]uint32{0, 0, 0, 0, 1})
 	if err != nil {
 		fmt.Printf("[%s] - %s\n", testName, err.Error())
 	}
 	fmt.Printf("searching for: %+v\nfound:\n", targetContact.ID())
 	for e := foundContacts.Front(); e != nil; e = e.Next() {
-		elem := e.Value.(contact)
+		elem, ok := e.Value.(contact)
+		if !ok {
+			fmt.Printf("element is not a contact: %+v\n", e.Value)
+			break
+		}
 		fmt.Printf("contact: %+v\n", elem)
 	}
 
