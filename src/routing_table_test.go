@@ -50,9 +50,6 @@ func TestRoutingTableFindContact(t *testing.T) {
 	var homeID [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
 	var testRT routingTable = NewRoutingTable(homeID)
 
-	if verbose {
-	}
-
 	for i := 0; i < 1000; i++ {
 		newContact, _ := NewRandomContact()
 		testRT.AddContact(newContact)
@@ -91,3 +88,69 @@ func TestRoutingTableFindContact(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestRoutingTableRemoveContact(t *testing.T) {
+	var testName string = "TestRoutingTableRemoveContact"
+	var verbose bool = false
+	var homeID [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
+	var testRT routingTable = NewRoutingTable(homeID)
+
+	for i := 0; i < 1000; i++ {
+		newContact, _ := NewRandomContact()
+		testRT.AddContact(newContact)
+	}
+
+	targetContact, err := BuildContact("127.0.0.1", 80, [5]uint32{0, 0, 0, 0, 1})
+	if err != nil {
+		fmt.Printf("[%s] - unexpected error: %+v", testName, err.Error())
+	}
+	testRT.AddContact(targetContact)
+
+	foundContacts, err := testRT.FindXClosest(3, targetContact.ID())
+	if err != nil {
+		fmt.Printf("[%s] - %s\n", testName, err.Error())
+	}
+
+
+	checkAdd, ok := foundContacts.Front().Value.(contact)
+	if !ok {
+		fmt.Printf("[%s] - contact was not added properly, found: %+v", testName, foundContacts.Front().Value)
+		t.Fail()
+	}
+	if checkAdd.ID() != targetContact.ID() {
+		fmt.Printf("[%s] - contact was not properly added, expected %+v, found %+v", testName, targetContact, checkAdd)
+	}
+
+	if verbose {
+		fmt.Printf("target, %+v, has been added to the routing table\n", targetContact)
+		fmt.Printf("removing %+v from test routing table\n", targetContact)
+	}
+
+	err = testRT.RemoveContact(targetContact)
+	if err != nil {
+		fmt.Printf("[%s] - failed to remove contact %+v: error - %s", testName, targetContact, err.Error())
+		t.Fail()
+	}
+
+	updatedContacts, err := testRT.FindXClosest(3, targetContact.ID())
+	if err != nil {
+		fmt.Printf("[%s] - failed to search routing table after removal", testName)
+		t.Fail()
+	}
+	
+
+	checkRemoved, ok := updatedContacts.Front().Value.(contact)
+	if !ok {
+		fmt.Printf("[%s] - test list was corrupted: expected to find a contact, found %+v", testName, updatedContacts.Front().Value)
+		t.Fail()
+	}
+	if checkRemoved.ID() == targetContact.ID() {
+		fmt.Printf("[%s] - failed to remove target contact, %+v", testName, targetContact)
+		t.Fail()
+	}
+
+	if verbose {
+		fmt.Printf("search for target after removal returned, %+v\n", checkRemoved)
+	}
+}
+
