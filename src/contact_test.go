@@ -7,46 +7,6 @@ import (
 	"testing"
 )
 
-func TestValidateIPNegative(t *testing.T) {
-	var testName string = "TestValidateIPNegative"
-	var invalidIP string = "-127.0.0.1"
-	err := validateIPStructure(invalidIP)
-	if err == nil {
-		log.Printf("[%s] - %s\n", testName, err.Error())
-		t.FailNow()
-	}
-}
-
-func TestValidateIPLarge(t *testing.T) {
-	var testName string = "TestValidateIPLarge"
-	var invalidIP string = "1270.0.0.1"
-	err := validateIPStructure(invalidIP)
-	if err == nil {
-		log.Printf("[%s] - %s\n", testName, err.Error())
-		t.FailNow()
-	}
-}
-
-func TestValidateIPText(t *testing.T) {
-	var testName string = "TestValidateIPText"
-	var invalidIP string = "127.zero.0.1"
-	err := validateIPStructure(invalidIP)
-	if err == nil {
-		log.Printf("[%s] - %s\n", testName, err.Error())
-		t.FailNow()
-	}
-}
-
-func TestValidateIPTextManyFaults(t *testing.T) {
-	var testName string = "TestValidateIPTextManyFaults"
-	var invalidIP string = "1270.zero.0.-1.10"
-	err := validateIPStructure(invalidIP)
-	if err == nil {
-		log.Printf("[%s] - %s\n", testName, err.Error())
-		t.FailNow()
-	}
-}
-
 func TestValidateUDPPortNegative(t *testing.T) {
 	var testName string = "TestValidateUDPPortNegative"
 	var negativePort int = -80
@@ -68,7 +28,7 @@ func TestValidateUDPPortLARGE(t *testing.T) {
 func TestCreateContact(t *testing.T) {
 	var errMsg string = "[TestCreateContact] \n"
 	var errMsgDiff string = "[TestCreateContact] \n"
-	var expectedIP string = "127.0.0.1"
+	var expectedIP [4]byte = [4]byte{127, 0, 0, 1}
 	var expectedPort int = 80
 	var expectedID [5]uint32 = *new([5]uint32)
 	newContact, err := BuildContact(expectedIP, expectedPort, expectedID)
@@ -76,7 +36,8 @@ func TestCreateContact(t *testing.T) {
 		errMsg = errMsg + "could not create new contact " + err.Error() + "\n"
 	}
 	if newContact.IP() != expectedIP {
-		errMsg = errMsg + "IP missmatch: expected - " + expectedIP + " received - " + newContact.nodeIP + "\n"
+		var err string = fmt.Sprintf("IP missmatch: expected - %v, received - %v\n", expectedIP, newContact.IP())
+		errMsg = errMsg + err
 	}
 	if newContact.udpPort != expectedPort {
 		errMsg = errMsg + "Port missmatch: expected - " + strconv.Itoa(expectedPort) + " received - " + strconv.Itoa(newContact.Port()) + "\n"

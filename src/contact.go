@@ -2,18 +2,18 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"strconv"
-	"strings"
 )
 
 type contact struct {
-	nodeIP  string
+	nodeIP  [4]byte
 	udpPort int
 	nodeID  [5]uint32
 }
 
-func (c *contact) IP() string {
+func (c *contact) IP() [4]byte {
 	return c.nodeIP
 }
 
@@ -25,7 +25,7 @@ func (c *contact) ID() [5]uint32 {
 	return c.nodeID
 }
 
-func BuildContact(ip string, port int, id [5]uint32) (contact, error) {
+func BuildContact(ip [4]byte, port int, id [5]uint32) (contact, error) {
 	var newContact contact
 	var err error = validateContactInfo(ip, port, id)
 	if err != nil {
@@ -49,16 +49,13 @@ func EmptyContact() contact {
 // Generates and returns a new, validated, contact with pseudo-random values.
 func NewRandomContact() (contact, error) {
 	var port int = 80
-	var ip string
+	var ip [4]byte
 	var id [5]uint32 = [5]uint32{rand.Uint32(), rand.Uint32(), rand.Uint32(), rand.Uint32(), rand.Uint32()}
 
 	for i := 0; i < 4; i++ {
 		seg, _ := randU32(0, 256)
-		ip += strconv.FormatUint(uint64(seg), 10)
-		ip += "."
+		ip[i] = byte(seg)
 	}
-	ip = strings.TrimSuffix(ip, ".")
-
 	newContact, err := BuildContact(ip, port, id)
 	if err != nil {
 		return EmptyContact(), err
@@ -77,7 +74,7 @@ func randU32(min uint32, max uint32) (uint32, error) {
 	return x, nil
 }
 
-func validateContactInfo(ip string, port int, id [5]uint32) error {
+func validateContactInfo(ip [4]byte, port int, id [5]uint32) error {
 	var errMsg []error
 	err := validateIPStructure(ip)
 	if err != nil {
@@ -103,19 +100,12 @@ func validateContactInfo(ip string, port int, id [5]uint32) error {
 	}
 }
 
-func validateIPStructure(ip string) error {
-	var segment []string = strings.Split(ip, ".")
+func validateIPStructure(ip [4]byte) error {
 	var errMsg string = ""
-	if len(segment) != 4 {
-		errMsg = errMsg + ("invalid ip format, must be in the form of: x.x.x.x received: " + ip + "\n")
-	}
-	for i := 0; i < len(segment); i++ {
-		segValue, err := strconv.Atoi(segment[i])
-		if err != nil {
-			errMsg = errMsg + ("could not parse ip segment: " + err.Error() + "\n")
-		}
-		if segValue < 0 || segValue > 255 {
-			errMsg = errMsg + "ip segment out of bounds, valid for 0 <= segment <= 255, received: " + segment[i] + " in address " + ip + "\n"
+	for i := 0; i < len(ip); i++ {
+		if ip[i] < 0 || ip[i] > 255 {
+			var err string = fmt.Sprintf("ip segment out of bounds, valid for 0 <= segment <= 255, received: %v in address %v\n", ip[i], ip)
+			errMsg = errMsg + err
 		}
 	}
 	if errMsg != "" {

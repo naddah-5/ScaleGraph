@@ -55,7 +55,7 @@ func TestRoutingTableFindContact(t *testing.T) {
 		testRT.AddContact(newContact)
 	}
 
-	targetContact, err := BuildContact("127.0.0.1", 80, [5]uint32{0, 0, 0, 0, 1})
+	targetContact, err := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{0, 0, 0, 0, 1})
 	if err != nil {
 		log.Printf("[%s] - unexpected error: %+v", testName, err.Error())
 	}
@@ -100,7 +100,7 @@ func TestRoutingTableRemoveContact(t *testing.T) {
 		testRT.AddContact(newContact)
 	}
 
-	targetContact, err := BuildContact("127.0.0.1", 80, [5]uint32{0, 0, 0, 0, 1})
+	targetContact, err := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{0, 0, 0, 0, 1})
 	if err != nil {
 		log.Printf("[%s] - unexpected error: %+v", testName, err.Error())
 	}
