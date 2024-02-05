@@ -71,16 +71,16 @@ func (rt *routingTable) FindXClosest(x int, target [5]uint32) (*list.List, error
 			fmt.Println(err)
 			return res, err
 		}
-		for e := addRes.Front(); e != nil; e = e.Next() {
-			elem, ok := e.Value.(contact)
-			if !ok {
-				return res, errors.New(fmt.Sprintf("return from findSlider is corrupted, expected a contact found: %+v", e.Value))
-			} else {
-				res.PushBack(elem)
-			}
+		res, err = MergeByDistance(res, addRes, target)
+		if err != nil {
+			return res, err
 		}
 	} else if err != nil {
 		return res, err
+	}
+
+	for i := res.Len() - x; i > 0; i-- {
+		res.Remove(res.Back())
 	}
 
 	return res, nil
@@ -90,22 +90,21 @@ func (rt *routingTable) findSlider(startIndex int, count int, target [5]uint32) 
 	var res *list.List = list.New()
 
 	for i := max(startIndex-1, 0); i >= 0; i-- {
-		newCont, _ := rt.router[i].FindXClosest(count, target)
-		res, _ = MergeByDistance(res, newCont, target)
+		newContent, _ := rt.router[i].FindXClosest(count, target)
+		var err error
+		res, err = MergeByDistance(res, newContent, target)
+		if err != nil {
+			return res, err
+		}
 	}
 
 	for i := min(startIndex+1, KEYSPACE); i < KEYSPACE; i++ {
-		newCont, _ := rt.router[i].FindXClosest(count, target)
-		fmt.Println("appending to res:")
-		for e := newCont.Front(); e != nil; e = e.Next() {
-			elem, ok := e.Value.(contact)
-			if !ok {
-				fmt.Printf("found illegal element: %+v", e.Value)
-			} else {
-				fmt.Printf("elem: %+v", elem)
-			}
+		newContent, _ := rt.router[i].FindXClosest(count, target)
+		var err error
+		res, err = MergeByDistance(res, newContent, target)
+		if err != nil {
+			return res, err
 		}
-		res, _ = MergeByDistance(res, newCont, target)
 	}
 
 	return res, nil

@@ -46,7 +46,7 @@ func TestRoutingTableAddContact(t *testing.T) {
 
 func TestRoutingTableFindContact(t *testing.T) {
 	var testName string = "TestRoutingTableFindContact"
-	var verbose bool = true
+	var verbose bool = false
 	var homeID [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
 	var testRT routingTable = NewRoutingTable(homeID)
 
@@ -68,14 +68,26 @@ func TestRoutingTableFindContact(t *testing.T) {
 	if err != nil {
 		fmt.Printf("[%s] - %s\n", testName, err.Error())
 	}
-	fmt.Printf("searching for: %+v\nfound:\n", targetContact.ID())
-	for e := foundContacts.Front(); e != nil; e = e.Next() {
-		elem, ok := e.Value.(contact)
-		if !ok {
-			fmt.Printf("element is not a contact: %+v\n", e.Value)
-			break
-		}
-		fmt.Printf("contact: %+v\n", elem)
-	}
 
+	if verbose {
+		fmt.Printf("searching for: %+v\nfound:\n", targetContact.ID())
+		for e := foundContacts.Front(); e != nil; e = e.Next() {
+			elem, ok := e.Value.(contact)
+			var relDist int = RelativeDistance(elem.ID(), targetContact.ID())
+			if !ok {
+				fmt.Printf("element is not a contact: %+v\n", e.Value)
+				break
+			}
+			fmt.Printf("contact: ip : %-15v port : %-5v ID : %-10v relative distance : %-5d\n", elem.IP(), elem.Port(), elem.ID(), relDist)
+		}
+	}
+	closestFound, ok := foundContacts.Front().Value.(contact)
+	if !ok {
+		fmt.Printf("[%s] - list has been corrupted: expected contact, found %+v", testName, foundContacts.Front().Value)
+		t.Fail()
+	}
+	if RelativeDistance(closestFound.ID(), targetContact.ID()) != 0 {
+		fmt.Printf("[%s] - failed to find correct contact, expected to find %+v with relative distance of 0", testName, targetContact)
+		t.Fail()
+	}
 }
