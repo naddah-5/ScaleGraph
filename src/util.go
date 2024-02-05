@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"errors"
 	"fmt"
+	"log"
 	"math/bits"
 )
 
@@ -95,12 +96,12 @@ func MergeByDistance(contactListA *list.List, contactListB *list.List, target [5
 	for listA.Len() > 0 && listB.Len() > 0 {
 		elemA, ok := listA.Front().Value.(contact)
 		if !ok {
-			fmt.Printf("bucket has been corrupted: expected a contact found %+v\n", listA.Front())
+			log.Printf("bucket has been corrupted: expected a contact found %+v\n", listA.Front())
 			return res, errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact found %+v\n", listA.Front()))
 		}
 		elemB, ok := listB.Front().Value.(contact)
 		if !ok {
-			fmt.Printf("bucket has been corrupted: expected a contact found %+v\n", listB.Front())
+			log.Printf("bucket has been corrupted: expected a contact found %+v\n", listB.Front())
 			return res, errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact found %+v\n", listB.Front()))
 		}
 

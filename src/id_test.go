@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"testing"
 )
 
@@ -19,7 +19,7 @@ func TestGenerateIDRandomness(t *testing.T) {
 		}
 	}
 	if coincidence/confidence >= warning {
-		fmt.Printf("[%s] - WARNING: low probability event: %d, collisions in %d generations", testName, int(coincidence), int(confidence))
+		log.Printf("[%s] - WARNING: low probability event: %d, collisions in %d generations", testName, int(coincidence), int(confidence))
 		t.FailNow()
 	}
 }

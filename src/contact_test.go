@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"testing"
 )
@@ -11,7 +12,7 @@ func TestValidateIPNegative(t *testing.T) {
 	var invalidIP string = "-127.0.0.1"
 	err := validateIPStructure(invalidIP)
 	if err == nil {
-		fmt.Printf("[%s] - %s\n", testName, err.Error())
+		log.Printf("[%s] - %s\n", testName, err.Error())
 		t.FailNow()
 	}
 }
@@ -21,7 +22,7 @@ func TestValidateIPLarge(t *testing.T) {
 	var invalidIP string = "1270.0.0.1"
 	err := validateIPStructure(invalidIP)
 	if err == nil {
-		fmt.Printf("[%s] - %s\n", testName, err.Error())
+		log.Printf("[%s] - %s\n", testName, err.Error())
 		t.FailNow()
 	}
 }
@@ -31,7 +32,7 @@ func TestValidateIPText(t *testing.T) {
 	var invalidIP string = "127.zero.0.1"
 	err := validateIPStructure(invalidIP)
 	if err == nil {
-		fmt.Printf("[%s] - %s\n", testName, err.Error())
+		log.Printf("[%s] - %s\n", testName, err.Error())
 		t.FailNow()
 	}
 }
@@ -41,7 +42,7 @@ func TestValidateIPTextManyFaults(t *testing.T) {
 	var invalidIP string = "1270.zero.0.-1.10"
 	err := validateIPStructure(invalidIP)
 	if err == nil {
-		fmt.Printf("[%s] - %s\n", testName, err.Error())
+		log.Printf("[%s] - %s\n", testName, err.Error())
 		t.FailNow()
 	}
 }
@@ -51,7 +52,7 @@ func TestValidateUDPPortNegative(t *testing.T) {
 	var negativePort int = -80
 	err := validateUDPPort(negativePort)
 	if err == nil {
-		fmt.Printf("[%s] - %s\n", testName, err.Error())
+		log.Printf("[%s] - %s\n", testName, err.Error())
 	}
 }
 
@@ -60,7 +61,7 @@ func TestValidateUDPPortLARGE(t *testing.T) {
 	var largePort int = 8080
 	err := validateUDPPort(largePort)
 	if err == nil {
-		fmt.Printf("[%s] - %s\n", testName, err.Error())
+		log.Printf("[%s] - %s\n", testName, err.Error())
 	}
 }
 
@@ -86,7 +87,7 @@ func TestCreateContact(t *testing.T) {
 		errMsg = errMsg + "ID missmatch: expected - " + eID + " received - " + fID + "\n"
 	}
 	if errMsg != errMsgDiff {
-		fmt.Println(errMsg)
+		log.Println(errMsg)
 		t.FailNow()
 	}
 }
@@ -96,10 +97,10 @@ func TestNewRandomContact(t *testing.T) {
 	var verbose bool = false
 	randomContact, err := NewRandomContact()
 	if err != nil {
-		fmt.Printf("[%s] - %s", testName, err.Error())
+		log.Printf("[%s] - %s", testName, err.Error())
 		t.Fail()
 	}
 	if verbose {
-		fmt.Printf("contact: %+v", randomContact)
+		log.Printf("contact: %+v", randomContact)
 	}
 }

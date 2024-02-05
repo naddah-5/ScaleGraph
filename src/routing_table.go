@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"errors"
 	"fmt"
+	"log"
 )
 
 type routingTable struct {
@@ -60,7 +61,7 @@ func (rt *routingTable) FindXClosest(x int, target [5]uint32) (*list.List, error
 	var res *list.List = list.New()
 	bucketIndex, err := rt.BucketIndex(target)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return res, errors.New(fmt.Sprintf("failed to find %d closest contacts, error: %s", x, err.Error()))
 	}
 	res, err = rt.router[bucketIndex].FindXClosest(x, target)
@@ -68,7 +69,7 @@ func (rt *routingTable) FindXClosest(x int, target [5]uint32) (*list.List, error
 		var count int = x - res.Len()
 		addRes, err := rt.findSlider(bucketIndex, count, target)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return res, err
 		}
 		res, err = MergeByDistance(res, addRes, target)
