@@ -1,9 +1,11 @@
 package main
 
+import "net"
+
 //import "net"
 
 type call struct {
-	
+	server net.Listener
 }
 
 func UDPListener() {
