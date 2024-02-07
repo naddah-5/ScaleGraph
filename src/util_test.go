@@ -1,4 +1,5 @@
-package main
+package scaleGraph
+
 
 import (
 	"container/list"

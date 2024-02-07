@@ -1,9 +1,14 @@
-package main
+package scaleGraph
+
 
 import (
 	"log"
 	"net"
 )
+
+func TestVisibility() {
+	log.Println("hello world")
+}
 
 type Server struct {
 	addr  net.IP
