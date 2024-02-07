@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"log"
+)
 
 const (
 	KEYSPACE      = 160 // the number of buckets
@@ -10,5 +12,7 @@ const (
 )
 
 func main() {
-	fmt.Println("hello world")
+	log.Println("hello world")
+	newTestServer := NewServer([4]byte{127, 0, 0, 1})
+	log.Fatal(newTestServer.Start())
 }
