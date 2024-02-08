@@ -1,4 +1,4 @@
-package scaleGraph
+package scalegraph
 
 
 import (
@@ -68,7 +68,7 @@ func TestFillNewBucket(t *testing.T) {
 
 	err = testBucket.AddContact(overflowContact)
 	if err == nil {
-		log.Printf("[%s] - expected full bucket error", testName)
+		log.Printf("[%s] - expected full Bucket error", testName)
 		t.FailNow()
 	}
 }
@@ -160,7 +160,7 @@ func TestRemoveHeadContact(t *testing.T) {
 	}
 	head := testBucket.content.Front().Value.(contact)
 	if head.ID() == contact1.ID() {
-		log.Printf("[%s] - failed to remove contact, %+v, from bucket\n", testName, contact1)
+		log.Printf("[%s] - failed to remove contact, %+v, from Bucket\n", testName, contact1)
 	}
 }
 
@@ -217,7 +217,7 @@ func TestRemoveCenterContact(t *testing.T) {
 	for e := testBucket.content.Front(); e != nil; e = e.Next() {
 		elem, ok := e.Value.(contact)
 		if !ok {
-			log.Printf("[%s] - bucket has been corrupted: expected contact, found: %+v\n", testName, e)
+			log.Printf("[%s] - Bucket has been corrupted: expected contact, found: %+v\n", testName, e)
 			t.FailNow()
 		}
 		if elem.ID() == contact3.ID() {
@@ -428,11 +428,11 @@ func TestFindXClosest(t *testing.T) {
 	}
 
 	if inspectTest {
-		log.Println("bucket before:")
+		log.Println("Bucket before:")
 		for e := testBucket.content.Front(); e != nil; e = e.Next() {
 			elem, ok := e.Value.(contact)
 			if !ok {
-				log.Printf("corrupted bucket: %+v\n", e.Value)
+				log.Printf("corrupted Bucket: %+v\n", e.Value)
 			}
 			relDist := RelativeDistance(elem.ID(), target)
 			log.Printf("elem: %+v, relDist: %d\n", elem, relDist)
@@ -450,7 +450,7 @@ func TestFindXClosest(t *testing.T) {
 			relDist := RelativeDistance(elem.ID(), target)
 			log.Printf("elem: %+v, relDist: %d\n", elem, relDist)
 		}
-		log.Println("bucket after select")
+		log.Println("Bucket after select")
 		for e := testBucket.content.Front(); e != nil; e = e.Next() {
 			elem := e.Value.(contact)
 			log.Printf("elem: %+v\n", elem)

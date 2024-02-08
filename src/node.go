@@ -1,4 +1,4 @@
-package scaleGraph
+package scalegraph
 
 const (
 	KEYSPACE      = 160 // the number of buckets

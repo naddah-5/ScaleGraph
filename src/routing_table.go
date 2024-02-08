@@ -1,4 +1,4 @@
-package scaleGraph
+package scalegraph
 
 
 import (

@@ -1,4 +1,4 @@
-package scaleGraph
+package scalegraph
 
 
 import (
@@ -92,7 +92,7 @@ func TestRoutingTableFindContact(t *testing.T) {
 
 func TestRoutingTableRemoveContact(t *testing.T) {
 	var testName string = "TestRoutingTableRemoveContact"
-	var verbose bool = true
+	var verbose bool = false
 	var homeID [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
 	var testRT routingTable = NewRoutingTable(homeID)
 

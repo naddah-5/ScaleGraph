@@ -1,4 +1,4 @@
-package scaleGraph
+package scalegraph
 
 import (
 	"container/list"
@@ -19,13 +19,13 @@ func NewBucket() bucket {
 	return newBucket
 }
 
-// Adds the given contact to bucket, returns an error if bucket is full.
-// Updates the contacts position if it already exists in bucket.
+// Adds the given contact to Bucket, returns an error if Bucket is full.
+// Updates the contacts position if it already exists in Bucket.
 func (b *bucket) AddContact(newContact contact) error {
 	for e := b.content.Front(); e != nil; e = e.Next() {
 		elem, ok := e.Value.(contact)
 		if !ok {
-			return errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact, found: %+v", e.Value))
+			return errors.New(fmt.Sprintf("Bucket has been corrupted: expected a contact, found: %+v", e.Value))
 		}
 		if elem.ID() == newContact.ID() && e != nil {
 			b.content.MoveToBack(e)
@@ -33,7 +33,7 @@ func (b *bucket) AddContact(newContact contact) error {
 		}
 	}
 	if b.content.Len() >= b.capacity {
-		return errors.New("bucket is full")
+		return errors.New("Bucket is full")
 	}
 	b.content.PushBack(newContact)
 	return nil
@@ -43,7 +43,7 @@ func (b *bucket) RemoveContact(target contact) error {
 	for e := b.content.Front(); e != nil; e = e.Next() {
 		elem, ok := e.Value.(contact)
 		if !ok {
-			return errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact, found: %+v", e.Value))
+			return errors.New(fmt.Sprintf("Bucket has been corrupted: expected a contact, found: %+v", e.Value))
 		}
 		if elem.ID() == target.ID() {
 			b.content.Remove(e)
@@ -53,13 +53,13 @@ func (b *bucket) RemoveContact(target contact) error {
 	return nil
 }
 
-// Searches bucket for a contact matching the given ID, returns error if no match is found. Does not update contacts position in the bucket.
+// Searches Bucket for a contact matching the given ID, returns error if no match is found. Does not update contacts position in the Bucket.
 func (b *bucket) FindContact(target [5]uint32) (contact, error) {
 	var noMatch contact = EmptyContact()
 	for e := b.content.Front(); e != nil; e = e.Next() {
 		elem, ok := e.Value.(contact)
 		if !ok {
-			return noMatch, errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact, found %+v", e.Value))
+			return noMatch, errors.New(fmt.Sprintf("Bucket has been corrupted: expected a contact, found %+v", e.Value))
 		}
 
 		if elem.ID() == target {
@@ -69,16 +69,16 @@ func (b *bucket) FindContact(target [5]uint32) (contact, error) {
 	return noMatch, errors.New("no match")
 }
 
-// Returns up to x closest contacts to the given node id, if the bucket
+// Returns up to x closest contacts to the given node id, if the Bucket
 // contain less than x contacts all contacts are returned along with a "incomplete" error.
 // The result is returned in a sorted list, from closest to target to furthest from target.
-// Note that this method always performs a deep copy of the bucket.
+// Note that this method always performs a deep copy of the Bucket.
 func (b *bucket) FindXClosest(x int, target [5]uint32) (*list.List, error) {
 	var res *list.List = list.New()
 	for e := b.content.Front(); e != nil; e = e.Next() {
 		elem, ok := e.Value.(contact)
 		if !ok {
-			return res, errors.New(fmt.Sprintf("bucket has been corrupted: expected a contact, found %+v\n", e.Value))
+			return res, errors.New(fmt.Sprintf("Bucket has been corrupted: expected a contact, found %+v\n", e.Value))
 		}
 		res.PushFront(elem)
 	}
