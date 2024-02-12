@@ -25,5 +25,3 @@ func (c CMD) String() string {
 	}
 	return "unknown"
 }
-
-
