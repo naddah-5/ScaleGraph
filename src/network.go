@@ -1,19 +1,14 @@
 package scalegraph
 
-
 import (
+	"fmt"
 	"log"
 	"net"
 )
 
-func TestVisibility() {
-	log.Println("hello world")
-}
-
 type Server struct {
-	addr  net.IP
-	ln    net.Listener
-	close chan struct{}
+	addr  net.UDPAddr
+	conn  net.Conn
 }
 
 func NewServer(addr [4]byte) *Server {
@@ -22,52 +17,28 @@ func NewServer(addr [4]byte) *Server {
 	for i := 0; i < 4; i++ {
 		ip = append(ip, addr[i])
 	}
+	fmtAddr := fmt.Sprintf("127.0.0.1:%d", PORT)
+	udpAddr, err := net.ResolveUDPAddr("udp", fmtAddr)
+	if err != nil {
+		log.Println(err)
+	}
 
 	return &Server{
-		addr:  ip,
-		close: make(chan struct{}),
+		addr:  *udpAddr,
 	}
 }
 
-func (s *Server) Start() error {
-	ln, err := net.Listen("tcp", s.addr.String())
-	if err != nil {
-		return err
-	}
-	defer ln.Close()
-	s.ln = ln
-
-	go s.accept()
-
-	<-s.close
-
-	return nil
-}
-
-func (s *Server) accept() {
-	for {
-		conn, err := s.ln.Accept()
-		if err != nil {
-			log.Println("accept error: ", err)
-			continue
-		}
-
-		go s.read(conn)
-		log.Printf("accepted connection from: %s", conn.RemoteAddr().String())
-	}
-}
-
-func (s *Server) read(conn net.Conn) {
-	defer conn.Close()
+func (s *Server) read() {
 	buf := make([]byte, 2048)
 
 	for {
-		n, err := conn.Read(buf)
+		n, err := s.conn.Read(buf)
 		if err != nil {
 			log.Println("read error: ", err)
 		} else {
 			msg := buf[:n]
 			log.Printf(string(msg))
+			// make a go call to the handler
 		}
 	}
 }

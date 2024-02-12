@@ -9,5 +9,5 @@ import (
 
 func main() {
 	log.Println("hello world")
-	scaleGraph.TestVisibility()
+	_ = scaleGraph.NewServer([4]byte{127, 0, 0, 1})
 }
