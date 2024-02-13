@@ -8,11 +8,12 @@ import (
 
 type Server struct {
 	addr  net.UDPAddr
-	conn  net.Conn
+	conn  net.UDPConn
+	close chan struct{}
 }
 
 func NewServer(addr [4]byte) *Server {
-	log.Println("starting a new server")
+	log.Println("creating a new server")
 	var ip net.IP
 	for i := 0; i < 4; i++ {
 		ip = append(ip, addr[i])
@@ -20,25 +21,47 @@ func NewServer(addr [4]byte) *Server {
 	fmtAddr := fmt.Sprintf("127.0.0.1:%d", PORT)
 	udpAddr, err := net.ResolveUDPAddr("udp", fmtAddr)
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err)
+	}
+
+	conn, err := net.ListenUDP("udp", udpAddr)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	return &Server{
-		addr:  *udpAddr,
+		addr: *udpAddr,
+		conn: *conn,
+		close: make(chan struct{}),
 	}
 }
 
-func (s *Server) read() {
-	buf := make([]byte, 2048)
+func (s *Server) Start() {
+	defer s.conn.Close()
+	go s.listen()
+	log.Println("starting a server")
+	<-s.close
+	return
+}
 
+func (s *Server) Close() {
+	log.Println("closing server")
+	close(s.close)
+	log.Println("returning")
+	return
+}
+
+func (s *Server) listen() {
 	for {
-		n, err := s.conn.Read(buf)
+		buf := make([]byte, 2048)
+		n, _, err := s.conn.ReadFrom(buf)
 		if err != nil {
 			log.Println("read error: ", err)
 		} else {
 			msg := buf[:n]
 			log.Printf(string(msg))
-			// make a go call to the handler
+			go Handler(msg)
 		}
 	}
+
 }
