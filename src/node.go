@@ -32,7 +32,3 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC) Node 
 
 func (n *Node) Start(node [4]byte) {}
 
-type Message struct {
-	Receiver [4]byte
-	RPC
-}

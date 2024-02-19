@@ -1,9 +1,6 @@
 package scalegraph
 
-type call struct {
-	resChan *chan RPC
-}
-
-func Handler(RPC, chan RPC) {
+// Parses the RPC and dispatch subroutines
+func Handler(msg RPC) {
 
 }
