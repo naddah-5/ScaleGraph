@@ -1,10 +1,9 @@
 package scalegraph
 
 type call struct {
-	resChan chan string
-	CMD
+	resChan *chan RPC
 }
 
-func Handler(msg []byte) {
+func Handler(RPC, chan RPC) {
 
 }

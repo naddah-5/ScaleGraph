@@ -25,3 +25,9 @@ func (c CMD) String() string {
 	}
 	return "unknown"
 }
+
+type RPC struct {
+	CMD
+	Sender  [4]byte
+	Content string
+}

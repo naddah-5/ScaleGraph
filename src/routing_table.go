@@ -1,6 +1,5 @@
 package scalegraph
 
-
 import (
 	"container/list"
 	"errors"

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"math/bits"
+	"math/rand"
 )
 
 func RelativeDistance(nodeA [5]uint32, nodeB [5]uint32) int {
@@ -137,4 +138,35 @@ func MergeByDistance(contactListA *list.List, contactListB *list.List, target [5
 	}
 
 	return res, nil
+}
+
+// returns a pseudo-random uint32 in the range (min, max]
+func randU32(min uint32, max uint32) (uint32, error) {
+	if min >= max {
+		return 0, errors.New("invalid range")
+	}
+	var x uint32 = rand.Uint32()
+	x %= (max - min)
+	x += min
+	return x, nil
+}
+
+// create 5 uint32 (160 bits) which are which represents the Kademlia ID
+func GenerateID() [5]uint32 {
+	var bitArray [5]uint32
+	for i := 0; i < 5; i++ {
+		var section uint32 = rand.Uint32()
+		bitArray[i] = section
+	}
+	return bitArray
+}
+
+func GenerateIP() [4]byte {
+	var ip [4]byte
+	for i := 0; i < 4; i++ {
+		tmpSeg, _ := randU32(0, 256)
+		var seg byte = byte(tmpSeg)
+		ip[i] = seg
+	}
+	return ip
 }

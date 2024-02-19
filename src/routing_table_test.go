@@ -1,6 +1,5 @@
 package scalegraph
 
-
 import (
 	"log"
 	"testing"
@@ -112,7 +111,6 @@ func TestRoutingTableRemoveContact(t *testing.T) {
 		log.Printf("[%s] - %s\n", testName, err.Error())
 	}
 
-
 	checkAdd, ok := foundContacts.Front().Value.(contact)
 	if !ok {
 		log.Printf("[%s] - contact was not added properly, found: %+v", testName, foundContacts.Front().Value)
@@ -138,7 +136,6 @@ func TestRoutingTableRemoveContact(t *testing.T) {
 		log.Printf("[%s] - failed to search routing table after removal", testName)
 		t.Fail()
 	}
-	
 
 	checkRemoved, ok := updatedContacts.Front().Value.(contact)
 	if !ok {
@@ -154,4 +151,3 @@ func TestRoutingTableRemoveContact(t *testing.T) {
 		log.Printf("search for target after removal returned, %+v\n", checkRemoved)
 	}
 }
-

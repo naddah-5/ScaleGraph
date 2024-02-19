@@ -64,16 +64,7 @@ func NewRandomContact() (contact, error) {
 	return newContact, nil
 }
 
-// returns a pseudo-random uint32 in the range (min, max]
-func randU32(min uint32, max uint32) (uint32, error) {
-	if min >= max {
-		return 0, errors.New("invalid range")
-	}
-	var x uint32 = rand.Uint32()
-	x %= (max - min)
-	x += min
-	return x, nil
-}
+
 
 func validateContactInfo(ip [4]byte, port int, id [5]uint32) error {
 	var errMsg []error
