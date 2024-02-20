@@ -52,3 +52,9 @@ func (s *Simnet) SpawnNode() {
 
 	go newNode.Start(s.serverIP)
 }
+
+func (s *Simnet) spawnListener() {
+	for {
+		// server
+	}
+}

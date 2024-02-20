@@ -41,8 +41,8 @@ type RPC struct {
 	CMD
 	ID          [5]uint32
 	Sender      contact
-	ContentKey  []byte
-	Content     []byte
+	WalletKey   []byte
+	Transaction []byte
 	KNodes      []contact
 	Acknowledge bool
 }
