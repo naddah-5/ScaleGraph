@@ -8,38 +8,14 @@ import (
 func TestFillNewBucket(t *testing.T) {
 	var testName string = "TestFillBucket"
 	var testBucket bucket = NewBucket()
-	contact1, err := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact2, err := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact3, err := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact4, err := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact5, err := BuildContact([4]byte{127, 0, 0, 5}, 80, [5]uint32{21, 22, 23, 24, 25})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	overflowContact, err := BuildContact([4]byte{127, 0, 0, 6}, 80, [5]uint32{26, 27, 28, 29, 30})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
+	contact1 := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
+	contact2 := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
+	contact3 := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
+	contact4 := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
+	contact5 := BuildContact([4]byte{127, 0, 0, 5}, 80, [5]uint32{21, 22, 23, 24, 25})
+	overflowContact := BuildContact([4]byte{127, 0, 0, 6}, 80, [5]uint32{26, 27, 28, 29, 30})
 
-	err = testBucket.AddContact(contact1)
+	err := testBucket.AddContact(contact1)
 	if err != nil {
 		log.Printf("[%s] - %s", testName, err.Error())
 		t.FailNow()
@@ -75,19 +51,10 @@ func TestFillNewBucket(t *testing.T) {
 func TestDoubbleAddBucket(t *testing.T) {
 	var testName string = "TestDoubbleAddBucket"
 	var testBucket bucket = NewBucket()
-	testContact, err := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	bufferContact, err := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
+	testContact := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
+	bufferContact := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
 
-	}
-
-	err = testBucket.AddContact(testContact)
+	err := testBucket.AddContact(testContact)
 	if err != nil {
 		log.Printf("[%s] - unexpected error when adding contact: %s", testName, err.Error())
 		t.FailNow()
@@ -110,28 +77,12 @@ func TestDoubbleAddBucket(t *testing.T) {
 func TestRemoveHeadContact(t *testing.T) {
 	var testName string = "TestRemoveHeadContact"
 	var testBucket bucket = NewBucket()
-	contact1, err := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact2, err := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact3, err := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact4, err := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
+	contact1 := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
+	contact2 := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
+	contact3 := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
+	contact4 := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
 
-	err = testBucket.AddContact(contact1)
+	err := testBucket.AddContact(contact1)
 	if err != nil {
 		log.Printf("[%s] - %s", testName, err.Error())
 		t.FailNow()
@@ -166,28 +117,12 @@ func TestRemoveHeadContact(t *testing.T) {
 func TestRemoveCenterContact(t *testing.T) {
 	var testName string = "TestRemoveCenterContact"
 	var testBucket bucket = NewBucket()
-	contact1, err := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact2, err := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact3, err := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact4, err := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
+	contact1 := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
+	contact2 := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
+	contact3 := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
+	contact4 := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
 
-	err = testBucket.AddContact(contact1)
+	err := testBucket.AddContact(contact1)
 	if err != nil {
 		log.Printf("[%s] - %s", testName, err.Error())
 		t.FailNow()
@@ -229,33 +164,13 @@ func TestRemoveCenterContact(t *testing.T) {
 func TestFindContact(t *testing.T) {
 	var testName string = "TestFindContat"
 	var testBucket bucket = NewBucket()
-	contact1, err := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact2, err := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact3, err := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact4, err := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact5, err := BuildContact([4]byte{127, 0, 0, 5}, 80, [5]uint32{21, 22, 23, 24, 25})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
+	contact1 := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
+	contact2 := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
+	contact3 := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
+	contact4 := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
+	contact5 := BuildContact([4]byte{127, 0, 0, 5}, 80, [5]uint32{21, 22, 23, 24, 25})
 
-	err = testBucket.AddContact(contact1)
+	err := testBucket.AddContact(contact1)
 	if err != nil {
 		log.Printf("[%s] - %s", testName, err.Error())
 		t.FailNow()
@@ -303,38 +218,14 @@ func TestFindContact(t *testing.T) {
 func TestFindMissingContact(t *testing.T) {
 	var testName string = "TestFindMissingContact"
 	var testBucket bucket = NewBucket()
-	contact1, err := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact2, err := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact3, err := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact4, err := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact5, err := BuildContact([4]byte{127, 0, 0, 5}, 80, [5]uint32{21, 22, 23, 24, 25})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact6, err := BuildContact([4]byte{127, 0, 0, 6}, 80, [5]uint32{26, 27, 28, 29, 30})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
+	contact1 := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
+	contact2 := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
+	contact3 := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
+	contact4 := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
+	contact5 := BuildContact([4]byte{127, 0, 0, 5}, 80, [5]uint32{21, 22, 23, 24, 25})
+	contact6 := BuildContact([4]byte{127, 0, 0, 6}, 80, [5]uint32{26, 27, 28, 29, 30})
 
-	err = testBucket.AddContact(contact1)
+	err := testBucket.AddContact(contact1)
 	if err != nil {
 		log.Printf("[%s] - %s", testName, err.Error())
 		t.FailNow()
@@ -374,33 +265,13 @@ func TestFindXClosest(t *testing.T) {
 	var target [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
 	var testBucket bucket = NewBucket()
 
-	contact1, err := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact2, err := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact3, err := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact4, err := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact5, err := BuildContact([4]byte{127, 0, 0, 5}, 80, [5]uint32{21, 22, 23, 24, 25})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
+	contact1 := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
+	contact2 := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
+	contact3 := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
+	contact4 := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
+	contact5 := BuildContact([4]byte{127, 0, 0, 5}, 80, [5]uint32{21, 22, 23, 24, 25})
 
-	err = testBucket.AddContact(contact1)
+	err := testBucket.AddContact(contact1)
 	if err != nil {
 		log.Printf("[%s] - %s", testName, err.Error())
 		t.FailNow()

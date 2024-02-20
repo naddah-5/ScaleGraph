@@ -12,7 +12,7 @@ func TestRoutingTableAddContact(t *testing.T) {
 	var testRT routingTable = NewRoutingTable(homeID)
 
 	for i := 0; i < 1000; i++ {
-		newContact, _ := NewRandomContact()
+		newContact := NewRandomContact()
 		testRT.AddContact(newContact)
 	}
 
@@ -51,14 +51,11 @@ func TestRoutingTableFindContact(t *testing.T) {
 	var testRT routingTable = NewRoutingTable(homeID)
 
 	for i := 0; i < 1000; i++ {
-		newContact, _ := NewRandomContact()
+		newContact := NewRandomContact()
 		testRT.AddContact(newContact)
 	}
 
-	targetContact, err := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{0, 0, 0, 0, 1})
-	if err != nil {
-		log.Printf("[%s] - unexpected error: %+v", testName, err.Error())
-	}
+	targetContact := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{0, 0, 0, 0, 1})
 	testRT.AddContact(targetContact)
 
 	foundContacts, err := testRT.FindXClosest(3, [5]uint32{0, 0, 0, 0, 1})
@@ -96,14 +93,11 @@ func TestRoutingTableRemoveContact(t *testing.T) {
 	var testRT routingTable = NewRoutingTable(homeID)
 
 	for i := 0; i < 1000; i++ {
-		newContact, _ := NewRandomContact()
+		newContact := NewRandomContact()
 		testRT.AddContact(newContact)
 	}
 
-	targetContact, err := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{0, 0, 0, 0, 1})
-	if err != nil {
-		log.Printf("[%s] - unexpected error: %+v", testName, err.Error())
-	}
+	targetContact := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{0, 0, 0, 0, 1})
 	testRT.AddContact(targetContact)
 
 	foundContacts, err := testRT.FindXClosest(3, targetContact.ID())

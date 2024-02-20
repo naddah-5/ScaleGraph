@@ -26,19 +26,14 @@ func (c *contact) ID() [5]uint32 {
 	return c.nodeID
 }
 
-func BuildContact(ip [4]byte, port int, id [5]uint32) (contact, error) {
+func BuildContact(ip [4]byte, port int, id [5]uint32) contact {
 	var newContact contact
-	var err error = validateContactInfo(ip, port, id)
-	if err != nil {
-		return newContact, err
-	}
-
 	newContact = contact{
 		nodeIP:  ip,
 		udpPort: port,
 		nodeID:  id,
 	}
-	return newContact, nil
+	return newContact
 }
 
 // Provides a empty contact instance.
@@ -48,7 +43,7 @@ func EmptyContact() contact {
 }
 
 // Generates and returns a new, validated, contact with pseudo-random values.
-func NewRandomContact() (contact, error) {
+func NewRandomContact() contact {
 	var port int = 80
 	var ip [4]byte
 	var id [5]uint32 = [5]uint32{rand.Uint32(), rand.Uint32(), rand.Uint32(), rand.Uint32(), rand.Uint32()}
@@ -57,11 +52,8 @@ func NewRandomContact() (contact, error) {
 		seg, _ := randU32(0, 256)
 		ip[i] = byte(seg)
 	}
-	newContact, err := BuildContact(ip, port, id)
-	if err != nil {
-		return EmptyContact(), err
-	}
-	return newContact, nil
+	newContact := BuildContact(ip, port, id)
+	return newContact
 }
 
 

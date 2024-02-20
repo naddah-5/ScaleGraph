@@ -35,8 +35,23 @@ func (c CMD) String() string {
 	return "unknown"
 }
 
+// Contains fields for all RPC data
+// note that fields may be nil.
 type RPC struct {
 	CMD
-	Sender  [4]byte
-	Content string
+	ID          [5]uint32
+	Sender      contact
+	ContentKey  []byte
+	Content     []byte
+	KNodes      []contact
+	Acknowledge bool
+}
+
+func GenerateRPC(cmd CMD, sender contact) RPC {
+	newRPC := RPC{
+		CMD:    cmd,
+		ID:     GenerateID(),
+		Sender: sender,
+	}
+	return newRPC
 }

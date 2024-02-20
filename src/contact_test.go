@@ -31,10 +31,7 @@ func TestCreateContact(t *testing.T) {
 	var expectedIP [4]byte = [4]byte{127, 0, 0, 1}
 	var expectedPort int = 80
 	var expectedID [5]uint32 = *new([5]uint32)
-	newContact, err := BuildContact(expectedIP, expectedPort, expectedID)
-	if err != nil {
-		errMsg = errMsg + "could not create new contact " + err.Error() + "\n"
-	}
+	newContact := BuildContact(expectedIP, expectedPort, expectedID)
 	if newContact.IP() != expectedIP {
 		var err string = fmt.Sprintf("IP missmatch: expected - %v, received - %v\n", expectedIP, newContact.IP())
 		errMsg = errMsg + err
@@ -50,18 +47,5 @@ func TestCreateContact(t *testing.T) {
 	if errMsg != errMsgDiff {
 		log.Println(errMsg)
 		t.FailNow()
-	}
-}
-
-func TestNewRandomContact(t *testing.T) {
-	var testName string = "TestNewRandomContact"
-	var verbose bool = false
-	randomContact, err := NewRandomContact()
-	if err != nil {
-		log.Printf("[%s] - %s", testName, err.Error())
-		t.Fail()
-	}
-	if verbose {
-		log.Printf("contact: %+v", randomContact)
 	}
 }

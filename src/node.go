@@ -11,24 +11,22 @@ type Node struct {
 	Replication int
 	BucketSize  int
 	KeySpace    int
-	ID          [5]uint32
-	IP          [4]byte
+	Me          contact
 	network
 	routingTable
 }
 
 func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC) Node {
 	net := NewNetwork(listener, sender)
+	me := BuildContact(GenerateIP(), PORT, GenerateID())
 	return Node{
 		Replication:  REPLICATION,
 		BucketSize:   KBUCKETVOLUME,
 		KeySpace:     KEYSPACE,
-		ID:           id,
-		IP:           ip,
+		Me:           me,
 		network:      net,
 		routingTable: NewRoutingTable(id),
 	}
 }
 
 func (n *Node) Start(node [4]byte) {}
-
