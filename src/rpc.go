@@ -1,5 +1,10 @@
 package scalegraph
 
+import (
+	"container/list"
+	"log"
+)
+
 type CMD int
 
 const (
@@ -41,6 +46,7 @@ type RPC struct {
 	CMD
 	ID          [5]uint32
 	Sender      contact
+	wallet
 	WalletKey   []byte
 	Transaction []byte
 	KNodes      []contact
@@ -55,3 +61,40 @@ func GenerateRPC(cmd CMD, sender contact) RPC {
 	}
 	return newRPC
 }
+
+func GenerateResponse(cmd CMD, id [5]uint32, sender contact) RPC {
+
+	newRPC := RPC{
+		CMD: cmd,
+		ID: id,
+		Sender: sender,
+	}
+	return newRPC
+}
+
+func (rpc *RPC) Pong() {
+	if rpc.CMD != PONG {
+		log.Println("WARNING: setting acknowledgement in non-PONG RPC")
+	}
+	rpc.Acknowledge = true
+}
+
+func (rpc *RPC) Store(wallet wallet) {
+	if rpc.CMD != STORE {
+		log.Println("WARNING: appending wallet to non-STORE RPC")
+	}
+	rpc.wallet = wallet
+}
+
+func (rpc *RPC) FoundNodes(found *list.List) {
+		// insert nodes into the rpc
+	if rpc.CMD != FIND_NODE_RESPONSE {
+		log.Println("WARNING: appending found nodes to RPC without FOUND_NODE_RESPONSE command")
+	}
+	for n := found.Front(); n != nil; n = n.Next() {
+		rpc.KNodes = append(rpc.KNodes, n.Value.(contact))
+	}
+}
+
+
+

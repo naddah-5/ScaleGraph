@@ -14,6 +14,7 @@ type Node struct {
 	Me          contact
 	network
 	routingTable
+	vault
 }
 
 func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC) Node {
