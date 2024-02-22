@@ -12,7 +12,7 @@ func TestAssertion(t *testing.T) {
 		kNodes = append(kNodes, newContact)
 	}
 	testRPC := RPC{
-		CMD: FIND_NODE_RESPONSE,
+		CMD:    FIND_NODE_RESPONSE,
 		Sender: NewRandomContact(),
 		KNodes: kNodes,
 	}
