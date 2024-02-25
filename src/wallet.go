@@ -5,3 +5,10 @@ type wallet struct {
 	PK    []byte
 	Chain chain
 }
+
+func NewWallet(id [5]uint32) wallet {
+	newWallet := wallet{
+		ID: id,
+	}
+	return newWallet
+}
