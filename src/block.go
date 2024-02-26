@@ -1,7 +1,11 @@
 package scalegraph
 
 type block struct {
-	Balance int
+	height           int
+	blockHash        []byte
+	prevSenderHash   []byte
+	prevReceiverHash []byte
+	balance          int
 	transaction
 	concensus [][5]uint32
 }
