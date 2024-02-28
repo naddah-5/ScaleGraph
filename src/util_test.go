@@ -284,3 +284,4 @@ func TestMergeByDistance(t *testing.T) {
 
 	}
 }
+

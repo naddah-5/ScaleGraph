@@ -6,6 +6,7 @@ import (
 )
 
 func TestAssertion(t *testing.T) {
+	verbose := false
 	var kNodes []contact
 	for i := 0; i < 3; i++ {
 		newContact := NewRandomContact()
@@ -16,7 +17,9 @@ func TestAssertion(t *testing.T) {
 		Sender: NewRandomContact(),
 		KNodes: kNodes,
 	}
-	log.Printf("%+v", testRPC)
-	log.Printf("%+v", testRPC.Sender)
-	log.Printf("%+v", testRPC.KNodes)
+	if verbose {
+		log.Printf("%+v", testRPC)
+		log.Printf("%+v", testRPC.Sender)
+		log.Printf("%+v", testRPC.KNodes)
+	}
 }

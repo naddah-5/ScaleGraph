@@ -1,8 +1,9 @@
 package scalegraph
 
 type block struct {
-	height           int
-	blockHash        []byte
+	heightSender     int
+	heightReceiver   int
+	blockHash        []byte // the block hash is a hash of the transaction only
 	prevSenderHash   []byte
 	prevReceiverHash []byte
 	balance          int

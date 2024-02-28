@@ -170,3 +170,9 @@ func GenerateIP() [4]byte {
 	}
 	return ip
 }
+
+
+
+
+
+
