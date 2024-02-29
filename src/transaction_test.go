@@ -6,15 +6,27 @@ import (
 )
 
 func TestHash(t *testing.T) {
+	verbose := false
 	trx := transaction{
-		Sender: GenerateID(),
-		Recipient: GenerateID(),
-		Ammount: 10,
-		Signature: []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31},
+		Sender:   GenerateID(),
+		Receiver: GenerateID(),
+		Amount:   10,
 	}
-	log.Printf("transaction is: %+v\n", trx)
+	if verbose {
+		log.Printf("transaction is: %+v\n", trx)
+	}
 	hash := trx.Hash()
-	log.Printf("hash number one is: %+v\n", hash)
+	if verbose {
+		log.Printf("hash number one is: %+v\n", hash)
+	}
 	hash1 := trx.Hash()
-	log.Printf("hash number two is: %+v\n", hash1)
+	if verbose {
+		log.Printf("hash number two is: %+v\n", hash1)
+	}
+	for i := range hash {
+		if hash[i] != hash1[i] {
+			t.Fail()
+			log.Printf("%+v at index %d in hash does not match %+v at index %d in hash1", hash[i], i, hash1[i], i)
+		}
+	}
 }

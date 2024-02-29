@@ -1,14 +1,16 @@
 package scalegraph
 
 type wallet struct {
-	ID    [5]uint32
-	PK    []byte
-	Chain chain
+	id    [5]uint32
+	pk    []byte
+	blockchain blockchain
 }
 
 func NewWallet(id [5]uint32) wallet {
+	chain := NewBlockchain(id)
 	newWallet := wallet{
-		ID: id,
+		id: id,
+		blockchain: chain,
 	}
 	return newWallet
 }

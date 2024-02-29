@@ -2,7 +2,9 @@ package scalegraph
 
 import (
 	"container/list"
+	"crypto/sha256"
 	"log"
+	"strconv"
 	"testing"
 )
 
@@ -285,3 +287,53 @@ func TestMergeByDistance(t *testing.T) {
 	}
 }
 
+func TestCompareHash(t *testing.T) {
+	data := GenerateID()
+	hasher := sha256.New()
+	for i := range data {
+		tmp := strconv.FormatUint(uint64(data[i]), 10)
+		hasher.Write([]byte(tmp))
+	}
+	hash := hasher.Sum(nil)
+	res := CompareHash(hash, hash)
+	if !res {
+		log.Println("CompareHash incorrect")
+		t.Fail()
+	}
+}
+
+func TestCompareHashFail(t *testing.T) {
+	data := GenerateID()
+	hasher := sha256.New()
+	for i := range data {
+		tmp := strconv.FormatUint(uint64(data[i]), 10)
+		hasher.Write([]byte(tmp))
+	}
+	hash := hasher.Sum(nil)
+	junk := "this is junk data"
+	hasher.Write([]byte(junk))
+	badHash := hasher.Sum(nil)
+	res := CompareHash(hash, badHash)
+	if res {
+		log.Println("CompareHash failed to detect hash missmatch")
+		log.Printf("first hash: %+v\n", hash)
+		log.Printf("second hash: %+v\n", badHash)
+		t.Fail()
+	}
+}
+
+func TestCompareHashLength(t *testing.T) {
+	data := GenerateID()
+	hasher := sha256.New()
+	for i := range data {
+		tmp := strconv.FormatUint(uint64(data[i]), 10)
+		hasher.Write([]byte(tmp))
+	}
+	hash := hasher.Sum(nil)
+	res := CompareHash(hash, hash[:len(hash)/2])
+	if res {
+		log.Println("CompareHash incorrect with length missmatch") 
+		t.Fail()
+	}
+
+}
