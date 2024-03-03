@@ -48,8 +48,9 @@ func (c CMD) String() string {
 // note that fields may be nil.
 type RPC struct {
 	CMD
-	ID     [5]uint32
-	Sender contact
+	ID       [5]uint32
+	Sender   contact
+	Receiver [4]byte
 	wallet
 	WalletID    [5]uint32
 	WalletKey   []byte
