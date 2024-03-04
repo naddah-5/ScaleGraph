@@ -1,6 +1,9 @@
 package scalegraph
 
-import "log"
+import (
+	"log"
+	"math/rand"
+)
 
 type NodeMap struct {
 	ID [5]uint32
@@ -15,6 +18,7 @@ type Simnet struct {
 	spawnedID map[[5]uint32]bool
 	spawnedIP map[[4]byte]bool
 	network   map[[5]uint32][4]byte
+	serverID  [5]uint32
 	serverIP  [4]byte
 }
 
@@ -27,9 +31,12 @@ func NewServer() Simnet {
 		spawnedIP: make(map[[4]byte]bool),
 		network:   make(map[[5]uint32][4]byte),
 	}
-	root := [4]byte{0, 0, 0, 0}
-	s.serverIP = root
-	s.spawnedIP[root] = true
+	rootID := [5]uint32{0, 0, 0, 0, 0}
+	rootIP := [4]byte{0, 0, 0, 0}
+	s.serverID = rootID
+	s.serverIP = rootIP
+	s.spawnedID[rootID] = true
+	s.spawnedIP[rootIP] = true
 	servChan := make(chan RPC, 100)
 	s.table[s.serverIP] = servChan
 
@@ -58,6 +65,7 @@ func (s *Simnet) SpawnNode() {
 			break
 		}
 	}
+
 	receiver := make(chan RPC, 100)
 	newNode := NewNode(id, ip, receiver, s.listener, s.serverIP)
 	s.table[ip] = receiver
@@ -77,6 +85,7 @@ func (s *Simnet) StartServer() {
 		rpc := <-s.listener
 		if rpc.Receiver == s.serverIP {
 			log.Printf("received a server rpc: %+v", rpc)
+
 		}
 		outChan, ok := s.table[rpc.Receiver]
 		if !ok {
@@ -90,7 +99,7 @@ func (s *Simnet) StartServer() {
 // Gives all existing nodes with their IP address for the specified network.
 // No order is guaranteed.
 func (s *Simnet) AllNodes() []NodeMap {
-	res := make([]NodeMap, len(s.network))
+	res := make([]NodeMap, 0)
 	for key, value := range s.network {
 		nm := NodeMap{key, value}
 		res = append(res, nm)
@@ -98,5 +107,16 @@ func (s *Simnet) AllNodes() []NodeMap {
 	return res
 }
 
-
-func (s *Simnet) serverPing() {}
+// Redirect pings to the server to a random node in the network.
+func (s *Simnet) serverPing(rpc RPC) {
+	rng := rand.Int()
+	rng %= len(s.spawnedIP)
+	rng++
+	for value := range s.spawnedIP {
+		if 0 == rng {
+			rpc.Receiver = value
+		}
+		rng--
+	}
+	s.listener <- rpc
+}

@@ -1,6 +1,9 @@
 package scalegraph
 
-import "log"
+import (
+	"log"
+	"time"
+)
 
 const (
 	KEYSPACE      = 160 // the number of buckets
@@ -37,6 +40,7 @@ func (n *Node) Start() {
 	if DEBUG {
 		log.Printf("started node: %+v", n.Me.nodeID)
 	}
+	time.Sleep(50 * time.Microsecond)
 	go n.network.Listen(n)
 	rpc := GenerateRPC(PING, n.Me, n.serverIP)
 	n.network.Send(rpc)

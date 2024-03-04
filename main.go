@@ -7,19 +7,19 @@ import (
 	"time"
 )
 
-
-
 func main() {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	log.Println("hello world")
 	s := scaleGraph.NewServer()
 	go s.StartServer()
-	s.SpawnNode()
-	nodes := s.AllNodes()
+	for i := 0; i < 10; i++ {
+		s.SpawnNode()
+	}
 	time.Sleep(3 * time.Second)
+	nodes := s.AllNodes()
 	log.Println("all current nodes")
-	for _, n := range(nodes) {
+	for _, n := range nodes {
 		log.Printf("%+v\n", n)
 	}
 	wg.Done()
