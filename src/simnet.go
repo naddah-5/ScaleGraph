@@ -25,6 +25,7 @@ func NewServer() Simnet {
 		listener:  make(chan RPC, 100),
 		spawnedID: make(map[[5]uint32]bool),
 		spawnedIP: make(map[[4]byte]bool),
+		network:   make(map[[5]uint32][4]byte),
 	}
 	root := [4]byte{0, 0, 0, 0}
 	s.serverIP = root
@@ -38,6 +39,9 @@ func NewServer() Simnet {
 // Spawns a new node and attach it to the server
 // Checks for duplicate value conflicts
 func (s *Simnet) SpawnNode() {
+	if DEBUG {
+		log.Println("spawning node")
+	}
 	var id [5]uint32
 	for {
 		id = GenerateID()
@@ -55,19 +59,25 @@ func (s *Simnet) SpawnNode() {
 		}
 	}
 	receiver := make(chan RPC, 100)
-	newNode := NewNode(id, ip, receiver, s.listener)
+	newNode := NewNode(id, ip, receiver, s.listener, s.serverIP)
 	s.table[ip] = receiver
 	s.spawnedID[id] = true
 	s.spawnedIP[ip] = true
 	s.network[id] = ip
 
-	go newNode.Start(s.serverIP)
+	if DEBUG {
+		log.Printf("starting node: %+v", newNode.Me.ID())
+	}
+	go newNode.Start()
 }
 
 // Start the server routine, just connects incomming RPC's to the correct channel.
 func (s *Simnet) StartServer() {
 	for {
 		rpc := <-s.listener
+		if rpc.Receiver == s.serverIP {
+			log.Printf("received a server rpc: %+v", rpc)
+		}
 		outChan, ok := s.table[rpc.Receiver]
 		if !ok {
 			log.Printf("received rpc for unknown address, IP: %+v", rpc.Receiver)
@@ -87,3 +97,6 @@ func (s *Simnet) AllNodes() []NodeMap {
 	}
 	return res
 }
+
+
+func (s *Simnet) serverPing() {}

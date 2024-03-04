@@ -60,11 +60,12 @@ type RPC struct {
 	Acknowledge bool
 }
 
-func GenerateRPC(cmd CMD, sender contact) RPC {
+func GenerateRPC(cmd CMD, sender contact, receiver [4]byte) RPC {
 	newRPC := RPC{
 		CMD:    cmd,
 		ID:     GenerateID(),
 		Sender: sender,
+		Receiver: receiver,
 	}
 	return newRPC
 }
@@ -129,3 +130,4 @@ func (rpc *RPC) FindWalletResponse(found wallet) {
 	}
 	rpc.wallet = found
 }
+
