@@ -11,6 +11,7 @@ const (
 	REPLICATION   = 10  // alpha
 	PORT          = 8080
 	DEBUG         = true
+	TIMEOUT       = 1 * time.Second
 )
 
 type Node struct {
@@ -38,7 +39,7 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 
 func (n *Node) Start() {
 	if DEBUG {
-		log.Printf("started node: %+v", n.Me.nodeID)
+		log.Printf("started node: %+v", n.Me.id)
 	}
 	time.Sleep(50 * time.Microsecond)
 	go n.network.Listen(n)

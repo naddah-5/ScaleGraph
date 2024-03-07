@@ -9,13 +9,13 @@ import (
 )
 
 type contact struct {
-	nodeIP  [4]byte
+	ip  [4]byte
 	udpPort int
-	nodeID  [5]uint32
+	id  [5]uint32
 }
 
 func (c *contact) IP() [4]byte {
-	return c.nodeIP
+	return c.ip
 }
 
 func (c *contact) Port() int {
@@ -23,15 +23,15 @@ func (c *contact) Port() int {
 }
 
 func (c *contact) ID() [5]uint32 {
-	return c.nodeID
+	return c.id
 }
 
 func BuildContact(ip [4]byte, port int, id [5]uint32) contact {
 	var newContact contact
 	newContact = contact{
-		nodeIP:  ip,
+		ip:  ip,
 		udpPort: port,
-		nodeID:  id,
+		id:  id,
 	}
 	return newContact
 }

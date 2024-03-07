@@ -39,9 +39,9 @@ func TestCreateContact(t *testing.T) {
 	if newContact.udpPort != expectedPort {
 		errMsg = errMsg + "Port missmatch: expected - " + strconv.Itoa(expectedPort) + " received - " + strconv.Itoa(newContact.Port()) + "\n"
 	}
-	if newContact.nodeID != expectedID {
+	if newContact.id != expectedID {
 		eID := fmt.Sprintf("%v", expectedID)
-		fID := fmt.Sprintf("%v", newContact.nodeID)
+		fID := fmt.Sprintf("%v", newContact.id)
 		errMsg = errMsg + "ID missmatch: expected - " + eID + " received - " + fID + "\n"
 	}
 	if errMsg != errMsgDiff {

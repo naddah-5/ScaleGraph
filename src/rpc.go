@@ -48,6 +48,7 @@ func (c CMD) String() string {
 // note that fields may be nil.
 type RPC struct {
 	CMD
+	response bool
 	ID       [5]uint32
 	Sender   contact
 	Receiver [4]byte
@@ -62,9 +63,10 @@ type RPC struct {
 
 func GenerateRPC(cmd CMD, sender contact, receiver [4]byte) RPC {
 	newRPC := RPC{
-		CMD:    cmd,
-		ID:     GenerateID(),
-		Sender: sender,
+		CMD:      cmd,
+		response: false,
+		ID:       GenerateID(),
+		Sender:   sender,
 		Receiver: receiver,
 	}
 	return newRPC
@@ -73,9 +75,10 @@ func GenerateRPC(cmd CMD, sender contact, receiver [4]byte) RPC {
 func GenerateResponse(cmd CMD, id [5]uint32, sender contact) RPC {
 
 	newRPC := RPC{
-		CMD:    cmd,
-		ID:     id,
-		Sender: sender,
+		CMD:      cmd,
+		response: true,
+		ID:       id,
+		Sender:   sender,
 	}
 	return newRPC
 }
@@ -130,4 +133,3 @@ func (rpc *RPC) FindWalletResponse(found wallet) {
 	}
 	rpc.wallet = found
 }
-
