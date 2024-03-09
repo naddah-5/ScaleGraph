@@ -74,22 +74,30 @@ func (s *Simnet) SpawnNode() {
 	s.network[id] = ip
 
 	if DEBUG {
-		log.Printf("starting node: %+v", newNode.Me.ID())
+		log.Printf("starting node: %+v", newNode.contact.ID())
 	}
 	go newNode.Start()
 }
 
 // Start the server routine, just connects incomming RPC's to the correct channel.
 func (s *Simnet) StartServer() {
+	if DEBUG {
+		log.Printf("\tstarting server with id: %+v, ip: %+v", s.serverID, s.serverIP)
+	}
 	for {
 		rpc := <-s.listener
-		if rpc.Receiver == s.serverIP {
+		if rpc.receiver == s.serverIP {
+			if DEBUG {
+				if rpc.CMD == PONG {
+					log.Printf("\t---WARNING: server received a PONG---")
+				}
+			}
 			log.Printf("received a server rpc: %+v", rpc)
-
+			s.serverPing(rpc)
 		}
-		outChan, ok := s.table[rpc.Receiver]
+		outChan, ok := s.table[rpc.receiver]
 		if !ok {
-			log.Printf("received rpc for unknown address, IP: %+v", rpc.Receiver)
+			log.Printf("received rpc for unknown address, IP: %+v", rpc.receiver)
 		} else {
 			outChan <- rpc
 		}
@@ -110,13 +118,23 @@ func (s *Simnet) AllNodes() []NodeMap {
 // Redirect pings to the server to a random node in the network.
 func (s *Simnet) serverPing(rpc RPC) {
 	rng := rand.Int()
-	rng %= len(s.spawnedIP)
-	rng++
+	rng %= len(s.spawnedIP) - 1
+	rng++ // makes sure to not redirect back to the server
 	for value := range s.spawnedIP {
 		if 0 == rng {
-			rpc.Receiver = value
+			if DEBUG {
+				log.Printf("replacing RPC, %+v, target: %+v", rpc.ID, value)
+			}
+			rpc.Redirect(value)
+			break
 		}
 		rng--
+	}
+	if DEBUG {
+		log.Printf("redirecting %+v", rpc)
+		log.Printf("\tid: %+v", rpc.ID)
+		log.Printf("\tsender: %+v", rpc.Sender)
+		log.Printf("\treceiver: %+v", rpc.receiver)
 	}
 	s.listener <- rpc
 }

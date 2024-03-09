@@ -18,7 +18,7 @@ type Node struct {
 	Replication int
 	BucketSize  int
 	KeySpace    int
-	Me          contact
+	contact
 	network
 	routingTable
 	vault
@@ -31,7 +31,7 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 		Replication:  REPLICATION,
 		BucketSize:   KBUCKETVOLUME,
 		KeySpace:     KEYSPACE,
-		Me:           me,
+		contact:      me,
 		network:      net,
 		routingTable: NewRoutingTable(id),
 	}
@@ -39,10 +39,10 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 
 func (n *Node) Start() {
 	if DEBUG {
-		log.Printf("started node: %+v", n.Me.id)
+		log.Printf("started node: %+v", n.id)
 	}
 	time.Sleep(50 * time.Microsecond)
 	go n.network.Listen(n)
-	rpc := GenerateRPC(PING, n.Me, n.serverIP)
+	rpc := GenerateRPC(PING, n.contact, n.serverIP)
 	n.network.Send(rpc)
 }

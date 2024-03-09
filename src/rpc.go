@@ -51,7 +51,7 @@ type RPC struct {
 	response bool
 	ID       [5]uint32
 	Sender   contact
-	Receiver [4]byte
+	receiver [4]byte
 	wallet
 	WalletID    [5]uint32
 	WalletKey   []byte
@@ -67,20 +67,25 @@ func GenerateRPC(cmd CMD, sender contact, receiver [4]byte) RPC {
 		response: false,
 		ID:       GenerateID(),
 		Sender:   sender,
-		Receiver: receiver,
+		receiver: receiver,
 	}
 	return newRPC
 }
 
-func GenerateResponse(cmd CMD, id [5]uint32, sender contact) RPC {
+func GenerateResponse(cmd CMD, id [5]uint32, ip [4]byte, sender contact) RPC {
 
 	newRPC := RPC{
 		CMD:      cmd,
 		response: true,
 		ID:       id,
 		Sender:   sender,
+		receiver: ip,
 	}
 	return newRPC
+}
+
+func (rpc *RPC) Redirect(ip [4]byte) {
+	rpc.receiver = ip
 }
 
 func (rpc *RPC) Pong() {

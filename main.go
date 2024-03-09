@@ -13,7 +13,7 @@ func main() {
 	log.Println("hello world")
 	s := scaleGraph.NewServer()
 	go s.StartServer()
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 3; i++ {
 		s.SpawnNode()
 	}
 	time.Sleep(3 * time.Second)
