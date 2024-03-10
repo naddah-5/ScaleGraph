@@ -11,7 +11,7 @@ const (
 	REPLICATION   = 10  // alpha
 	PORT          = 8080
 	DEBUG         = true
-	TIMEOUT       = 1 * time.Second
+	TIMEOUT       = 10000 * time.Second
 )
 
 type Node struct {
@@ -26,7 +26,7 @@ type Node struct {
 
 func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serverIP [4]byte) Node {
 	net := NewNetwork(listener, sender, serverIP)
-	me := BuildContact(GenerateIP(), PORT, GenerateID())
+	me := BuildContact(ip, PORT, id)
 	return Node{
 		Replication:  REPLICATION,
 		BucketSize:   KBUCKETVOLUME,
@@ -41,8 +41,21 @@ func (n *Node) Start() {
 	if DEBUG {
 		log.Printf("started node: %+v", n.id)
 	}
-	time.Sleep(50 * time.Microsecond)
 	go n.network.Listen(n)
+	time.Sleep(2 * time.Second)
 	rpc := GenerateRPC(PING, n.contact, n.serverIP)
-	n.network.Send(rpc)
+	resp, err := n.network.Send(rpc)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	n.Handler(resp)
+	time.Sleep(10 * time.Second)
+	if DEBUG {
+		log.Printf("[node] %+v - current routing table:", n.ID()) 
+		for i := range n.router {
+			for c := n.router[i].content.Front(); c != nil; c = c.Next() {
+				log.Printf("\tcontact: %+v", c.Value.(contact).id)
+			}
+		}
+	}
 }

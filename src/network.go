@@ -68,12 +68,12 @@ func NewNetwork(ln chan RPC, sn chan RPC, servIP [4]byte) network {
 // Returns an error if the response eceedes the timeout.
 func (net *network) Send(rpc RPC) (RPC, error) {
 	if DEBUG {
-		log.Printf("sending rpc: %+v, to IP: %+v\n", rpc, rpc.receiver)
+		log.Printf("[node] - sending rpc: %+v, to IP: %+v\n", rpc, rpc.receiver)
 	}
 	if rpc.response {
 		net.sender <- rpc
 	} else {
-		respChan := net.Add(rpc.walletID)
+		respChan := net.Add(rpc.ID)
 		net.sender <- rpc
 		select {
 		case res := <-respChan:
@@ -94,10 +94,10 @@ func (net *network) Listen(node *Node) error {
 			return errors.New("server not responding")
 		}
 		if DEBUG {
-			log.Printf("%+v: received rpc: %+v, is repsonse: %+v", node.id, rpc, rpc.response)
+			log.Printf("[node] - %+v: received rpc: %+v, is repsonse: %+v", node.id, rpc, rpc.response)
 		}
 		if rpc.response {
-			respChan, err := net.Retrieve(rpc.walletID)
+			respChan, err := net.Retrieve(rpc.ID)
 			if err != nil {
 				log.Printf(err.Error())
 				continue

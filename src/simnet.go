@@ -74,7 +74,8 @@ func (s *Simnet) SpawnNode() {
 	s.network[id] = ip
 
 	if DEBUG {
-		log.Printf("starting node: %+v", newNode.contact.ID())
+		log.Printf("starting node: %+v with ip:%+v", newNode.ID(), newNode.IP())
+		log.Printf("generated id: %+v, ip: %+v", id, ip)
 	}
 	go newNode.Start()
 }
@@ -92,12 +93,16 @@ func (s *Simnet) StartServer() {
 					log.Printf("\t---WARNING: server received a PONG---")
 				}
 			}
-			log.Printf("received a server rpc: %+v", rpc)
+			log.Printf("[server] - received a server rpc: %+v", rpc)
 			s.serverPing(rpc)
 		}
 		outChan, ok := s.table[rpc.receiver]
 		if !ok {
-			log.Printf("received rpc for unknown address, IP: %+v", rpc.receiver)
+			log.Printf("[server] - received rpc for unknown address, IP: %+v, sender: %+v", rpc.receiver, rpc.Sender.id)
+			log.Println("known addresses:")
+			for k := range s.table {
+				log.Printf("%+v", k)
+			}
 		} else {
 			outChan <- rpc
 		}
@@ -123,7 +128,10 @@ func (s *Simnet) serverPing(rpc RPC) {
 	for value := range s.spawnedIP {
 		if 0 == rng {
 			if DEBUG {
-				log.Printf("replacing RPC, %+v, target: %+v", rpc.ID, value)
+				log.Printf("[server] - replacing RPC, %+v, target: %+v", rpc.ID, value)
+			}
+			if rpc.Sender.IP() == value {
+				s.serverPing(rpc)
 			}
 			rpc.Redirect(value)
 			break
@@ -131,7 +139,7 @@ func (s *Simnet) serverPing(rpc RPC) {
 		rng--
 	}
 	if DEBUG {
-		log.Printf("redirecting %+v", rpc)
+		log.Printf("[server] - redirecting %+v", rpc)
 		log.Printf("\tid: %+v", rpc.ID)
 		log.Printf("\tsender: %+v", rpc.Sender)
 		log.Printf("\treceiver: %+v", rpc.receiver)
