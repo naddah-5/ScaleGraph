@@ -14,11 +14,11 @@ func main() {
 	s := scaleGraph.NewServer()
 	go s.StartServer()
 	s.SpawnNode()
-	time.Sleep(1 * time.Second)
-	for i := 0; i < 10; i++ {
+	time.Sleep(5 * time.Second)
+	for i := 1; i < 3; i++ {
 		s.SpawnNode()
 	}
-	time.Sleep(60 * time.Second)
+	time.Sleep(120 * time.Second)
 	nodes := s.AllNodes()
 	log.Println("all current nodes")
 	for _, n := range nodes {

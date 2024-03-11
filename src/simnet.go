@@ -2,7 +2,6 @@ package scalegraph
 
 import (
 	"log"
-	"math/rand"
 )
 
 type NodeMap struct {
@@ -13,13 +12,14 @@ type NodeMap struct {
 // Simnet is a simulated network that handles communication between nodes.
 // spawnedID and spawnedIP keeps track of id's and ip's that are in use to avoid conflicts
 type Simnet struct {
-	table     map[[4]byte]chan RPC
-	listener  chan RPC
-	spawnedID map[[5]uint32]bool
-	spawnedIP map[[4]byte]bool
-	network   map[[5]uint32][4]byte
-	serverID  [5]uint32
-	serverIP  [4]byte
+	table      map[[4]byte]chan RPC
+	listener   chan RPC
+	spawnedID  map[[5]uint32]bool
+	spawnedIP  map[[4]byte]bool
+	network    map[[5]uint32][4]byte
+	serverID   [5]uint32
+	serverIP   [4]byte
+	masterNode [4]byte
 }
 
 // Creates a new server
@@ -40,12 +40,16 @@ func NewServer() Simnet {
 	servChan := make(chan RPC, 100)
 	s.table[s.serverIP] = servChan
 
+	master := s.SpawnNode()
+	s.masterNode = master
+
 	return s
 }
 
+
 // Spawns a new node and attach it to the server
 // Checks for duplicate value conflicts
-func (s *Simnet) SpawnNode() {
+func (s *Simnet) SpawnNode() [4]byte {
 	if DEBUG {
 		log.Println("spawning node")
 	}
@@ -78,6 +82,15 @@ func (s *Simnet) SpawnNode() {
 		log.Printf("generated id: %+v, ip: %+v", id, ip)
 	}
 	go newNode.Start()
+	return newNode.IP()
+}
+
+func (s *Simnet) spawnMaster(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serverIP [4]byte) {
+	if DEBUG {
+		log.Println("spawning master node")
+	}
+	master := NewNode(id, ip, listener, sender, serverIP)
+	go master.network.Listen(&master)
 }
 
 // Start the server routine, just connects incomming RPC's to the correct channel.
@@ -122,27 +135,14 @@ func (s *Simnet) AllNodes() []NodeMap {
 
 // Redirect pings to the server to a random node in the network.
 func (s *Simnet) serverPing(rpc RPC) {
-	rng := rand.Int()
-	rng %= len(s.spawnedIP) - 1
-	rng++ // makes sure to not redirect back to the server
-	for value := range s.spawnedIP {
-		if 0 == rng {
-			if DEBUG {
-				log.Printf("[server] - replacing RPC, %+v, target: %+v", rpc.ID, value)
-			}
-			if rpc.Sender.IP() == value {
-				s.serverPing(rpc)
-			}
-			rpc.Redirect(value)
-			break
-		}
-		rng--
-	}
+	//newIP, err := s.randomNodeIP(rpc.Sender.IP())
+	// if err != nil {
+	// 	log.Printf("[server] - ping redirect: %+v", err)
+	// 	return
+	// }
+	rpc.receiver = s.masterNode
 	if DEBUG {
-		log.Printf("[server] - redirecting %+v", rpc)
-		log.Printf("\tid: %+v", rpc.ID)
-		log.Printf("\tsender: %+v", rpc.Sender)
-		log.Printf("\treceiver: %+v", rpc.receiver)
+		log.Printf("[server] - redirecting %+v\n\tid: %+v \n\tsender: %+v \n\treceiver: %+v", rpc, rpc.ID, rpc.Sender, rpc.receiver)
 	}
 	s.listener <- rpc
 }

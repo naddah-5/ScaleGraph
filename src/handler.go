@@ -9,9 +9,12 @@ func (n *Node) Handler(rpc RPC) {
 		n.handlePing(rpc)
 	case PONG:
 		n.handlePong(rpc)
+	case FIND_NODE:
+		n.handleFindNode(rpc)
 	}
 }
 
+// Handles the internal logic for a received ping RPC.
 func (n *Node) handlePing(rpc RPC) {
 	if DEBUG {
 		log.Printf("[node] - received %+v, from %+v", rpc.CMD, rpc.Sender.id)
@@ -22,15 +25,15 @@ func (n *Node) handlePing(rpc RPC) {
 	n.network.Send(resp)
 }
 
+// Handles the internal logic for a received pong RPC.
 func (n *Node) handlePong(rpc RPC) {
 	n.AddContact(rpc.Sender)
 	if DEBUG {
-		log.Println("\tpong")
 		log.Printf("[node] - received %+v, from %+v", rpc.CMD, rpc.Sender.id)
 	}
 	if rpc.Sender.IP() != n.serverIP {
 		if DEBUG {
-			log.Printf("\t[node] - adding contact to routing table, id: %+v", rpc.Sender.id)
+			log.Printf("[node] - adding contact to routing table, id: %+v", rpc.Sender.id)
 		}
 	} else {
 		log.Println("[node] - received pong from server")
@@ -46,7 +49,16 @@ func (n *Node) handleStoreResponse(rpc RPC) {}
 
 func (n *Node) handleStoresResponse(rpc RPC) {}
 
-func (n *Node) handleFindNode(rpc RPC) {}
+func (n *Node) handleFindNode(rpc RPC) {
+	n.AddContact(rpc.Sender)
+	res, err := n.FindXClosest(REPLICATION, rpc.FindTarget)
+	if err != nil {
+		log.Printf("%+v - find node error: %+v", n.ID(), err)
+	}
+	resp := GenerateResponse(FIND_NODE_RESPONSE, rpc.ID, rpc.Sender.ip, n.contact)
+	resp.FindNodeResponse(res)
+	n.network.Send(resp)
+}
 
 func (n *Node) handleFindNodeResponse(rpc RPC) {}
 

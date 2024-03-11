@@ -49,6 +49,7 @@ func (c CMD) String() string {
 type RPC struct {
 	CMD
 	response bool
+	timeout  bool
 	ID       [5]uint32
 	Sender   contact
 	receiver [4]byte
@@ -65,6 +66,7 @@ func GenerateRPC(cmd CMD, sender contact, receiver [4]byte) RPC {
 	newRPC := RPC{
 		CMD:      cmd,
 		response: false,
+		timeout:  false,
 		ID:       GenerateID(),
 		Sender:   sender,
 		receiver: receiver,
@@ -77,6 +79,7 @@ func GenerateResponse(cmd CMD, id [5]uint32, ip [4]byte, sender contact) RPC {
 	newRPC := RPC{
 		CMD:      cmd,
 		response: true,
+		timeout:  false,
 		ID:       id,
 		Sender:   sender,
 		receiver: ip,
@@ -88,6 +91,7 @@ func (rpc *RPC) Redirect(ip [4]byte) {
 	rpc.receiver = ip
 }
 
+// Sets the rpc acknowledgement to true
 func (rpc *RPC) Pong() {
 	if rpc.CMD != PONG {
 		log.Println("WARNING: applying pong to non-PONG RPC")
@@ -95,6 +99,7 @@ func (rpc *RPC) Pong() {
 	rpc.Acknowledge = true
 }
 
+// NOT IMPLEMENTED
 func (rpc *RPC) Store(wallet wallet) {
 	if rpc.CMD != STORE {
 		log.Println("WARNING: applying store to non-STORE RPC")
@@ -102,6 +107,7 @@ func (rpc *RPC) Store(wallet wallet) {
 	rpc.wallet = wallet
 }
 
+// Sets the rpc acknowledge to true
 func (rpc *RPC) StoreResponse(ack bool) {
 	if rpc.CMD != STORE_RESPONSE {
 		log.Println("WARNING: applying store response to non-STORE_RESPONSE RPC")
@@ -109,6 +115,7 @@ func (rpc *RPC) StoreResponse(ack bool) {
 	rpc.Acknowledge = true
 }
 
+// Sets the target id for the rpc.
 func (rpc *RPC) FindNode(target [5]uint32) {
 	if rpc.CMD != FIND_NODE {
 		log.Println("WARNING: applying find node to non-FIND_NODE RPC")
@@ -116,10 +123,12 @@ func (rpc *RPC) FindNode(target [5]uint32) {
 	rpc.FindTarget = target
 }
 
+// Attatches the given list of contacts to the rpc as a slice.
 func (rpc *RPC) FindNodeResponse(found *list.List) {
 	if rpc.CMD != FIND_NODE_RESPONSE {
 		log.Println("WARNING: applying find node reponse to non-FIND_NODE_RESPONSE RPC")
 	}
+	rpc.KNodes = make([]contact, 0)
 	for n := found.Front(); n != nil; n = n.Next() {
 		rpc.KNodes = append(rpc.KNodes, n.Value.(contact))
 	}

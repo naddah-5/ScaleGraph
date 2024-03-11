@@ -73,7 +73,7 @@ func (b *bucket) FindContact(target [5]uint32) (contact, error) {
 // contain less than x contacts all contacts are returned along with a "incomplete" error.
 // The result is returned in a sorted list, from closest to target to furthest from target.
 // Note that this method always performs a deep copy of the Bucket.
-func (b *bucket) FindXClosest(x int, target [5]uint32) (*list.List, error) {
+func (b *bucket) FindXClosestBucket(x int, target [5]uint32) (*list.List, error) {
 	var res *list.List = list.New()
 	for e := b.content.Front(); e != nil; e = e.Next() {
 		elem, ok := e.Value.(contact)

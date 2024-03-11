@@ -79,6 +79,9 @@ func SortByDistance(contactList *list.List, target [5]uint32) error {
 	return nil
 }
 
+// Returns a list consisting of the input lists merged by distance relative to the target id.
+// Assumes that the input lists are already sorted individually.
+// Returns an error if one of the list contains non-contact elements.
 func MergeByDistance(contactListA *list.List, contactListB *list.List, target [5]uint32) (*list.List, error) {
 	var relDistA int
 	var relDistB int

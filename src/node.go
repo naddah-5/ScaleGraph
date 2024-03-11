@@ -2,6 +2,7 @@ package scalegraph
 
 import (
 	"log"
+	"fmt"
 	"time"
 )
 
@@ -11,7 +12,7 @@ const (
 	REPLICATION   = 10  // alpha
 	PORT          = 8080
 	DEBUG         = true
-	TIMEOUT       = 10000 * time.Second
+	TIMEOUT       = 10 * time.Second
 )
 
 type Node struct {
@@ -42,20 +43,23 @@ func (n *Node) Start() {
 		log.Printf("started node: %+v", n.id)
 	}
 	go n.network.Listen(n)
-	time.Sleep(2 * time.Second)
+
 	rpc := GenerateRPC(PING, n.contact, n.serverIP)
 	resp, err := n.network.Send(rpc)
 	if err != nil {
-		log.Println(err.Error())
+		log.Printf("\t[node] - %+v", err.Error())
 	}
 	n.Handler(resp)
-	time.Sleep(10 * time.Second)
+
+	time.Sleep(30 * time.Second)
 	if DEBUG {
-		log.Printf("[node] %+v - current routing table:", n.ID()) 
+		dump := ""
+		dump += fmt.Sprintf("[node] - %+v - current routing table:\n", n.ID())
 		for i := range n.router {
 			for c := n.router[i].content.Front(); c != nil; c = c.Next() {
-				log.Printf("\tcontact: %+v", c.Value.(contact).id)
+				dump += fmt.Sprintf("\tcontact: %+v\n", c.Value.(contact).id)
 			}
 		}
+		log.Println(dump)
 	}
 }

@@ -308,7 +308,7 @@ func TestFindXClosest(t *testing.T) {
 			log.Printf("elem: %+v, relDist: %d\n", elem, relDist)
 		}
 	}
-	res, err := testBucket.FindXClosest(2, target)
+	res, err := testBucket.FindXClosestBucket(2, target)
 	if err != nil {
 		log.Println(err.Error())
 	}
