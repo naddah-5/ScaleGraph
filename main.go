@@ -1,28 +1,31 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 	scaleGraph "scalegraph/src"
-	"sync"
 	"time"
 )
 
 func main() {
-	var wg sync.WaitGroup
-	wg.Add(1)
-	log.Println("hello world")
+	fmt.Println("hello world")
+	fmt.Printf("%+v\n", time.Now())
+
 	s := scaleGraph.NewServer()
 	go s.StartServer()
-	s.SpawnNode()
-	time.Sleep(5 * time.Second)
-	for i := 1; i < 3; i++ {
+	time.Sleep(1 * time.Second)
+	for i := 1; i < 500; i++ {
 		s.SpawnNode()
 	}
-	time.Sleep(120 * time.Second)
+
+	time.Sleep(200 * time.Second)
 	nodes := s.AllNodes()
-	log.Println("all current nodes")
+	currentNodes := ""
+	currentNodes += fmt.Sprintf("all current nodes:\n")
 	for _, n := range nodes {
-		log.Printf("%+v\n", n)
+		currentNodes += fmt.Sprintf("%+v\n", n)
 	}
-	wg.Done()
+	log.Println(currentNodes)
+	os.Exit(0)
 }

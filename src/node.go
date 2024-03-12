@@ -1,8 +1,8 @@
 package scalegraph
 
 import (
-	"log"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -12,7 +12,7 @@ const (
 	REPLICATION   = 10  // alpha
 	PORT          = 8080
 	DEBUG         = true
-	TIMEOUT       = 10 * time.Second
+	TIMEOUT       = 100 * time.Second
 )
 
 type Node struct {
@@ -25,8 +25,8 @@ type Node struct {
 	vault
 }
 
-func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serverIP [4]byte) Node {
-	net := NewNetwork(listener, sender, serverIP)
+func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serverIP [4]byte, master [4]byte) Node {
+	net := NewNetwork(listener, sender, serverIP, master)
 	me := BuildContact(ip, PORT, id)
 	return Node{
 		Replication:  REPLICATION,
@@ -49,9 +49,18 @@ func (n *Node) Start() {
 	if err != nil {
 		log.Printf("\t[node] - %+v", err.Error())
 	}
-	n.Handler(resp)
+	n.Controller(resp)
 
-	time.Sleep(30 * time.Second)
+	time.Sleep(1 * time.Second)
+	rpc = GenerateRPC(FIND_NODE, n.contact, n.master)
+	rpc.FindNode(n.ID())
+	resp, err = n.network.Send(rpc)
+	if err != nil {
+		log.Printf("\t[node] - %+v", err.Error())
+	}
+	n.Controller(resp)
+
+	time.Sleep(60 * time.Second)
 	if DEBUG {
 		dump := ""
 		dump += fmt.Sprintf("[node] - %+v - current routing table:\n", n.ID())

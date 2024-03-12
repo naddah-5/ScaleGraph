@@ -51,14 +51,16 @@ type network struct {
 	listener chan RPC
 	sender   chan RPC
 	serverIP [4]byte
+	master   [4]byte
 	handler
 }
 
-func NewNetwork(ln chan RPC, sn chan RPC, servIP [4]byte) network {
+func NewNetwork(ln chan RPC, sn chan RPC, servIP [4]byte, master [4]byte) network {
 	newNetwork := network{
 		listener: ln,
 		sender:   sn,
 		serverIP: servIP,
+		master:   master,
 		handler:  NewHandler(100),
 	}
 	return newNetwork
@@ -107,7 +109,7 @@ func (net *network) Listen(node *Node) error {
 			net.Drop(rpc.ID)
 			respChan <- rpc
 		} else {
-			node.Handler(rpc)
+			node.Controller(rpc)
 		}
 	}
 }
