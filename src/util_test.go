@@ -332,8 +332,43 @@ func TestCompareHashLength(t *testing.T) {
 	hash := hasher.Sum(nil)
 	res := CompareHash(hash, hash[:len(hash)/2])
 	if res {
-		log.Println("CompareHash incorrect with length missmatch") 
+		log.Println("CompareHash incorrect with length missmatch")
 		t.Fail()
 	}
 
+}
+
+func TestCompareSlice(t *testing.T) {
+	testName := "TestCompareSlice"
+	testList := make([]contact, 100)
+	for i := range testList {
+		testList[i] = NewRandomContact()
+	}
+	shouldBeTrue := CompareContactSlice(testList, testList)
+	if !shouldBeTrue {
+		log.Printf("[%+v] - matching list failed", testName)
+		t.Fail()
+	}
+
+	testList1 := make([]contact, 100)
+	for i := range testList {
+		testList1[i] = NewRandomContact()
+	}
+	shouldBeFalse := CompareContactSlice(testList, testList1)
+	if shouldBeFalse {
+		log.Printf("[%+v] - matching mismatched list should fail", testName)
+		t.Fail()
+	}
+
+	shouldBeFalse = CompareContactSlice(testList, testList[:len(testList)/2])
+	if shouldBeFalse {
+		log.Printf("[%+v] - matching list of different length should be false", testName)
+		t.Fail()
+	}
+
+	shouldBeTrue = CompareContactSlice(make([]contact, 0), make([]contact, 0))
+	if !shouldBeTrue {
+		log.Printf("[%+v] - matching of empty lists should be true", testName)
+		t.Fail()
+	}
 }

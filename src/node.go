@@ -20,7 +20,7 @@ type Node struct {
 	BucketSize  int
 	KeySpace    int
 	contact
-	network
+	*network
 	routingTable
 	vault
 }
@@ -38,18 +38,23 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 	}
 }
 
-func (n *Node) Start() {
+func (n *Node) Start(delay chan struct{}, done chan struct{}, prt chan struct{}) {
 	if DEBUG {
 		log.Printf("started node: %+v", n.id)
 	}
 	go n.network.Listen(n)
+
+	_, start := <-delay
+	if !start {
+		log.Printf("\tstarting node: %+v\n", n.contact.ID())
+	}
 
 	rpc := GenerateRPC(PING, n.contact, n.serverIP)
 	resp, err := n.network.Send(rpc)
 	if err != nil {
 		log.Printf("\t[node] - %+v", err.Error())
 	}
-	n.Controller(resp)
+	go n.Controller(resp)
 
 	time.Sleep(1 * time.Second)
 	rpc = GenerateRPC(FIND_NODE, n.contact, n.master)
@@ -60,15 +65,20 @@ func (n *Node) Start() {
 	}
 	n.Controller(resp)
 
-	time.Sleep(60 * time.Second)
-	if DEBUG {
-		dump := ""
-		dump += fmt.Sprintf("[node] - %+v - current routing table:\n", n.ID())
-		for i := range n.router {
-			for c := n.router[i].content.Front(); c != nil; c = c.Next() {
-				dump += fmt.Sprintf("\tcontact: %+v\n", c.Value.(contact).id)
+	time.Sleep(1 * time.Second)
+
+	done <- struct{}{}
+	_, allDone := <-prt
+	if !allDone {
+		if DEBUG {
+			dump := ""
+			dump += fmt.Sprintf("[node] - %+v - current routing table:\n", n.ID())
+			for i := range n.router {
+				for c := n.router[i].content.Front(); c != nil; c = c.Next() {
+					dump += fmt.Sprintf("\tcontact: %+v\n", c.Value.(contact).id)
+				}
 			}
+			log.Println(dump)
 		}
-		log.Println(dump)
 	}
 }

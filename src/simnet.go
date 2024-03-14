@@ -50,7 +50,7 @@ func NewServer() *Simnet {
 	servChan := make(chan RPC, 100)
 	s.table[s.serverIP] = servChan
 	s.lock.Unlock()
-	master := s.SpawnNode()
+	master := s.SpawnNode(make(chan struct{}), make(chan struct{}), make(chan struct{}))
 	s.masterNode = master
 
 	return &s
@@ -58,7 +58,7 @@ func NewServer() *Simnet {
 
 // Spawns a new node and attach it to the server
 // Checks for duplicate value conflicts
-func (s *Simnet) SpawnNode() [4]byte {
+func (s *Simnet) SpawnNode(delay chan  struct{}, done chan struct{}, prt chan struct{}) [4]byte {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	if DEBUG {
@@ -92,7 +92,7 @@ func (s *Simnet) SpawnNode() [4]byte {
 		log.Printf("starting node: %+v with ip:%+v", newNode.ID(), newNode.IP())
 		log.Printf("generated id: %+v, ip: %+v", id, ip)
 	}
-	go newNode.Start()
+	go newNode.Start(delay, done, prt)
 	return newNode.IP()
 }
 

@@ -124,7 +124,7 @@ func (rpc *RPC) FindNode(target [5]uint32) {
 }
 
 // Attatches the given list of contacts to the rpc as a slice.
-func (rpc *RPC) FindNodeResponse(found *list.List) {
+func (rpc *RPC) FindNodeResponse(found *list.List, target [5]uint32) {
 	if rpc.CMD != FIND_NODE_RESPONSE {
 		log.Println("WARNING: applying find node reponse to non-FIND_NODE_RESPONSE RPC")
 	}
@@ -132,6 +132,7 @@ func (rpc *RPC) FindNodeResponse(found *list.List) {
 	for n := found.Front(); n != nil; n = n.Next() {
 		rpc.KNodes = append(rpc.KNodes, n.Value.(contact))
 	}
+	rpc.FindTarget = target
 }
 
 func (rpc *RPC) FindWallet(walletID [5]uint32) {

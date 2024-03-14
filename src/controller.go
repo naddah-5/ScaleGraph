@@ -1,7 +1,6 @@
 package scalegraph
 
 import (
-	"fmt"
 	"log"
 )
 
@@ -62,24 +61,26 @@ func (n *Node) controlFindNode(rpc RPC) {
 		log.Printf("%+v - find node error: %+v", n.ID(), err)
 	}
 	resp := GenerateResponse(FIND_NODE_RESPONSE, rpc.ID, rpc.Sender.ip, n.contact)
-	resp.FindNodeResponse(res)
+	resp.FindNodeResponse(res, rpc.FindTarget)
 	n.network.Send(resp)
 }
 
 func (n *Node) controlFindNodeResponse(rpc RPC) {
-	lg := fmt.Sprintf("\tfind node response:\n")
-	for _, node := range rpc.KNodes {
-		ping := GenerateRPC(PING, n.contact, node.IP())
-		go func(){
-			resp, err := n.network.Send(ping)
-			if err != nil {
-				return
-			}
-			n.Controller(resp)
-		}()
-		lg += fmt.Sprintf("\tcontact: %+v\n", node.ID())
+	go func() {
+		for _, node := range rpc.KNodes {
+			go func(node contact) {
+				ping := GenerateRPC(PING, n.contact, node.IP())
+				resp, err := n.network.Send(ping)
+				if err != nil {
+					return
+				}
+				n.Controller(resp)
+			}(node)
+		}
+	}()
+	for {
+		
 	}
-	log.Println(lg)
 }
 
 func (n *Node) controlFindWallet(rpc RPC) {}

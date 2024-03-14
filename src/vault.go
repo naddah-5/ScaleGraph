@@ -6,21 +6,29 @@ import (
 )
 
 type vault struct {
-	wallets map[[5]uint32]*wallet
+	slot map[[5]uint32]wallet
 }
 
-func NewVault() vault {
+func NewVault(id [5]uint32) vault {
 	return vault{
-		wallets: make(map[[5]uint32]*wallet),
+		slot: make(map[[5]uint32]wallet),
 	}
 }
 
-func (v *vault) Add(ID [5]uint32) error {
-	_, exists := v.wallets[ID]
+func (v *vault) Add(id [5]uint32) error {
+	_, exists := v.slot[id]
 	if exists {
-		return errors.New(fmt.Sprintf("wallet with id %+v already exists", ID))
+		return errors.New(fmt.Sprintf("wallet with id %+v already exists", id))
 	}
-	newWallet := NewWallet(ID)
-	v.wallets[ID] = &newWallet
+	newWallet := NewWallet(id)
+	v.slot[id] = newWallet
+	return nil
+}
+
+func (v *vault) Remove(id [5]uint32) error {
+	_, exists := v.slot[id]
+	if exists {
+		return errors.New(fmt.Sprintf("wallet with id %+v already exists", id))
+	}
 	return nil
 }

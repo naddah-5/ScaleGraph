@@ -3,17 +3,22 @@ package scalegraph
 import (
 	"errors"
 	"log"
+	"sync"
 	"time"
 )
 
 type handler struct {
-	set map[[5]uint32]chan RPC
+	lock sync.RWMutex
+	set  map[[5]uint32]chan RPC
 }
 
 // Initializes and returns a new handler.
 func NewHandler(buffer int) handler {
 	ch := make(map[[5]uint32]chan RPC, buffer)
-	return handler{ch}
+	return handler{
+		lock: sync.RWMutex{},
+		set:  ch,
+	}
 }
 
 // Creates a RPC id handle corresponding to the given RPC id.
@@ -22,6 +27,8 @@ func NewHandler(buffer int) handler {
 func (handler *handler) Add(id [5]uint32) chan RPC {
 	respChan := make(chan RPC)
 	// potential (low probability) collisions, would not break but deletes old channel
+	handler.lock.Lock()
+	defer handler.lock.Unlock()
 	_, exists := handler.set[id]
 	if exists {
 		log.Printf("rpc handler overwrite occured, id - %+v", id)
@@ -34,7 +41,9 @@ func (handler *handler) Add(id [5]uint32) chan RPC {
 // Returns the response channel for a given RPC id.
 // Returns an error if there is no matching RPC id.
 func (handler *handler) Retrieve(id [5]uint32) (chan RPC, error) {
+	handler.lock.RLock()
 	respChan, ok := handler.set[id]
+	handler.lock.RUnlock()
 	if !ok {
 		return nil, errors.New("invalid RPC id")
 	}
@@ -44,6 +53,8 @@ func (handler *handler) Retrieve(id [5]uint32) (chan RPC, error) {
 // Removes the given id from the active RPC map.
 // If there is no match, does nothing.
 func (handler *handler) Drop(id [5]uint32) {
+	handler.lock.Lock()
+	defer handler.lock.Unlock()
 	delete(handler.set, id)
 }
 
@@ -55,7 +66,7 @@ type network struct {
 	handler
 }
 
-func NewNetwork(ln chan RPC, sn chan RPC, servIP [4]byte, master [4]byte) network {
+func NewNetwork(ln chan RPC, sn chan RPC, servIP [4]byte, master [4]byte) *network {
 	newNetwork := network{
 		listener: ln,
 		sender:   sn,
@@ -63,7 +74,7 @@ func NewNetwork(ln chan RPC, sn chan RPC, servIP [4]byte, master [4]byte) networ
 		master:   master,
 		handler:  NewHandler(100),
 	}
-	return newNetwork
+	return &newNetwork
 }
 
 // Sends a RPC and creates a corresponding RPC id handle.
@@ -81,6 +92,7 @@ func (net *network) Send(rpc RPC) (RPC, error) {
 		case res := <-respChan:
 			return res, nil
 		case <-time.After(TIMEOUT):
+
 			net.Drop(rpc.ID)
 			break
 		}
@@ -96,20 +108,25 @@ func (net *network) Listen(node *Node) error {
 		if !ok {
 			return errors.New("server not responding")
 		}
-		if DEBUG {
-			log.Printf("[node] - %+v: received rpc: %+v, id: %+v, is repsonse: %+v", node.id, rpc, rpc.ID, rpc.response)
+		go net.understand(node, rpc)
+
+	}
+}
+
+func (net *network) understand(node *Node, rpc RPC) {
+	if DEBUG {
+		log.Printf("[node] - %+v: received rpc: %+v, id: %+v, is repsonse: %+v", node.id, rpc, rpc.ID, rpc.response)
+	}
+	if rpc.response {
+		respChan, err := net.Retrieve(rpc.ID)
+		if err != nil {
+			log.Printf(err.Error())
+			log.Printf("rpc: %+v, id: %+v, sender id: %+v", rpc.CMD, rpc.ID, rpc.Sender.id)
+			return
 		}
-		if rpc.response {
-			respChan, err := net.Retrieve(rpc.ID)
-			if err != nil {
-				log.Printf(err.Error())
-				log.Printf("rpc: %+v, id: %+v, sender id: %+v", rpc.CMD, rpc.ID, rpc.Sender.id)
-				continue
-			}
-			net.Drop(rpc.ID)
-			respChan <- rpc
-		} else {
-			node.Controller(rpc)
-		}
+		net.Drop(rpc.ID)
+		respChan <- rpc
+	} else {
+		node.Controller(rpc)
 	}
 }

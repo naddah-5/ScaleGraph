@@ -10,7 +10,7 @@ func TestHandler(t *testing.T) {
 
 	in := make(chan RPC)
 	out := make(chan RPC)
-	net := NewNetwork(in, out, [4]byte{0, 0, 0, 0})
+	net := NewNetwork(in, out, [4]byte{0, 0, 0, 0}, [4]byte{1, 1, 1, 1})
 	input := make([][5]uint32, 10)
 	for i := range input {
 		id := GenerateID()
