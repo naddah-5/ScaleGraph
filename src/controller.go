@@ -74,13 +74,16 @@ func (n *Node) controlFindNodeResponse(rpc RPC) {
 				if err != nil {
 					return
 				}
-				n.Controller(resp)
+				go n.Controller(resp)
 			}(node)
 		}
 	}()
-	for {
-		break
-	}
+	n.controlFindNodeResponseRepeater(rpc.KNodes)
+}
+
+func (n *Node) controlFindNodeResponseRepeater(lastResp []contact) []contact {
+
+	return lastResp
 }
 
 func (n *Node) controlFindWallet(rpc RPC) {}
