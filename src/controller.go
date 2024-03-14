@@ -79,7 +79,7 @@ func (n *Node) controlFindNodeResponse(rpc RPC) {
 		}
 	}()
 	for {
-		
+		break
 	}
 }
 
