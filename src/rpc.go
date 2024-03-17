@@ -62,6 +62,7 @@ type RPC struct {
 	Acknowledge bool
 }
 
+// Creates and returns a new base case RPC.
 func GenerateRPC(cmd CMD, sender contact, receiver [4]byte) RPC {
 	newRPC := RPC{
 		CMD:      cmd,
@@ -74,6 +75,7 @@ func GenerateRPC(cmd CMD, sender contact, receiver [4]byte) RPC {
 	return newRPC
 }
 
+// Creates and returns a base case response RPC.
 func GenerateResponse(cmd CMD, id [5]uint32, ip [4]byte, sender contact) RPC {
 
 	newRPC := RPC{
@@ -87,6 +89,7 @@ func GenerateResponse(cmd CMD, id [5]uint32, ip [4]byte, sender contact) RPC {
 	return newRPC
 }
 
+// Wrapper for redirecting the target IP of a RPC.
 func (rpc *RPC) Redirect(ip [4]byte) {
 	rpc.receiver = ip
 }

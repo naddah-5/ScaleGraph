@@ -22,13 +22,12 @@ func NewRoutingTable(homeNode [5]uint32) routingTable {
 }
 
 // Returns the bucket index of the given id.
-// Returns an error if the bucket index corresponds to the 'home bucket'.
-func (rt *routingTable) BucketIndex(nodeID [5]uint32) (int, error) {
+func (rt *routingTable) BucketIndex(nodeID [5]uint32) int {
 	var bucketIndex int = DistPrefixLength(rt.HomeNodeID(), nodeID)
 	if bucketIndex == KEYSPACE {
-		return -1, errors.New("home node does not exist in a bucket")
+		return KEYSPACE - 1
 	}
-	return bucketIndex, nil
+	return bucketIndex
 }
 
 func (rt *routingTable) HomeNodeID() [5]uint32 {
@@ -36,23 +35,19 @@ func (rt *routingTable) HomeNodeID() [5]uint32 {
 }
 
 func (rt *routingTable) AddContact(target contact) error {
-	bucketIndex, err := rt.BucketIndex(target.ID())
-	if err != nil {
-		return errors.New(fmt.Sprintf("Could not find corresponding bucket index for contact, %+v, error: %s", target, err.Error()))
-	}
-	err = rt.router[bucketIndex].AddContact(target)
+	bucketIndex := rt.BucketIndex(target.ID())
+	err := rt.router[bucketIndex].AddContact(target)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to add contact %+v, error: %s", target, err.Error()))
 	}
 	return nil
 }
 
+// Removes a contact from the routing table, returns an error if the contact does not have a corresponding bucket or if
+// a non-contact element is found
 func (rt *routingTable) RemoveContact(target contact) error {
-	bucketIndex, err := rt.BucketIndex(target.ID())
-	if err != nil {
-		return errors.New(fmt.Sprintf("Could not find corresponding bucket index for contact, %+v, error %s", target, err.Error()))
-	}
-	err = rt.router[bucketIndex].RemoveContact(target)
+	bucketIndex := rt.BucketIndex(target.ID())
+	err := rt.router[bucketIndex].RemoveContact(target)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to remove contact %+v, error: %s", target, err.Error()))
 	}
@@ -63,12 +58,8 @@ func (rt *routingTable) RemoveContact(target contact) error {
 // Returns an error if a non-contact element is encountered in a bucket.
 func (rt *routingTable) FindXClosest(x int, target [5]uint32) (*list.List, error) {
 	var res *list.List = list.New()
-	bucketIndex, err := rt.BucketIndex(target)
-	if err != nil {
-		log.Println(err)
-		return res, errors.New(fmt.Sprintf("failed to find %d closest contacts, error: %s", x, err.Error()))
-	}
-	res, err = rt.router[bucketIndex].FindXClosestBucket(x, target)
+	bucketIndex := rt.BucketIndex(target)
+	res, err := rt.router[bucketIndex].FindXClosestBucket(x, target)
 	if err.Error() == "incomplete" {
 		var count int = x - res.Len()
 		addRes, err := rt.findSlider(bucketIndex, count, target)

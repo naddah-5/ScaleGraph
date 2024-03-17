@@ -38,43 +38,35 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 	}
 }
 
-func (n *Node) Start(delay chan struct{}, done chan struct{}, prt chan struct{}) {
+func (node *Node) Start(delay chan struct{}, done chan struct{}, prt chan struct{}) {
 	if DEBUG {
-		log.Printf("started node: %+v", n.id)
+		log.Printf("started node: %+v", node.id)
 	}
-	go n.network.Listen(n)
+	go node.network.Listen(node)
 
 	_, start := <-delay
 	if !start {
-		log.Printf("\tstarting node: %+v\n", n.contact.ID())
+		log.Printf("\tstarting node: %+v\n", node.contact.ID())
 	}
 
-	rpc := GenerateRPC(PING, n.contact, n.serverIP)
-	resp, err := n.network.Send(rpc)
-	if err != nil {
-		log.Printf("\t[node] - %+v", err.Error())
-	}
-	go n.Controller(resp)
+	go node.Ping(node.serverIP)
 
-	time.Sleep(1 * time.Second)
-	rpc = GenerateRPC(FIND_NODE, n.contact, n.master)
-	rpc.FindNode(n.ID())
-	resp, err = n.network.Send(rpc)
-	if err != nil {
-		log.Printf("\t[node] - %+v", err.Error())
-	}
-	n.Controller(resp)
+	time.Sleep(10 * time.Second)
+	go node.FindNode(node.ID())
+	time.Sleep(5 * time.Second)
+	go node.FindNode(node.ID())
+	time.Sleep(5 * time.Second)
+	
 
-	time.Sleep(1 * time.Second)
 
 	done <- struct{}{}
 	_, allDone := <-prt
 	if !allDone {
 		if DEBUG {
 			dump := ""
-			dump += fmt.Sprintf("[node] - %+v - current routing table:\n", n.ID())
-			for i := range n.router {
-				for c := n.router[i].content.Front(); c != nil; c = c.Next() {
+			dump += fmt.Sprintf("[node] - %+v - current routing table:\n", node.ID())
+			for i := range node.router {
+				for c := node.router[i].content.Front(); c != nil; c = c.Next() {
 					dump += fmt.Sprintf("\tcontact: %+v\n", c.Value.(contact).id)
 				}
 			}

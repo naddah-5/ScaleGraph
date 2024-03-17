@@ -78,13 +78,8 @@ func (n *Node) controlFindNodeResponse(rpc RPC) {
 			}(node)
 		}
 	}()
-	n.controlFindNodeResponseRepeater(rpc.KNodes)
 }
 
-func (n *Node) controlFindNodeResponseRepeater(lastResp []contact) []contact {
-
-	return lastResp
-}
 
 func (n *Node) controlFindWallet(rpc RPC) {}
 

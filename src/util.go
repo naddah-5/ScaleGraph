@@ -52,6 +52,8 @@ func CloserNode(nodeA [5]uint32, nodeB [5]uint32, target [5]uint32) bool {
 	return false
 }
 
+// Sorts the list by relative distance to the target id, returns an error if 
+// a non-contact element is found.
 func SortByDistance(contactList *list.List, target [5]uint32) error {
 	var relDist int
 	var nextRelDist int
@@ -186,6 +188,8 @@ func CompareHash(a []byte, b []byte) bool {
 	return true
 }
 
+// Compares two contact slices, returns true if they contain the same contacts.
+// Note that ordering is significant.
 func CompareContactSlice(a []contact, b []contact) bool {
 	if len(a) != len(b) {
 		return false

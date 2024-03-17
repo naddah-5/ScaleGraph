@@ -39,6 +39,8 @@ func (b *bucket) AddContact(newContact contact) error {
 	return nil
 }
 
+// Removes a contact from the bucket, returns an error if a non-contact element is found.
+// Does not return an error if the contact is not present.
 func (b *bucket) RemoveContact(target contact) error {
 	for e := b.content.Front(); e != nil; e = e.Next() {
 		elem, ok := e.Value.(contact)
