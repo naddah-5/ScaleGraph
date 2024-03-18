@@ -9,7 +9,7 @@ import (
 
 type routingTable struct {
 	homeNode [5]uint32 // depricated
-	router   [KEYSPACE]bucket
+	router   [KEYSPACE]*bucket
 }
 
 func NewRoutingTable(homeNode [5]uint32) routingTable {

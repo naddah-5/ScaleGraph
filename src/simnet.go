@@ -21,7 +21,7 @@ type spawned struct {
 // spawnedID and spawnedIP keeps track of id's and ip's that are in use to avoid conflicts
 type Simnet struct {
 	listener chan RPC
-	table    map[[4]byte]chan RPC
+	table    map[[4]byte]chan RPC // should be moved to substruct
 	spawned
 	serverID   [5]uint32
 	serverIP   [4]byte
@@ -40,7 +40,6 @@ func NewServer() *Simnet {
 			network:   make(map[[5]uint32][4]byte),
 		},
 	}
-	s.lock.Lock()
 	rootID := [5]uint32{0, 0, 0, 0, 0}
 	rootIP := [4]byte{0, 0, 0, 0}
 	s.serverID = rootID
@@ -49,7 +48,6 @@ func NewServer() *Simnet {
 	s.spawnedIP[rootIP] = true
 	servChan := make(chan RPC, 100)
 	s.table[s.serverIP] = servChan
-	s.lock.Unlock()
 	master := s.SpawnNode(make(chan struct{}), make(chan struct{}), make(chan struct{}))
 	s.masterNode = master
 
@@ -58,9 +56,8 @@ func NewServer() *Simnet {
 
 // Spawns a new node and attach it to the server
 // Checks for duplicate value conflicts
-func (s *Simnet) SpawnNode(delay chan  struct{}, done chan struct{}, prt chan struct{}) [4]byte {
+func (s *Simnet) SpawnNode(delay chan struct{}, done chan struct{}, prt chan struct{}) [4]byte {
 	s.lock.Lock()
-	defer s.lock.Unlock()
 	if DEBUG {
 		log.Println("spawning node")
 	}
@@ -87,6 +84,8 @@ func (s *Simnet) SpawnNode(delay chan  struct{}, done chan struct{}, prt chan st
 	s.spawnedID[id] = true
 	s.spawnedIP[ip] = true
 	s.network[id] = ip
+
+	s.lock.Unlock()
 
 	if DEBUG {
 		log.Printf("starting node: %+v with ip:%+v", newNode.ID(), newNode.IP())
@@ -132,13 +131,13 @@ func (s *Simnet) understand(rpc RPC) {
 // Gives all existing nodes with their IP address for the specified network.
 // No order is guaranteed.
 func (s *Simnet) AllNodes() []NodeMap {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.lock.RLock()
 	res := make([]NodeMap, 0)
 	for key, value := range s.network {
 		nm := NodeMap{key, value}
 		res = append(res, nm)
 	}
+	s.lock.RUnlock()
 	return res
 }
 

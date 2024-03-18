@@ -4,19 +4,21 @@ import (
 	"container/list"
 	"errors"
 	"fmt"
+	"sync"
 )
 
 type bucket struct {
+	lock     sync.RWMutex
 	content  *list.List
 	capacity int
 }
 
-func NewBucket() bucket {
+func NewBucket() *bucket {
 	var newBucket bucket = bucket{
 		content:  list.New(),
 		capacity: KBUCKETVOLUME,
 	}
-	return newBucket
+	return &newBucket
 }
 
 // Adds the given contact to Bucket, returns an error if Bucket is full.

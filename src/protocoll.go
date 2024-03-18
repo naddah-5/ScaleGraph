@@ -22,7 +22,10 @@ func (node *Node) Heartbeat(target contact) {
 }
 
 // High level find node RPC.
-func (node *Node) FindNode(target [5]uint32) ([]contact, error) {
+func (node *Node) FindNode(target [5]uint32, done chan struct{}) ([]contact, error) {
+	if done != nil {
+		close(done)
+	}
 	closeIP, err := node.routingTable.FindXClosest(REPLICATION, target)
 	if err != nil {
 		return make([]contact, 0), err

@@ -7,7 +7,7 @@ import (
 
 func TestFillNewBucket(t *testing.T) {
 	var testName string = "TestFillBucket"
-	var testBucket bucket = NewBucket()
+	var testBucket *bucket = NewBucket()
 	contact1 := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
 	contact2 := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
 	contact3 := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
@@ -50,7 +50,7 @@ func TestFillNewBucket(t *testing.T) {
 
 func TestDoubbleAddBucket(t *testing.T) {
 	var testName string = "TestDoubbleAddBucket"
-	var testBucket bucket = NewBucket()
+	var testBucket *bucket = NewBucket()
 	testContact := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
 	bufferContact := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
 
@@ -76,7 +76,7 @@ func TestDoubbleAddBucket(t *testing.T) {
 
 func TestRemoveHeadContact(t *testing.T) {
 	var testName string = "TestRemoveHeadContact"
-	var testBucket bucket = NewBucket()
+	var testBucket *bucket = NewBucket()
 	contact1 := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
 	contact2 := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
 	contact3 := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
@@ -116,7 +116,7 @@ func TestRemoveHeadContact(t *testing.T) {
 
 func TestRemoveCenterContact(t *testing.T) {
 	var testName string = "TestRemoveCenterContact"
-	var testBucket bucket = NewBucket()
+	var testBucket *bucket = NewBucket()
 	contact1 := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
 	contact2 := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
 	contact3 := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
@@ -163,7 +163,7 @@ func TestRemoveCenterContact(t *testing.T) {
 
 func TestFindContact(t *testing.T) {
 	var testName string = "TestFindContat"
-	var testBucket bucket = NewBucket()
+	var testBucket *bucket = NewBucket()
 	contact1 := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
 	contact2 := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
 	contact3 := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
@@ -217,7 +217,7 @@ func TestFindContact(t *testing.T) {
 
 func TestFindMissingContact(t *testing.T) {
 	var testName string = "TestFindMissingContact"
-	var testBucket bucket = NewBucket()
+	var testBucket *bucket = NewBucket()
 	contact1 := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
 	contact2 := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
 	contact3 := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
@@ -263,7 +263,7 @@ func TestFindXClosest(t *testing.T) {
 	var testName string = "TestFindXClosest"
 	const inspectTest bool = false
 	var target [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
-	var testBucket bucket = NewBucket()
+	var testBucket *bucket = NewBucket()
 
 	contact1 := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
 	contact2 := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
