@@ -1,16 +1,20 @@
 package scalegraph
 
+import "sync"
+
 type wallet struct {
-	walletID   [5]uint32
-	pk         []byte
-	blockchain blockchain
+	lock     sync.RWMutex
+	walletID [5]uint32
+	pubKey   []byte
+	*blockchain
 }
 
-func NewWallet(id [5]uint32) wallet {
+func NewWallet(id [5]uint32) *wallet {
 	chain := NewBlockchain(id)
 	newWallet := wallet{
+		lock:       sync.RWMutex{},
 		walletID:   id,
 		blockchain: chain,
 	}
-	return newWallet
+	return &newWallet
 }

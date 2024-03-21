@@ -3,16 +3,21 @@ package scalegraph
 import (
 	"errors"
 	"fmt"
+	"sync"
 )
 
 type blockchain struct {
+	lock sync.RWMutex
 	chain []block
 }
 
-func NewBlockchain(walletID [5]uint32) blockchain {
-	blockchain := blockchain{}
+func NewBlockchain(walletID [5]uint32) *blockchain {
+	blockchain := blockchain{
+		lock: sync.RWMutex{},
+		chain: make([]block, 0, 100),
+	}
 	blockchain.chain = append(blockchain.chain, BaseBlock(walletID))
-	return blockchain
+	return &blockchain
 }
 
 func (b *blockchain) LastHash() []byte {

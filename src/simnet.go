@@ -58,6 +58,7 @@ func NewServer() *Simnet {
 // Checks for duplicate value conflicts
 func (s *Simnet) SpawnNode(delay chan struct{}, done chan struct{}, prt chan struct{}) [4]byte {
 	s.lock.Lock()
+	defer s.lock.Unlock()
 	if DEBUG {
 		log.Println("spawning node")
 	}
@@ -85,7 +86,6 @@ func (s *Simnet) SpawnNode(delay chan struct{}, done chan struct{}, prt chan str
 	s.spawnedIP[ip] = true
 	s.network[id] = ip
 
-	s.lock.Unlock()
 
 	if DEBUG {
 		log.Printf("starting node: %+v with ip:%+v", newNode.ID(), newNode.IP())
@@ -120,12 +120,13 @@ func (s *Simnet) understand(rpc RPC) {
 	}
 	s.lock.RLock()
 	outChan, ok := s.table[rpc.receiver]
-	s.lock.RUnlock()
 	if !ok {
 		log.Printf("[server] - received rpc for unknown address, IP: %+v, sender: %+v", rpc.receiver, rpc.Sender.id)
 	} else {
 		outChan <- rpc
 	}
+	s.lock.RUnlock()
+	return
 }
 
 // Gives all existing nodes with their IP address for the specified network.

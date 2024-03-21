@@ -13,7 +13,7 @@ type signature struct {
 func NewSign(id [5]uint32) signature {
 	//TODO
 	hasher := sha256.New()
-	for i := range(id) {
+	for i := range id {
 		tmp := strconv.FormatUint(uint64(id[i]), 10)
 		hasher.Write([]byte(tmp))
 	}

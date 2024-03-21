@@ -24,7 +24,7 @@ func (node *Node) Heartbeat(target contact) {
 // High level find node RPC.
 func (node *Node) FindNode(target [5]uint32, done chan struct{}) ([]contact, error) {
 	if done != nil {
-		close(done)
+		defer close(done)
 	}
 	closeIP, err := node.routingTable.FindXClosest(REPLICATION, target)
 	if err != nil {
@@ -32,7 +32,7 @@ func (node *Node) FindNode(target [5]uint32, done chan struct{}) ([]contact, err
 	}
 	var wg sync.WaitGroup
 	res := list.New()
-	var respChan chan []contact = make(chan []contact, REPLICATION)
+	respChan := make(chan []contact, REPLICATION)
 	for n := closeIP.Front(); n != nil; n = n.Next() {
 		closeNode := n.Value.(contact)
 		rpc := GenerateRPC(FIND_NODE, node.contact, closeNode.ip)

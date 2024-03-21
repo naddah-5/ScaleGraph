@@ -26,7 +26,7 @@ func main() {
 	s := scaleGraph.NewServer()
 	go s.StartServer()
 	time.Sleep(1 * time.Second)
-	for i := 1; i < 10; i++ {
+	for i := 1; i < 100; i++ {
 		var startDelay chan struct{} = nil
 		if startDelay != nil {
 			time.Sleep(100 * time.Millisecond)
@@ -47,5 +47,6 @@ func main() {
 	wg.Wait()
 	close(prt)
 	time.Sleep(15 * time.Second)
+	fmt.Printf("%+v\n", time.Now())
 	os.Exit(0)
 }

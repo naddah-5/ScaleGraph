@@ -26,7 +26,7 @@ func NewHandler(buffer int) handler {
 // Note that this can over write existing handles.
 func (handler *handler) Add(id [5]uint32) chan RPC {
 	respChan := make(chan RPC)
-	// potential (low probability) collisions, would not break but deletes old channel
+	// potential (low probability) collisions, would not break but over writes old channel
 	handler.lock.Lock()
 	defer handler.lock.Unlock()
 	_, exists := handler.set[id]
@@ -54,8 +54,8 @@ func (handler *handler) Retrieve(id [5]uint32) (chan RPC, error) {
 // If there is no match, does nothing.
 func (handler *handler) Drop(id [5]uint32) {
 	handler.lock.Lock()
-	defer handler.lock.Unlock()
 	delete(handler.set, id)
+	handler.lock.Unlock()
 }
 
 type network struct {

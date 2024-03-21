@@ -51,14 +51,15 @@ func (node *Node) Start(delay chan struct{}, done chan struct{}, prt chan struct
 	go node.Ping(node.serverIP)
 
 	time.Sleep(1 * time.Second)
-	scriptDone := make(chan struct{})
-	go node.FindNode(node.ID(), scriptDone)
-	<-scriptDone
+	// scriptDone := make(chan struct{})
+	go node.FindNode(node.ID(), nil)
+
+	// <-scriptDone
 	time.Sleep(10 * time.Second)
 
-	scriptDone = make(chan struct{})
-	go node.FindNode(node.ID(), scriptDone)
-	<-scriptDone
+	// scriptDone = make(chan struct{})
+	go node.FindNode(node.ID(), nil)
+	// <-scriptDone
 	time.Sleep(10 * time.Second)
 
 	if done != nil {
@@ -72,9 +73,11 @@ func (node *Node) Start(delay chan struct{}, done chan struct{}, prt chan struct
 				dump := ""
 				dump += fmt.Sprintf("[node] - %+v - current routing table:\n", node.ID())
 				for i := range node.router {
+					node.router[i].lock.RLock()
 					for c := node.router[i].content.Front(); c != nil; c = c.Next() {
 						dump += fmt.Sprintf("\tcontact: %+v\n", c.Value.(contact).id)
 					}
+					node.router[i].lock.RUnlock()
 				}
 				log.Println(dump)
 			}
