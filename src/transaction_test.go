@@ -8,9 +8,9 @@ import (
 func TestHash(t *testing.T) {
 	verbose := false
 	trx := transaction{
-		Sender:   GenerateID(),
-		Receiver: GenerateID(),
-		Amount:   10,
+		sender:   GenerateID(),
+		receiver: GenerateID(),
+		amount:   10,
 	}
 	if verbose {
 		log.Printf("transaction is: %+v\n", trx)

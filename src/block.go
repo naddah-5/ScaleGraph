@@ -6,6 +6,7 @@ import (
 )
 
 type block struct {
+	balance int
 	transaction
 	consensus
 	hash []byte
@@ -13,16 +14,18 @@ type block struct {
 
 // Build the base block of a chain, which only contains the height and hash.
 // The base hash is a sha256 hash of the walletID
-func BaseBlock(walletID [5]uint32) block {
+func BaseBlock(walletID [5]uint32, balance int) block {
 	var hash []byte
 	hasher := sha256.New()
+	hasher.Write([]byte(strconv.Itoa(balance)))
 	for i := range walletID {
 		tmp := strconv.FormatUint(uint64(walletID[i]), 10)
 		hasher.Write([]byte(tmp))
 	}
 	hasher.Write(hash)
 	block := block{
-		hash:   hash,
+		balance: balance,
+		hash:    hash,
 	}
 	return block
 }
@@ -37,4 +40,3 @@ func BuildBlock(height int, trx transaction, cons consensus) block {
 	}
 	return block
 }
-
