@@ -1,67 +1,132 @@
 package scalegraph
 
 import (
-	"fmt"
+	"errors"
 	"log"
-	"net"
+	"sync"
+	"time"
 )
 
-type Server struct {
-	addr  net.UDPAddr
-	conn  net.UDPConn
-	close chan struct{}
+type handler struct {
+	lock sync.RWMutex
+	set  map[[5]uint32]chan RPC
 }
 
-func NewServer(addr [4]byte) *Server {
-	log.Println("creating a new server")
-	var ip net.IP
-	for i := 0; i < 4; i++ {
-		ip = append(ip, addr[i])
-	}
-	fmtAddr := fmt.Sprintf("127.0.0.1:%d", PORT)
-	udpAddr, err := net.ResolveUDPAddr("udp", fmtAddr)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	conn, err := net.ListenUDP("udp", udpAddr)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return &Server{
-		addr: *udpAddr,
-		conn: *conn,
-		close: make(chan struct{}),
+// Initializes and returns a new handler.
+func NewHandler(buffer int) handler {
+	ch := make(map[[5]uint32]chan RPC, buffer)
+	return handler{
+		lock: sync.RWMutex{},
+		set:  ch,
 	}
 }
 
-func (s *Server) Start() {
-	defer s.conn.Close()
-	go s.listen()
-	log.Println("starting a server")
-	<-s.close
-	return
+// Creates a RPC id handle corresponding to the given RPC id.
+// Returns the response channel.
+// Note that this can over write existing handles.
+func (handler *handler) Add(id [5]uint32) chan RPC {
+	respChan := make(chan RPC)
+	// potential (low probability) collisions, would not break but over writes old channel
+	handler.lock.Lock()
+	defer handler.lock.Unlock()
+	_, exists := handler.set[id]
+	if exists {
+		log.Printf("rpc handler overwrite occured, id - %+v", id)
+	}
+	handler.set[id] = respChan
+
+	return respChan
 }
 
-func (s *Server) Close() {
-	log.Println("closing server")
-	close(s.close)
-	log.Println("returning")
-	return
+// Returns the response channel for a given RPC id.
+// Returns an error if there is no matching RPC id.
+func (handler *handler) Retrieve(id [5]uint32) (chan RPC, error) {
+	handler.lock.RLock()
+	respChan, ok := handler.set[id]
+	handler.lock.RUnlock()
+	if !ok {
+		return nil, errors.New("invalid RPC id")
+	}
+	return respChan, nil
 }
 
-func (s *Server) listen() {
-	for {
-		buf := make([]byte, 2048)
-		n, _, err := s.conn.ReadFrom(buf)
-		if err != nil {
-			log.Println("read error: ", err)
-		} else {
-			msg := buf[:n]
-			log.Printf(string(msg))
-			go Handler(msg)
+// Removes the given id from the active RPC map.
+// If there is no match, does nothing.
+func (handler *handler) Drop(id [5]uint32) {
+	handler.lock.Lock()
+	delete(handler.set, id)
+	handler.lock.Unlock()
+}
+
+type network struct {
+	listener chan RPC
+	sender   chan RPC
+	serverIP [4]byte
+	master   [4]byte
+	handler
+}
+
+func NewNetwork(ln chan RPC, sn chan RPC, servIP [4]byte, master [4]byte) *network {
+	newNetwork := network{
+		listener: ln,
+		sender:   sn,
+		serverIP: servIP,
+		master:   master,
+		handler:  NewHandler(100),
+	}
+	return &newNetwork
+}
+
+// Sends a RPC and creates a corresponding RPC id handle.
+// Returns an error if the response exceedes the timeout.
+func (net *network) Send(rpc RPC) (RPC, error) {
+	if DEBUG {
+		log.Printf("[node] - sending rpc: %+v, id: %+v, to IP: %+v\n", rpc, rpc.ID, rpc.receiver)
+	}
+	if rpc.response {
+		net.sender <- rpc
+	} else {
+		respChan := net.Add(rpc.ID)
+		net.sender <- rpc
+		select {
+		case res := <-respChan:
+			return res, nil
+		case <-time.After(TIMEOUT):
+
+			net.Drop(rpc.ID)
+			break
 		}
 	}
+	return rpc, errors.New("timeout")
+}
 
+// Start a listener on the network channel.
+// Returns an error if the channel closes.
+func (net *network) Listen(node *Node) error {
+	for {
+		rpc, ok := <-net.listener
+		if !ok {
+			return errors.New("server not responding")
+		}
+		go net.understand(node, rpc)
+
+	}
+}
+
+func (net *network) understand(node *Node, rpc RPC) {
+	if DEBUG {
+		log.Printf("[node] - %+v: received rpc: %+v, id: %+v, is repsonse: %+v", node.id, rpc, rpc.ID, rpc.response)
+	}
+	if rpc.response {
+		respChan, err := net.Retrieve(rpc.ID)
+		if err != nil {
+			log.Printf(err.Error())
+			log.Printf("rpc: %+v, id: %+v, sender id: %+v", rpc.CMD, rpc.ID, rpc.Sender.id)
+			return
+		}
+		net.Drop(rpc.ID)
+		respChan <- rpc
+	} else {
+		node.Controller(rpc)
+	}
 }

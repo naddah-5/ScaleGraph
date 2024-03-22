@@ -9,13 +9,13 @@ import (
 )
 
 type contact struct {
-	nodeIP  [4]byte
+	ip  [4]byte
 	udpPort int
-	nodeID  [5]uint32
+	id  [5]uint32
 }
 
 func (c *contact) IP() [4]byte {
-	return c.nodeIP
+	return c.ip
 }
 
 func (c *contact) Port() int {
@@ -23,22 +23,17 @@ func (c *contact) Port() int {
 }
 
 func (c *contact) ID() [5]uint32 {
-	return c.nodeID
+	return c.id
 }
 
-func BuildContact(ip [4]byte, port int, id [5]uint32) (contact, error) {
+func BuildContact(ip [4]byte, port int, id [5]uint32) contact {
 	var newContact contact
-	var err error = validateContactInfo(ip, port, id)
-	if err != nil {
-		return newContact, err
-	}
-
 	newContact = contact{
-		nodeIP:  ip,
+		ip:  ip,
 		udpPort: port,
-		nodeID:  id,
+		id:  id,
 	}
-	return newContact, nil
+	return newContact
 }
 
 // Provides a empty contact instance.
@@ -48,7 +43,7 @@ func EmptyContact() contact {
 }
 
 // Generates and returns a new, validated, contact with pseudo-random values.
-func NewRandomContact() (contact, error) {
+func NewRandomContact() contact {
 	var port int = 80
 	var ip [4]byte
 	var id [5]uint32 = [5]uint32{rand.Uint32(), rand.Uint32(), rand.Uint32(), rand.Uint32(), rand.Uint32()}
@@ -57,23 +52,11 @@ func NewRandomContact() (contact, error) {
 		seg, _ := randU32(0, 256)
 		ip[i] = byte(seg)
 	}
-	newContact, err := BuildContact(ip, port, id)
-	if err != nil {
-		return EmptyContact(), err
-	}
-	return newContact, nil
+	newContact := BuildContact(ip, port, id)
+	return newContact
 }
 
-// returns a pseudo-random uint32 in the range (min, max]
-func randU32(min uint32, max uint32) (uint32, error) {
-	if min >= max {
-		return 0, errors.New("invalid range")
-	}
-	var x uint32 = rand.Uint32()
-	x %= (max - min)
-	x += min
-	return x, nil
-}
+
 
 func validateContactInfo(ip [4]byte, port int, id [5]uint32) error {
 	var errMsg []error

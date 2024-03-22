@@ -1,9 +1,10 @@
 package scalegraph
 
-
 import (
 	"container/list"
+	"crypto/sha256"
 	"log"
+	"strconv"
 	"testing"
 )
 
@@ -152,41 +153,17 @@ func TestCloserNodeEqualDistance(t *testing.T) {
 }
 
 func TestSortContactList(t *testing.T) {
-	var testName string = "TestSortContactList"
+	var _ string = "TestSortContactList"
 	var verbose bool = false
 	var testList *list.List = list.New()
 	var targetNode [5]uint32 = [5]uint32{0, 0, 0, 0, 0}
 
-	contact1, err := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact2, err := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact3, err := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact4, err := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact5, err := BuildContact([4]byte{127, 0, 0, 5}, 80, [5]uint32{21, 22, 23, 24, 25})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact6, err := BuildContact([4]byte{127, 0, 0, 6}, 80, [5]uint32{26, 27, 28, 29, 30})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
+	contact1 := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
+	contact2 := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
+	contact3 := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
+	contact4 := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
+	contact5 := BuildContact([4]byte{127, 0, 0, 5}, 80, [5]uint32{21, 22, 23, 24, 25})
+	contact6 := BuildContact([4]byte{127, 0, 0, 6}, 80, [5]uint32{26, 27, 28, 29, 30})
 
 	testList.PushFront(contact1)
 	testList.PushFront(contact4)
@@ -261,66 +238,18 @@ func TestMergeByDistance(t *testing.T) {
 	var testListA *list.List = list.New()
 	var testListB *list.List = list.New()
 
-	contact1, err := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact2, err := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact3, err := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact4, err := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact5, err := BuildContact([4]byte{127, 0, 0, 5}, 80, [5]uint32{21, 22, 23, 24, 25})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact6, err := BuildContact([4]byte{127, 0, 0, 6}, 80, [5]uint32{26, 27, 28, 29, 30})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact7, err := BuildContact([4]byte{127, 0, 0, 7}, 80, [5]uint32{31, 32, 33, 34, 35})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact8, err := BuildContact([4]byte{127, 0, 0, 8}, 80, [5]uint32{36, 37, 38, 39, 40})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact9, err := BuildContact([4]byte{127, 0, 0, 9}, 80, [5]uint32{41, 42, 43, 44, 45})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact10, err := BuildContact([4]byte{127, 0, 0, 10}, 80, [5]uint32{46, 47, 48, 49, 50})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact11, err := BuildContact([4]byte{127, 0, 0, 11}, 80, [5]uint32{51, 52, 53, 54, 55})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
-	contact12, err := BuildContact([4]byte{127, 0, 0, 12}, 80, [5]uint32{56, 57, 58, 59, 60})
-	if err != nil {
-		log.Printf("[%s] - invalid contact construction: %s", testName, err.Error())
-		t.FailNow()
-	}
+	contact1 := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{1, 2, 3, 4, 5})
+	contact2 := BuildContact([4]byte{127, 0, 0, 2}, 80, [5]uint32{6, 7, 8, 9, 10})
+	contact3 := BuildContact([4]byte{127, 0, 0, 3}, 80, [5]uint32{11, 12, 13, 14, 15})
+	contact4 := BuildContact([4]byte{127, 0, 0, 4}, 80, [5]uint32{16, 17, 18, 19, 20})
+	contact5 := BuildContact([4]byte{127, 0, 0, 5}, 80, [5]uint32{21, 22, 23, 24, 25})
+	contact6 := BuildContact([4]byte{127, 0, 0, 6}, 80, [5]uint32{26, 27, 28, 29, 30})
+	contact7 := BuildContact([4]byte{127, 0, 0, 7}, 80, [5]uint32{31, 32, 33, 34, 35})
+	contact8 := BuildContact([4]byte{127, 0, 0, 8}, 80, [5]uint32{36, 37, 38, 39, 40})
+	contact9 := BuildContact([4]byte{127, 0, 0, 9}, 80, [5]uint32{41, 42, 43, 44, 45})
+	contact10 := BuildContact([4]byte{127, 0, 0, 10}, 80, [5]uint32{46, 47, 48, 49, 50})
+	contact11 := BuildContact([4]byte{127, 0, 0, 11}, 80, [5]uint32{51, 52, 53, 54, 55})
+	contact12 := BuildContact([4]byte{127, 0, 0, 12}, 80, [5]uint32{56, 57, 58, 59, 60})
 
 	testListA.PushFront(contact1)
 	testListA.PushFront(contact4)
@@ -355,5 +284,91 @@ func TestMergeByDistance(t *testing.T) {
 			prevDist = relDist
 		}
 
+	}
+}
+
+func TestCompareHash(t *testing.T) {
+	data := GenerateID()
+	hasher := sha256.New()
+	for i := range data {
+		tmp := strconv.FormatUint(uint64(data[i]), 10)
+		hasher.Write([]byte(tmp))
+	}
+	hash := hasher.Sum(nil)
+	res := CompareHash(hash, hash)
+	if !res {
+		log.Println("CompareHash incorrect")
+		t.Fail()
+	}
+}
+
+func TestCompareHashFail(t *testing.T) {
+	data := GenerateID()
+	hasher := sha256.New()
+	for i := range data {
+		tmp := strconv.FormatUint(uint64(data[i]), 10)
+		hasher.Write([]byte(tmp))
+	}
+	hash := hasher.Sum(nil)
+	junk := "this is junk data"
+	hasher.Write([]byte(junk))
+	badHash := hasher.Sum(nil)
+	res := CompareHash(hash, badHash)
+	if res {
+		log.Println("CompareHash failed to detect hash missmatch")
+		log.Printf("first hash: %+v\n", hash)
+		log.Printf("second hash: %+v\n", badHash)
+		t.Fail()
+	}
+}
+
+func TestCompareHashLength(t *testing.T) {
+	data := GenerateID()
+	hasher := sha256.New()
+	for i := range data {
+		tmp := strconv.FormatUint(uint64(data[i]), 10)
+		hasher.Write([]byte(tmp))
+	}
+	hash := hasher.Sum(nil)
+	res := CompareHash(hash, hash[:len(hash)/2])
+	if res {
+		log.Println("CompareHash incorrect with length missmatch")
+		t.Fail()
+	}
+
+}
+
+func TestCompareSlice(t *testing.T) {
+	testName := "TestCompareSlice"
+	testList := make([]contact, 100)
+	for i := range testList {
+		testList[i] = NewRandomContact()
+	}
+	shouldBeTrue := CompareContactSlice(testList, testList)
+	if !shouldBeTrue {
+		log.Printf("[%+v] - matching list failed", testName)
+		t.Fail()
+	}
+
+	testList1 := make([]contact, 100)
+	for i := range testList {
+		testList1[i] = NewRandomContact()
+	}
+	shouldBeFalse := CompareContactSlice(testList, testList1)
+	if shouldBeFalse {
+		log.Printf("[%+v] - matching mismatched list should fail", testName)
+		t.Fail()
+	}
+
+	shouldBeFalse = CompareContactSlice(testList, testList[:len(testList)/2])
+	if shouldBeFalse {
+		log.Printf("[%+v] - matching list of different length should be false", testName)
+		t.Fail()
+	}
+
+	shouldBeTrue = CompareContactSlice(make([]contact, 0), make([]contact, 0))
+	if !shouldBeTrue {
+		log.Printf("[%+v] - matching of empty lists should be true", testName)
+		t.Fail()
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"math/bits"
+	"math/rand"
 )
 
 func RelativeDistance(nodeA [5]uint32, nodeB [5]uint32) int {
@@ -51,6 +52,8 @@ func CloserNode(nodeA [5]uint32, nodeB [5]uint32, target [5]uint32) bool {
 	return false
 }
 
+// Sorts the list by relative distance to the target id, returns an error if 
+// a non-contact element is found.
 func SortByDistance(contactList *list.List, target [5]uint32) error {
 	var relDist int
 	var nextRelDist int
@@ -78,6 +81,9 @@ func SortByDistance(contactList *list.List, target [5]uint32) error {
 	return nil
 }
 
+// Returns a list consisting of the input lists merged by distance relative to the target id.
+// Assumes that the input lists are already sorted individually.
+// Returns an error if one of the list contains non-contact elements.
 func MergeByDistance(contactListA *list.List, contactListB *list.List, target [5]uint32) (*list.List, error) {
 	var relDistA int
 	var relDistB int
@@ -138,3 +144,63 @@ func MergeByDistance(contactListA *list.List, contactListB *list.List, target [5
 
 	return res, nil
 }
+
+// returns a pseudo-random uint32 in the range (min, max]
+func randU32(min uint32, max uint32) (uint32, error) {
+	if min >= max {
+		return 0, errors.New("invalid range")
+	}
+	var x uint32 = rand.Uint32()
+	x %= (max - min)
+	x += min
+	return x, nil
+}
+
+// create 5 uint32 (160 bits) which are which represents the Kademlia ID
+func GenerateID() [5]uint32 {
+	var bitArray [5]uint32
+	for i := 0; i < 5; i++ {
+		var section uint32 = rand.Uint32()
+		bitArray[i] = section
+	}
+	return bitArray
+}
+
+func GenerateIP() [4]byte {
+	var ip [4]byte
+	for i := 0; i < 4; i++ {
+		tmpSeg, _ := randU32(0, 256)
+		var seg byte = byte(tmpSeg)
+		ip[i] = seg
+	}
+	return ip
+}
+
+func CompareHash(a []byte, b []byte) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range(a) {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// Compares two contact slices, returns true if they contain the same contacts.
+// Note that ordering is significant.
+func CompareContactSlice(a []contact, b []contact) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+

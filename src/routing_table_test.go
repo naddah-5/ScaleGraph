@@ -1,6 +1,5 @@
 package scalegraph
 
-
 import (
 	"log"
 	"testing"
@@ -13,7 +12,7 @@ func TestRoutingTableAddContact(t *testing.T) {
 	var testRT routingTable = NewRoutingTable(homeID)
 
 	for i := 0; i < 1000; i++ {
-		newContact, _ := NewRandomContact()
+		newContact := NewRandomContact()
 		testRT.AddContact(newContact)
 	}
 
@@ -52,14 +51,11 @@ func TestRoutingTableFindContact(t *testing.T) {
 	var testRT routingTable = NewRoutingTable(homeID)
 
 	for i := 0; i < 1000; i++ {
-		newContact, _ := NewRandomContact()
+		newContact := NewRandomContact()
 		testRT.AddContact(newContact)
 	}
 
-	targetContact, err := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{0, 0, 0, 0, 1})
-	if err != nil {
-		log.Printf("[%s] - unexpected error: %+v", testName, err.Error())
-	}
+	targetContact := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{0, 0, 0, 0, 1})
 	testRT.AddContact(targetContact)
 
 	foundContacts, err := testRT.FindXClosest(3, [5]uint32{0, 0, 0, 0, 1})
@@ -97,21 +93,17 @@ func TestRoutingTableRemoveContact(t *testing.T) {
 	var testRT routingTable = NewRoutingTable(homeID)
 
 	for i := 0; i < 1000; i++ {
-		newContact, _ := NewRandomContact()
+		newContact := NewRandomContact()
 		testRT.AddContact(newContact)
 	}
 
-	targetContact, err := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{0, 0, 0, 0, 1})
-	if err != nil {
-		log.Printf("[%s] - unexpected error: %+v", testName, err.Error())
-	}
+	targetContact := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{0, 0, 0, 0, 1})
 	testRT.AddContact(targetContact)
 
 	foundContacts, err := testRT.FindXClosest(3, targetContact.ID())
 	if err != nil {
 		log.Printf("[%s] - %s\n", testName, err.Error())
 	}
-
 
 	checkAdd, ok := foundContacts.Front().Value.(contact)
 	if !ok {
@@ -138,7 +130,6 @@ func TestRoutingTableRemoveContact(t *testing.T) {
 		log.Printf("[%s] - failed to search routing table after removal", testName)
 		t.Fail()
 	}
-	
 
 	checkRemoved, ok := updatedContacts.Front().Value.(contact)
 	if !ok {
@@ -154,4 +145,3 @@ func TestRoutingTableRemoveContact(t *testing.T) {
 		log.Printf("search for target after removal returned, %+v\n", checkRemoved)
 	}
 }
-

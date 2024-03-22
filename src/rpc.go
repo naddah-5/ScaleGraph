@@ -1,13 +1,25 @@
 package scalegraph
 
+import (
+	"container/list"
+	"log"
+)
+
 type CMD int
 
 const (
 	PING CMD = iota
 	PONG
 	STORE
+	STORE_RESPONSE
 	FIND_NODE
-	FIND_VALUE
+	FIND_NODE_RESPONSE
+	FIND_WALLET
+	FIND_WALLET_RESPONSE
+	PROPOSE_REQUEST
+	PROPOSE_ACCEPT
+	PROPOSE
+	PROPOSE_VALIDATE
 )
 
 func (c CMD) String() string {
@@ -18,10 +30,124 @@ func (c CMD) String() string {
 		return "PONG"
 	case STORE:
 		return "STORE"
+	case STORE_RESPONSE:
+		return "STORE_RESPONSE"
 	case FIND_NODE:
 		return "FIND_NODE"
-	case FIND_VALUE:
-		return "FIND_VALUE"
+	case FIND_NODE_RESPONSE:
+		return "FIND_NODE_RESPONSE"
+	case FIND_WALLET:
+		return "FIND_WALLET"
+	case FIND_WALLET_RESPONSE:
+		return "FIND_WALLET_RESPONSE"
 	}
 	return "unknown"
+}
+
+// Contains fields for all RPC data
+// note that fields may be nil.
+type RPC struct {
+	CMD
+	response bool
+	timeout  bool
+	ID       [5]uint32
+	Sender   contact
+	receiver [4]byte
+	wallet
+	WalletID    [5]uint32
+	WalletKey   []byte
+	Transaction []byte
+	FindTarget  [5]uint32
+	KNodes      []contact
+	Acknowledge bool
+}
+
+// Creates and returns a new base case RPC.
+func GenerateRPC(cmd CMD, sender contact, receiver [4]byte) RPC {
+	newRPC := RPC{
+		CMD:      cmd,
+		response: false,
+		timeout:  false,
+		ID:       GenerateID(),
+		Sender:   sender,
+		receiver: receiver,
+	}
+	return newRPC
+}
+
+// Creates and returns a base case response RPC.
+func GenerateResponse(cmd CMD, id [5]uint32, ip [4]byte, sender contact) RPC {
+
+	newRPC := RPC{
+		CMD:      cmd,
+		response: true,
+		timeout:  false,
+		ID:       id,
+		Sender:   sender,
+		receiver: ip,
+	}
+	return newRPC
+}
+
+// Wrapper for redirecting the target IP of a RPC.
+func (rpc *RPC) Redirect(ip [4]byte) {
+	rpc.receiver = ip
+}
+
+// Sets the rpc acknowledgement to true
+func (rpc *RPC) Pong() {
+	if rpc.CMD != PONG {
+		log.Println("WARNING: applying pong to non-PONG RPC")
+	}
+	rpc.Acknowledge = true
+}
+
+// NOT IMPLEMENTED
+func (rpc *RPC) Store(wallet wallet) {
+	if rpc.CMD != STORE {
+		log.Println("WARNING: applying store to non-STORE RPC")
+	}
+	rpc.wallet = wallet
+}
+
+// Sets the rpc acknowledge to true
+func (rpc *RPC) StoreResponse(ack bool) {
+	if rpc.CMD != STORE_RESPONSE {
+		log.Println("WARNING: applying store response to non-STORE_RESPONSE RPC")
+	}
+	rpc.Acknowledge = true
+}
+
+// Sets the target id for the rpc.
+func (rpc *RPC) FindNode(target [5]uint32) {
+	if rpc.CMD != FIND_NODE {
+		log.Println("WARNING: applying find node to non-FIND_NODE RPC")
+	}
+	rpc.FindTarget = target
+}
+
+// Attatches the given list of contacts to the rpc as a slice.
+func (rpc *RPC) FindNodeResponse(found *list.List, target [5]uint32) {
+	if rpc.CMD != FIND_NODE_RESPONSE {
+		log.Println("WARNING: applying find node reponse to non-FIND_NODE_RESPONSE RPC")
+	}
+	rpc.KNodes = make([]contact, 0)
+	for n := found.Front(); n != nil; n = n.Next() {
+		rpc.KNodes = append(rpc.KNodes, n.Value.(contact))
+	}
+	rpc.FindTarget = target
+}
+
+func (rpc *RPC) FindWallet(walletID [5]uint32) {
+	if rpc.CMD != FIND_WALLET {
+		log.Println("WARNING: applying find wallet to non-FIND_WALLET RPC")
+	}
+	rpc.WalletID = walletID
+}
+
+func (rpc *RPC) FindWalletResponse(found wallet) {
+	if rpc.CMD != FIND_WALLET_RESPONSE {
+		log.Println("WARNING: applying find wallet response to non-FIND_WALLET_RESPONSE")
+	}
+	rpc.wallet = found
 }
