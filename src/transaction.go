@@ -2,14 +2,16 @@ package scalegraph
 
 import (
 	"crypto/sha256"
+	"errors"
+	"fmt"
 	"strconv"
 )
 
 type transaction struct {
-	sender   [5]uint32
-	receiver [5]uint32
-	amount   int
-	signature
+	sender    [5]uint32
+	receiver  [5]uint32
+	amount    int
+	signature // account signature not the transaction hash
 }
 
 func NewTransaction(sender [5]uint32, receiver [5]uint32, amount int, sign signature) transaction {
@@ -44,9 +46,13 @@ func (trx *transaction) Hash() []byte {
 	return hash
 }
 
-func (trx *transaction) delta(walletID [5]uint32) int {
+// Returns the balance change for the specified wallet id.
+// Returns an error if the given wallet id is not involved in the transaction.
+func (trx *transaction) delta(walletID [5]uint32) (int, error) {
 	if trx.sender == walletID {
-		return -trx.amount
+		return -trx.amount, nil
+	} else if trx.receiver == walletID {
+		return trx.amount, nil
 	}
-	return trx.amount
+	return 0, errors.New(fmt.Sprintf("error: %+v is not involved in transaction", walletID))
 }

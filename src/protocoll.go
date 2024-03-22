@@ -126,3 +126,7 @@ func (node *Node) deepSearch(prevContactList []contact, target [5]uint32) []cont
 	}
 	return node.deepSearch(contactList, target)
 }
+
+func (node *Node) StoreWallet(wallet *wallet) error {
+	return nil
+}

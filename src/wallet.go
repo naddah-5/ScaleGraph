@@ -9,8 +9,8 @@ type wallet struct {
 	*blockchain
 }
 
-func NewWallet(id [5]uint32) *wallet {
-	chain := NewBlockchain(id)
+func NewWallet(id [5]uint32, balance int) *wallet {
+	chain := NewBlockchain(id, balance)
 	newWallet := wallet{
 		lock:       sync.RWMutex{},
 		walletID:   id,

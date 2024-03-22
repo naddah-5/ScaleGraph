@@ -24,7 +24,7 @@ func (vault *vault) Add(id [5]uint32) error {
 	if exists {
 		return errors.New(fmt.Sprintf("wallet with id %+v already exists", id))
 	}
-	newWallet := NewWallet(id)
+	newWallet := NewWallet(id, 0)
 	vault.slot[id] = newWallet
 	return nil
 }

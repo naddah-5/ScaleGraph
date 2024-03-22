@@ -53,7 +53,7 @@ type RPC struct {
 	ID       [5]uint32
 	Sender   contact
 	receiver [4]byte
-	wallet
+	*wallet
 	WalletID    [5]uint32
 	WalletKey   []byte
 	Transaction []byte
@@ -103,7 +103,7 @@ func (rpc *RPC) Pong() {
 }
 
 // NOT IMPLEMENTED
-func (rpc *RPC) Store(wallet wallet) {
+func (rpc *RPC) Store(wallet *wallet) {
 	if rpc.CMD != STORE {
 		log.Println("WARNING: applying store to non-STORE RPC")
 	}
@@ -145,7 +145,7 @@ func (rpc *RPC) FindWallet(walletID [5]uint32) {
 	rpc.WalletID = walletID
 }
 
-func (rpc *RPC) FindWalletResponse(found wallet) {
+func (rpc *RPC) FindWalletResponse(found *wallet) {
 	if rpc.CMD != FIND_WALLET_RESPONSE {
 		log.Println("WARNING: applying find wallet response to non-FIND_WALLET_RESPONSE")
 	}
