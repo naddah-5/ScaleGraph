@@ -15,7 +15,15 @@ func (n *Node) Controller(rpc RPC) {
 		n.controlFindNode(rpc)
 	case FIND_NODE_RESPONSE:
 		n.controlFindNodeResponse(rpc)
+	case RESEND:
+		n.controlResend(rpc)
 	}
+}
+
+func (node *Node) controlResend(rpc RPC) {
+	rpc.Redirect(rpc.Sender.IP())
+	rpc.Sender = node.contact
+	rpc.CMD = rpc.resend
 }
 
 // Handles the internal logic for a received ping RPC.

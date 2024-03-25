@@ -48,6 +48,7 @@ func NewServer() *Simnet {
 	s.spawnedIP[rootIP] = true
 	servChan := make(chan RPC, 100)
 	s.table[s.serverIP] = servChan
+
 	master := s.SpawnNode(make(chan struct{}), make(chan struct{}), make(chan struct{}))
 	s.masterNode = master
 
@@ -93,6 +94,15 @@ func (s *Simnet) SpawnNode(delay chan struct{}, done chan struct{}, prt chan str
 	}
 	go newNode.Start(delay, done, prt)
 	return newNode.IP()
+}
+
+func (s *Simnet) AttachThisNode(node *Node) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.table[node.IP()] = node.listener
+	s.spawnedID[node.ID()] = true
+	s.spawnedIP[node.IP()] = true
+	s.network[node.ID()] = node.IP()
 }
 
 // Start the server routine, just connects incomming RPC's to the correct channel.
@@ -150,3 +160,4 @@ func (s *Simnet) serverPing(rpc RPC) {
 	}
 	s.listener <- rpc
 }
+

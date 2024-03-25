@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	scaleGraph "scalegraph/src"
 	"sync"
@@ -18,17 +19,17 @@ func main() {
 	fmt.Println("hello world")
 	fmt.Printf("%+v\n", time.Now())
 
-	delay := make(chan struct{}, 100)
-	done := make(chan struct{})
+	delay := make(chan struct{})
+	done := make(chan struct{}, 100)
 	prt := make(chan struct{})
 	var wg sync.WaitGroup
 
 	s := scaleGraph.NewServer()
 	go s.StartServer()
 	time.Sleep(1 * time.Second)
-	for i := 1; i < 100; i++ {
+	for i := 1; i < 10; i++ {
 		var startDelay chan struct{} = nil
-		if startDelay != nil {
+		if startDelay == nil {
 			time.Sleep(100 * time.Millisecond)
 		}
 		wg.Add(1)
@@ -40,6 +41,7 @@ func main() {
 	go func(done chan struct{}, wg *sync.WaitGroup) {
 		for {
 			<-done
+			log.Println("received done")
 			wg.Done()
 		}
 	}(done, &wg)

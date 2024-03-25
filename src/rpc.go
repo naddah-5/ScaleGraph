@@ -20,6 +20,7 @@ const (
 	PROPOSE_ACCEPT
 	PROPOSE
 	PROPOSE_VALIDATE
+	RESEND
 )
 
 func (c CMD) String() string {
@@ -48,6 +49,7 @@ func (c CMD) String() string {
 // note that fields may be nil.
 type RPC struct {
 	CMD
+	resend   CMD
 	response bool
 	timeout  bool
 	ID       [5]uint32
