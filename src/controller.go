@@ -15,15 +15,16 @@ func (n *Node) Controller(rpc RPC) {
 		n.controlFindNode(rpc)
 	case FIND_NODE_RESPONSE:
 		n.controlFindNodeResponse(rpc)
-	case RESEND:
-		n.controlResend(rpc)
+	case SEND:
+		n.controlSend(rpc)
 	}
 }
 
-func (node *Node) controlResend(rpc RPC) {
+// Redirection command from the simnet, the redirection target will be stored in the sender.
+func (node *Node) controlSend(rpc RPC) {
 	rpc.Redirect(rpc.Sender.IP())
 	rpc.Sender = node.contact
-	rpc.CMD = rpc.resend
+	rpc.CMD = rpc.order
 }
 
 // Handles the internal logic for a received ping RPC.

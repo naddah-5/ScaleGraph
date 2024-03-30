@@ -72,7 +72,7 @@ func TestRoutingTableFindContact(t *testing.T) {
 				log.Printf("element is not a contact: %+v\n", e.Value)
 				break
 			}
-			log.Printf("contact: ip : %-15v port : %-5v ID : %-10v relative distance : %-5d\n", elem.IP(), elem.Port(), elem.ID(), relDist)
+			log.Printf("contact: ip : %-15v ID : %-10v relative distance : %-5d\n", elem.IP(), elem.ID(), relDist)
 		}
 	}
 	closestFound, ok := foundContacts.Front().Value.(contact)

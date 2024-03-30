@@ -1,7 +1,6 @@
 package scalegraph
 
 import (
-	"fmt"
 	"log"
 	"time"
 )
@@ -12,7 +11,7 @@ const (
 	REPLICATION   = 10  // alpha
 	PORT          = 8080
 	DEBUG         = true
-	TIMEOUT       = 100 * time.Second
+	TIMEOUT       = 10 * time.Second
 )
 
 type Node struct {
@@ -38,53 +37,9 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 	}
 }
 
-func (node *Node) Start(delay chan struct{}, done chan struct{}, prt chan struct{}) {
+func (node *Node) Start() {
 	if DEBUG {
 		log.Printf("started node: %+v", node.id)
 	}
 	go node.network.Listen(node)
-
-	if delay != nil {
-		<-delay
-	}
-
-	node.Ping(node.serverIP)
-
-	time.Sleep(1 * time.Second)
-	//scriptDone := make(chan struct{})
-	go node.FindNode(node.ID(), nil)
-	// if scriptDone != nil {
-	// 	<-scriptDone
-	// }
-	time.Sleep(10 * time.Second)
-
-	//scriptDone = make(chan struct{})
-	go node.FindNode(node.ID(), nil)
-	// if scriptDone != nil {
-	// 	<-scriptDone
-	// }
-
-	if done != nil {
-		done <- struct{}{}
-	}
-
-	time.Sleep(20 * time.Second)
-
-	if prt != nil {
-		_, allDone := <-prt
-		if !allDone {
-			if DEBUG {
-				dumpTable := ""
-				dumpTable += fmt.Sprintf("[node] - %+v - current routing table:\n", node.ID())
-				for i := range node.router {
-					node.router[i].lock.RLock()
-					for c := node.router[i].content.Front(); c != nil; c = c.Next() {
-						dumpTable += fmt.Sprintf("\tcontact: %+v\n", c.Value.(contact).id)
-					}
-					node.router[i].lock.RUnlock()
-				}
-				log.Println(dumpTable)
-			}
-		}
-	}
 }

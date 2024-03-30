@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"sync"
 )
 
 func (node *Node) Ping(ip [4]byte) error {
@@ -22,43 +21,18 @@ func (node *Node) Heartbeat(target contact) {
 
 }
 
-func (node *Node) alphaFindNode(rpc RPC, wg *sync.WaitGroup, respChan chan []contact) {
-	resp, err := node.network.Send(rpc)
-	if err != nil {
-		log.Println("[error] - find node alpha: no response")
-		respChan <- make([]contact, 0)
-		wg.Done()
-		return
-	}
-	if DEBUG {
-		log.Println("[info] - sending find node alpha response")
-	}
-	respChan <- resp.KNodes
-	wg.Done()
-	go func(rpc RPC) {
-		for _, con := range rpc.KNodes {
-			go node.Ping(con.IP())
-		}
-	}(resp)
-	return
-
-}
-
 // High level find node RPC.
-func (node *Node) FindNode(target [5]uint32, done chan struct{}) ([]contact, error) {
+func (node *Node) FindNode(target [5]uint32) ([]contact, error) {
 	closeIP, _ := node.routingTable.FindXClosest(REPLICATION, target)
-	var wg sync.WaitGroup
 	res := list.New()
 	respChan := make(chan []contact, 100*REPLICATION)
 	for n := closeIP.Front(); n != nil; n = n.Next() {
 		closeNode := n.Value.(contact)
 		rpc := GenerateRPC(FIND_NODE, node.contact, closeNode.ip)
 		rpc.FindNode(closeNode.ID())
-		wg.Add(1)
-		go node.alphaFindNode(rpc, &wg, respChan)
+		go node.alphaFindNode(rpc, respChan)
 	}
-	wg.Wait()
-	for i := 0; i < REPLICATION; i++ {
+	for i := 0; i < min(REPLICATION, closeIP.Len()); i++ {
 		foundNodes := <-respChan
 		if DEBUG {
 			log.Printf("[info] - received find node alpha response: %+v", foundNodes)
@@ -79,28 +53,39 @@ func (node *Node) FindNode(target [5]uint32, done chan struct{}) ([]contact, err
 		i++
 	}
 	finalRes := node.deepSearch(resSlice, target)
-	if done != nil {
-		if DEBUG {
-			log.Println("[info] - sending done signal")
-		}
-		done <- struct{}{}
-	}
 	return finalRes, nil
+}
+
+func (node *Node) alphaFindNode(rpc RPC, respChan chan []contact) {
+	resp, err := node.network.Send(rpc)
+	if err != nil {
+		log.Println("[error] - find node alpha: no response")
+		respChan <- make([]contact, 0)
+		return
+	}
+	if DEBUG {
+		log.Println("[info] - sending find node alpha response")
+	}
+	respChan <- resp.KNodes
+	go func(rpc RPC) {
+		for _, con := range rpc.KNodes {
+			go node.Ping(con.IP())
+		}
+	}(resp)
+	return
+
 }
 
 // Helper function to the find node RPC, handles the reccursion.
 func (node *Node) deepSearch(prevContactList []contact, target [5]uint32) []contact {
-	var wg sync.WaitGroup
-	var respChan chan []contact = make(chan []contact, 100*REPLICATION)
+	var respChan chan []contact = make(chan []contact, REPLICATION)
 	for i := 0; i < len(prevContactList); i++ {
 		rpc := GenerateRPC(FIND_NODE, node.contact, prevContactList[i].IP())
 		rpc.FindNode(target)
-		wg.Add(1)
-		go node.alphaFindNode(rpc, &wg, respChan)
+		go node.alphaFindNode(rpc, respChan)
 	}
 	res := list.New()
-	wg.Wait()
-	for i := 0; i < REPLICATION; i++ {
+	for i := 0; i < min(REPLICATION, len(prevContactList)); i++ {
 		foundNodes := <-respChan
 		for _, val := range foundNodes {
 			res.PushBack(val)

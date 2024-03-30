@@ -10,7 +10,6 @@ import (
 
 type contact struct {
 	ip  [4]byte
-	udpPort int
 	id  [5]uint32
 }
 
@@ -18,9 +17,6 @@ func (c *contact) IP() [4]byte {
 	return c.ip
 }
 
-func (c *contact) Port() int {
-	return c.udpPort
-}
 
 func (c *contact) ID() [5]uint32 {
 	return c.id
@@ -30,7 +26,6 @@ func BuildContact(ip [4]byte, port int, id [5]uint32) contact {
 	var newContact contact
 	newContact = contact{
 		ip:  ip,
-		udpPort: port,
 		id:  id,
 	}
 	return newContact

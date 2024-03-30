@@ -20,7 +20,7 @@ const (
 	PROPOSE_ACCEPT
 	PROPOSE
 	PROPOSE_VALIDATE
-	RESEND
+	SEND
 )
 
 func (c CMD) String() string {
@@ -41,6 +41,8 @@ func (c CMD) String() string {
 		return "FIND_WALLET"
 	case FIND_WALLET_RESPONSE:
 		return "FIND_WALLET_RESPONSE"
+	case SEND:
+		return "SEND"
 	}
 	return "unknown"
 }
@@ -49,7 +51,7 @@ func (c CMD) String() string {
 // note that fields may be nil.
 type RPC struct {
 	CMD
-	resend   CMD
+	order    CMD
 	response bool
 	timeout  bool
 	ID       [5]uint32

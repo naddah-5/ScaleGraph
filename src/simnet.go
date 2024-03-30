@@ -5,11 +5,8 @@ import (
 	"sync"
 )
 
-type NodeMap struct {
-	ID [5]uint32
-	IP [4]byte
-}
 
+// Used to keep track of existing node id's and ip's and their connection.
 type spawned struct {
 	lock      sync.RWMutex
 	spawnedID map[[5]uint32]bool
@@ -49,15 +46,26 @@ func NewServer() *Simnet {
 	servChan := make(chan RPC, 100)
 	s.table[s.serverIP] = servChan
 
-	master := s.SpawnNode(make(chan struct{}), make(chan struct{}), make(chan struct{}))
-	s.masterNode = master
+	master := s.SpawnNode()
+	s.masterNode = master.IP()
 
 	return &s
 }
 
 // Spawns a new node and attach it to the server
 // Checks for duplicate value conflicts
-func (s *Simnet) SpawnNode(delay chan struct{}, done chan struct{}, prt chan struct{}) [4]byte {
+func (s *Simnet) SpawnNode() *Node {
+	newNode := s.generateRandomNode()
+	if DEBUG {
+		log.Printf("starting node: %+v with ip:%+v", newNode.ID(), newNode.IP())
+		log.Printf("generated id: %+v, ip: %+v", newNode.ID(), newNode.IP())
+	}
+	go newNode.Start()
+	return newNode
+}
+
+// Generates a new node with random ID, and IP in the simulation.
+func (s *Simnet) generateRandomNode() *Node {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	if DEBUG {
@@ -87,15 +95,11 @@ func (s *Simnet) SpawnNode(delay chan struct{}, done chan struct{}, prt chan str
 	s.spawnedIP[ip] = true
 	s.network[id] = ip
 
-
-	if DEBUG {
-		log.Printf("starting node: %+v with ip:%+v", newNode.ID(), newNode.IP())
-		log.Printf("generated id: %+v, ip: %+v", id, ip)
-	}
-	go newNode.Start(delay, done, prt)
-	return newNode.IP()
+	return &newNode
 }
 
+// Attaches a generated node to the simulation.
+// Does not handle id or ip conflicts.
 func (s *Simnet) AttachThisNode(node *Node) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -116,6 +120,7 @@ func (s *Simnet) StartServer() {
 	}
 }
 
+// Used to launch a go routine for handling incoming traffic.
 func (s *Simnet) understand(rpc RPC) {
 	if rpc.receiver == s.serverIP {
 		if DEBUG {
@@ -141,11 +146,11 @@ func (s *Simnet) understand(rpc RPC) {
 
 // Gives all existing nodes with their IP address for the specified network.
 // No order is guaranteed.
-func (s *Simnet) AllNodes() []NodeMap {
+func (s *Simnet) AllNodes() []contact {
 	s.lock.RLock()
-	res := make([]NodeMap, 0)
+	res := make([]contact, 0)
 	for key, value := range s.network {
-		nm := NodeMap{key, value}
+		nm := contact{value, key}
 		res = append(res, nm)
 	}
 	s.lock.RUnlock()

@@ -3,7 +3,6 @@ package scalegraph
 import (
 	"fmt"
 	"log"
-	"strconv"
 	"testing"
 )
 
@@ -35,9 +34,6 @@ func TestCreateContact(t *testing.T) {
 	if newContact.IP() != expectedIP {
 		var err string = fmt.Sprintf("IP missmatch: expected - %v, received - %v\n", expectedIP, newContact.IP())
 		errMsg = errMsg + err
-	}
-	if newContact.udpPort != expectedPort {
-		errMsg = errMsg + "Port missmatch: expected - " + strconv.Itoa(expectedPort) + " received - " + strconv.Itoa(newContact.Port()) + "\n"
 	}
 	if newContact.id != expectedID {
 		eID := fmt.Sprintf("%v", expectedID)

@@ -208,11 +208,6 @@ func TestFindContact(t *testing.T) {
 		log.Printf("[%s] - contact missmatch: expected %+v, found %+v\n", testName, contact4, foundContact)
 		t.FailNow()
 	}
-	if foundContact.Port() != contact4.Port() {
-		log.Printf("[%s] - contact missmatch: expected %+v, found %+v\n", testName, contact4, foundContact)
-		t.FailNow()
-	}
-
 }
 
 func TestFindMissingContact(t *testing.T) {
