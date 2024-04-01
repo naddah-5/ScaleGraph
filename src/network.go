@@ -92,7 +92,6 @@ func (net *network) Send(rpc RPC) (RPC, error) {
 		case res := <-respChan:
 			return res, nil
 		case <-time.After(TIMEOUT):
-
 			net.Drop(rpc.ID)
 			break
 		}

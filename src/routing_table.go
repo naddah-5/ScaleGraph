@@ -60,7 +60,7 @@ func (rt *routingTable) FindXClosest(x int, target [5]uint32) (*list.List, error
 	var res *list.List = list.New()
 	bucketIndex := rt.BucketIndex(target)
 	res, err := rt.router[bucketIndex].FindXClosestBucket(x, target)
-	if err.Error() == "incomplete" {
+	if err != nil && err.Error() == "incomplete" {
 		var count int = x - res.Len()
 		addRes, err := rt.findSlider(bucketIndex, count, target)
 		if err != nil {

@@ -8,9 +8,11 @@ import (
 const (
 	KEYSPACE      = 160 // the number of buckets
 	KBUCKETVOLUME = 5   // K, number of contacts per bucket
-	REPLICATION   = 10  // alpha
+	REPLICATION   = 3   // alpha
+	CONCURRENCY   = 3
 	PORT          = 8080
 	DEBUG         = true
+	POINT_DEBUG   = true
 	TIMEOUT       = 10 * time.Second
 )
 
@@ -26,7 +28,7 @@ type Node struct {
 
 func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serverIP [4]byte, master [4]byte) Node {
 	net := NewNetwork(listener, sender, serverIP, master)
-	me := BuildContact(ip, PORT, id)
+	me := BuildContact(ip, id)
 	return Node{
 		Replication:  REPLICATION,
 		BucketSize:   KBUCKETVOLUME,

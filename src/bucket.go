@@ -31,7 +31,7 @@ func (bucket *bucket) AddContact(newContact contact) error {
 		if !ok {
 			return errors.New(fmt.Sprintf("Bucket has been corrupted: expected a contact, found: %+v", e.Value))
 		}
-		if elem.ID() == newContact.ID() && e != nil {
+		if elem.ID() == newContact.ID() {
 			bucket.content.MoveToBack(e)
 			return nil
 		}
@@ -63,8 +63,8 @@ func (bucket *bucket) RemoveContact(target contact) error {
 
 // Searches Bucket for a contact matching the given ID, returns error if no match is found. Does not update contacts position in the Bucket.
 func (bucket *bucket) FindContact(target [5]uint32) (contact, error) {
-	bucket.lock.RLock()
-	defer bucket.lock.RUnlock()
+	bucket.lock.Lock()
+	defer bucket.lock.Unlock()
 	var noMatch contact = EmptyContact()
 	for e := bucket.content.Front(); e != nil; e = e.Next() {
 		elem, ok := e.Value.(contact)
@@ -84,8 +84,9 @@ func (bucket *bucket) FindContact(target [5]uint32) (contact, error) {
 // The result is returned in a sorted list, from closest to target to furthest from target.
 // Note that this method always performs a deep copy of the Bucket.
 func (bucket *bucket) FindXClosestBucket(x int, target [5]uint32) (*list.List, error) {
+	bucket.lock.Lock()
+	defer bucket.lock.Unlock()
 	var res *list.List = list.New()
-	bucket.lock.RLock()
 	for e := bucket.content.Front(); e != nil; e = e.Next() {
 		elem, ok := e.Value.(contact)
 		if !ok {
@@ -93,7 +94,6 @@ func (bucket *bucket) FindXClosestBucket(x int, target [5]uint32) (*list.List, e
 		}
 		res.PushFront(elem)
 	}
-	bucket.lock.RUnlock()
 	err := SortByDistance(res, target)
 	if err != nil {
 		return res, err

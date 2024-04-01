@@ -22,7 +22,9 @@ func alphaScript() {
 	fmt.Println("hello world")
 	fmt.Printf("%+v\n", time.Now())
 
-	delay := make(chan struct{})
+	var delay chan struct{}
+
+	delay = make(chan struct{})
 	done := make(chan struct{}, 100)
 	prt := make(chan struct{})
 	var wg sync.WaitGroup
@@ -30,14 +32,10 @@ func alphaScript() {
 	s := scaleGraph.NewServer()
 	go s.StartServer()
 	time.Sleep(1 * time.Second)
-	for i := 0; i < 1000; i++ {
-		var startDelay chan struct{} = nil
-		if startDelay == nil {
-			time.Sleep(100 * time.Millisecond)
-		}
+	for i := 0; i < 100; i++ {
 		wg.Add(1)
 		node := s.SpawnNode()
-		go node.NodeAlphaScript(startDelay, done, prt)
+		go node.NodeAlphaScript(delay, done, prt)
 	}
 	close(delay)
 
@@ -51,7 +49,8 @@ func alphaScript() {
 
 	wg.Wait()
 	close(prt)
-	time.Sleep(5 * time.Second)
+	fmt.Println("closing")
+	time.Sleep(1 * time.Second)
 	fmt.Printf("%+v\n", time.Now())
 	os.Exit(0)
 

@@ -78,6 +78,19 @@ func SortByDistance(contactList *list.List, target [5]uint32) error {
 		}
 	}
 
+	// clear out duplicates.
+	for e := contactList.Front(); e != nil; e = e.Next() {
+		elem := e.Value.(contact)
+		for p := e.Next(); p != nil; p = p.Next(){
+			pElem := p.Value.(contact)
+			if elem.ID() == pElem.ID() {
+				stepBack := p.Prev()
+				contactList.Remove(p)
+				p = stepBack
+			}
+		}
+	}
+
 	return nil
 }
 

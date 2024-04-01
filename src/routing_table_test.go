@@ -55,7 +55,7 @@ func TestRoutingTableFindContact(t *testing.T) {
 		testRT.AddContact(newContact)
 	}
 
-	targetContact := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{0, 0, 0, 0, 1})
+	targetContact := BuildContact([4]byte{127, 0, 0, 1}, [5]uint32{0, 0, 0, 0, 1})
 	testRT.AddContact(targetContact)
 
 	foundContacts, err := testRT.FindXClosest(3, [5]uint32{0, 0, 0, 0, 1})
@@ -72,7 +72,7 @@ func TestRoutingTableFindContact(t *testing.T) {
 				log.Printf("element is not a contact: %+v\n", e.Value)
 				break
 			}
-			log.Printf("contact: ip : %-15v ID : %-10v relative distance : %-5d\n", elem.IP(), elem.ID(), relDist)
+			log.Printf("contact: ip : %v ID : %v relative distance : %d\n", elem.IP(), elem.ID(), relDist)
 		}
 	}
 	closestFound, ok := foundContacts.Front().Value.(contact)
@@ -97,7 +97,7 @@ func TestRoutingTableRemoveContact(t *testing.T) {
 		testRT.AddContact(newContact)
 	}
 
-	targetContact := BuildContact([4]byte{127, 0, 0, 1}, 80, [5]uint32{0, 0, 0, 0, 1})
+	targetContact := BuildContact([4]byte{127, 0, 0, 1}, [5]uint32{0, 0, 0, 0, 1})
 	testRT.AddContact(targetContact)
 
 	foundContacts, err := testRT.FindXClosest(3, targetContact.ID())

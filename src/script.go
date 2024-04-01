@@ -51,15 +51,20 @@ func (node *Node) NodeAlphaScript(delay chan struct{}, done chan struct{}, prt c
 		<-delay
 	}
 
-	node.Ping(node.serverIP)
+	go node.Ping(node.serverIP)
 
-	time.Sleep(1 * time.Second)
-	go node.FindNode(node.ID())
-	time.Sleep(10 * time.Second)
-
+	time.Sleep(3 * time.Second)
 	comp := make(chan struct{})
 	go func(node *Node, comp chan struct{}) {
-		node.FindNode(node.ID())
+		res, _ := node.FindNode(node.ID())
+		if POINT_DEBUG {
+			nodeDump := fmt.Sprintf("%+v found:\n", node.ID())
+			for _, val := range res {
+				nodeDump += fmt.Sprintf("%+v\n", val)
+			}
+			log.Println(nodeDump)
+		}
+		time.Sleep(1 * time.Second)
 		close(comp)
 	}(node, comp)
 	<-comp
@@ -75,11 +80,11 @@ func (node *Node) NodeAlphaScript(delay chan struct{}, done chan struct{}, prt c
 				dumpTable := ""
 				dumpTable += fmt.Sprintf("[node] - %+v - current routing table:\n", node.ID())
 				for i := range node.router {
-					node.router[i].lock.RLock()
+					//node.router[i].lock.RLock()
 					for c := node.router[i].content.Front(); c != nil; c = c.Next() {
 						dumpTable += fmt.Sprintf("\tcontact: %+v\n", c.Value.(contact).id)
 					}
-					node.router[i].lock.RUnlock()
+					//node.router[i].lock.RUnlock()
 				}
 				log.Println(dumpTable)
 			}

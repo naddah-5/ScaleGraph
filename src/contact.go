@@ -22,7 +22,7 @@ func (c *contact) ID() [5]uint32 {
 	return c.id
 }
 
-func BuildContact(ip [4]byte, port int, id [5]uint32) contact {
+func BuildContact(ip [4]byte, id [5]uint32) contact {
 	var newContact contact
 	newContact = contact{
 		ip:  ip,
@@ -39,7 +39,6 @@ func EmptyContact() contact {
 
 // Generates and returns a new, validated, contact with pseudo-random values.
 func NewRandomContact() contact {
-	var port int = 80
 	var ip [4]byte
 	var id [5]uint32 = [5]uint32{rand.Uint32(), rand.Uint32(), rand.Uint32(), rand.Uint32(), rand.Uint32()}
 
@@ -47,7 +46,7 @@ func NewRandomContact() contact {
 		seg, _ := randU32(0, 256)
 		ip[i] = byte(seg)
 	}
-	newContact := BuildContact(ip, port, id)
+	newContact := BuildContact(ip, id)
 	return newContact
 }
 

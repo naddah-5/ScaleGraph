@@ -5,21 +5,25 @@ import (
 	"sync"
 )
 
-
 // Used to keep track of existing node id's and ip's and their connection.
 type spawned struct {
-	lock      sync.RWMutex
+	spawnLock sync.RWMutex
 	spawnedID map[[5]uint32]bool
 	spawnedIP map[[4]byte]bool
 	network   map[[5]uint32][4]byte
+}
+
+type table struct {
+	tableLock sync.RWMutex
+	content   map[[4]byte]chan RPC
 }
 
 // Simnet is a simulated network that handles communication between nodes.
 // spawnedID and spawnedIP keeps track of id's and ip's that are in use to avoid conflicts
 type Simnet struct {
 	listener chan RPC
-	table    map[[4]byte]chan RPC // should be moved to substruct
 	spawned
+	table
 	serverID   [5]uint32
 	serverIP   [4]byte
 	masterNode [4]byte
@@ -28,13 +32,16 @@ type Simnet struct {
 // Creates a new server
 func NewServer() *Simnet {
 	s := Simnet{
-		table:    make(map[[4]byte]chan RPC),
 		listener: make(chan RPC, 1000),
 		spawned: spawned{
-			lock:      sync.RWMutex{},
+			spawnLock: sync.RWMutex{},
 			spawnedID: make(map[[5]uint32]bool),
 			spawnedIP: make(map[[4]byte]bool),
 			network:   make(map[[5]uint32][4]byte),
+		},
+		table: table{
+			tableLock: sync.RWMutex{},
+			content:   make(map[[4]byte]chan RPC),
 		},
 	}
 	rootID := [5]uint32{0, 0, 0, 0, 0}
@@ -44,7 +51,7 @@ func NewServer() *Simnet {
 	s.spawnedID[rootID] = true
 	s.spawnedIP[rootIP] = true
 	servChan := make(chan RPC, 100)
-	s.table[s.serverIP] = servChan
+	s.table.content[s.serverIP] = servChan
 
 	master := s.SpawnNode()
 	s.masterNode = master.IP()
@@ -57,7 +64,6 @@ func NewServer() *Simnet {
 func (s *Simnet) SpawnNode() *Node {
 	newNode := s.generateRandomNode()
 	if DEBUG {
-		log.Printf("starting node: %+v with ip:%+v", newNode.ID(), newNode.IP())
 		log.Printf("generated id: %+v, ip: %+v", newNode.ID(), newNode.IP())
 	}
 	go newNode.Start()
@@ -66,8 +72,8 @@ func (s *Simnet) SpawnNode() *Node {
 
 // Generates a new node with random ID, and IP in the simulation.
 func (s *Simnet) generateRandomNode() *Node {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.spawnLock.Lock()
+	defer s.spawnLock.Unlock()
 	if DEBUG {
 		log.Println("spawning node")
 	}
@@ -90,7 +96,7 @@ func (s *Simnet) generateRandomNode() *Node {
 
 	receiver := make(chan RPC, 100)
 	newNode := NewNode(id, ip, receiver, s.listener, s.serverIP, s.masterNode)
-	s.table[ip] = receiver
+	s.table.content[ip] = receiver
 	s.spawnedID[id] = true
 	s.spawnedIP[ip] = true
 	s.network[id] = ip
@@ -101,9 +107,9 @@ func (s *Simnet) generateRandomNode() *Node {
 // Attaches a generated node to the simulation.
 // Does not handle id or ip conflicts.
 func (s *Simnet) AttachThisNode(node *Node) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	s.table[node.IP()] = node.listener
+	s.spawnLock.Lock()
+	defer s.spawnLock.Unlock()
+	s.table.content[node.IP()] = node.listener
 	s.spawnedID[node.ID()] = true
 	s.spawnedIP[node.IP()] = true
 	s.network[node.ID()] = node.IP()
@@ -112,7 +118,7 @@ func (s *Simnet) AttachThisNode(node *Node) {
 // Start the server routine, just connects incomming RPC's to the correct channel.
 func (s *Simnet) StartServer() {
 	if DEBUG {
-		log.Printf("\tstarting server with id: %+v, ip: %+v", s.serverID, s.serverIP)
+		log.Printf("starting server with id: %+v, ip: %+v", s.serverID, s.serverIP)
 	}
 	for {
 		rpc := <-s.listener
@@ -125,7 +131,7 @@ func (s *Simnet) understand(rpc RPC) {
 	if rpc.receiver == s.serverIP {
 		if DEBUG {
 			if rpc.CMD == PONG {
-				log.Printf("\t---WARNING: server received a PONG---")
+				log.Printf("[warning] - server received a PONG")
 			}
 		}
 		if DEBUG {
@@ -133,27 +139,27 @@ func (s *Simnet) understand(rpc RPC) {
 		}
 		s.serverPing(rpc)
 	}
-	s.lock.RLock()
-	outChan, ok := s.table[rpc.receiver]
+	s.tableLock.RLock()
+	outChan, ok := s.table.content[rpc.receiver]
 	if !ok {
 		log.Printf("[server] - received rpc for unknown address, IP: %+v, sender: %+v", rpc.receiver, rpc.Sender.id)
 	} else {
 		outChan <- rpc
 	}
-	s.lock.RUnlock()
+	s.tableLock.RUnlock()
 	return
 }
 
 // Gives all existing nodes with their IP address for the specified network.
 // No order is guaranteed.
 func (s *Simnet) AllNodes() []contact {
-	s.lock.RLock()
+	s.spawnLock.RLock()
+	defer s.spawnLock.RUnlock()
 	res := make([]contact, 0)
 	for key, value := range s.network {
 		nm := contact{value, key}
 		res = append(res, nm)
 	}
-	s.lock.RUnlock()
 	return res
 }
 
@@ -165,4 +171,3 @@ func (s *Simnet) serverPing(rpc RPC) {
 	}
 	s.listener <- rpc
 }
-

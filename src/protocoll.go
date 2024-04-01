@@ -24,15 +24,16 @@ func (node *Node) Heartbeat(target contact) {
 // High level find node RPC.
 func (node *Node) FindNode(target [5]uint32) ([]contact, error) {
 	closeIP, _ := node.routingTable.FindXClosest(REPLICATION, target)
+
 	res := list.New()
-	respChan := make(chan []contact, 100*REPLICATION)
+	respChan := make(chan []contact, CONCURRENCY)
 	for n := closeIP.Front(); n != nil; n = n.Next() {
 		closeNode := n.Value.(contact)
 		rpc := GenerateRPC(FIND_NODE, node.contact, closeNode.ip)
 		rpc.FindNode(closeNode.ID())
 		go node.alphaFindNode(rpc, respChan)
 	}
-	for i := 0; i < min(REPLICATION, closeIP.Len()); i++ {
+	for i := 0; i < min(CONCURRENCY, closeIP.Len()); i++ {
 		foundNodes := <-respChan
 		if DEBUG {
 			log.Printf("[info] - received find node alpha response: %+v", foundNodes)
@@ -78,14 +79,15 @@ func (node *Node) alphaFindNode(rpc RPC, respChan chan []contact) {
 
 // Helper function to the find node RPC, handles the reccursion.
 func (node *Node) deepSearch(prevContactList []contact, target [5]uint32) []contact {
-	var respChan chan []contact = make(chan []contact, REPLICATION)
+	var respChan chan []contact = make(chan []contact, CONCURRENCY)
 	for i := 0; i < len(prevContactList); i++ {
 		rpc := GenerateRPC(FIND_NODE, node.contact, prevContactList[i].IP())
 		rpc.FindNode(target)
 		go node.alphaFindNode(rpc, respChan)
 	}
+
 	res := list.New()
-	for i := 0; i < min(REPLICATION, len(prevContactList)); i++ {
+	for i := 0; i < min(CONCURRENCY, len(prevContactList)); i++ {
 		foundNodes := <-respChan
 		for _, val := range foundNodes {
 			res.PushBack(val)
@@ -101,8 +103,9 @@ func (node *Node) deepSearch(prevContactList []contact, target [5]uint32) []cont
 		contactList = append(contactList, c.Value.(contact))
 		i++
 	}
-	if CompareContactSlice(prevContactList, contactList) {
-		return contactList
+	
+	if prevContactList[0] == contactList[0] {
+		return prevContactList
 	}
 	return node.deepSearch(contactList, target)
 }
