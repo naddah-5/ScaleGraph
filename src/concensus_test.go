@@ -1,15 +1,12 @@
 package scalegraph
 
 import (
+	"log"
 	"testing"
 )
 
-func TestSanity(t *testing.T) {
-	testConsensus := NewConsensus(1, []byte{0, 1, 2, 3})
-	sign := NewSign([5]uint32{0, 1, 2, 3, 4})
-	testConsensus.Approved(sign)
-	
-	if len(testConsensus.validation) == 0 {
-		t.FailNow()
-	}
+func TestMerge(t *testing.T) {
+	cons := NewConsensus()
+	cons.fillSender(0, make([]byte, 100))
+	log.Printf("consensus: %+v", cons)
 }

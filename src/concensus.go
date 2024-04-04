@@ -12,13 +12,13 @@ type signature struct {
 	hash []byte
 }
 
-func NewSign(id [5]uint32) signature {
+func NewSign(id [5]uint32) *signature {
 	pubSign := hashID(id)
 	sign := signature{
 		id:   id,
 		hash: pubSign,
 	}
-	return sign
+	return &sign
 }
 
 func hashID(id [5]uint32) []byte {
@@ -31,6 +31,7 @@ func hashID(id [5]uint32) []byte {
 
 }
 
+// Validates the concensus signature and returns and error if it is invalid.
 func (sign *signature) Validate() error {
 	validationSign := hashID(sign.id)
 	if CompareHash(sign.hash, validationSign) {
@@ -41,28 +42,47 @@ func (sign *signature) Validate() error {
 }
 
 type consensus struct {
-	senderBlockHeight     int
-	senderHashLastBlock   []byte
-	receiverBlockHeight   int
-	receiverLastBlockHash []byte
-	validation            []signature
+	*senderValidation
+	*receiverValidation
+	signatureList []signature
 }
 
-// Might want to flip consensus order
+type senderValidation struct {
+	senderBlockHeight   int
+	senderHashLastBlock []byte
+}
 
-func NewConsensus(height int, hash []byte) consensus {
-	return consensus{
-		senderBlockHeight:   height,
-		senderHashLastBlock: hash,
-		validation:          make([]signature, 0, 2*REPLICATION),
+type receiverValidation struct {
+	receiverBlockHeight   int
+	receiverLastBlockHash []byte
+}
+
+func NewConsensus() *consensus {
+	return &consensus{
+		signatureList: make([]signature, 0, 2*REPLICATION),
 	}
 }
 
-func (cons *consensus) Concur(height int, hash []byte) {
-	cons.receiverBlockHeight = height
-	cons.receiverLastBlockHash = hash
+func (cons *consensus) fillSender(height int, hash []byte) {
+	sender := &senderValidation{
+		senderBlockHeight: height,
+		senderHashLastBlock: hash,
+	}
+	cons.senderValidation = sender
+}
+func (cons *consensus) fillReceiver(height int, hash []byte) {
+	receiver := &receiverValidation{
+		receiverBlockHeight: height,
+		receiverLastBlockHash: hash,
+	}
+	cons.receiverValidation = receiver
 }
 
-func (cons *consensus) Approved(sign signature) {
-	cons.validation = append(cons.validation, sign)
+func (cons *consensus) Merge(secondCons *consensus) {
+	if cons.senderValidation != nil {
+		cons.receiverValidation = secondCons.receiverValidation
+	} else {
+		cons.senderValidation = secondCons.senderValidation
+	}
+	cons.signatureList = append(cons.signatureList, secondCons.signatureList...)
 }

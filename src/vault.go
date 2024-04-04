@@ -11,21 +11,20 @@ type vault struct {
 	slot map[[5]uint32]*wallet
 }
 
-func NewVault(id [5]uint32) vault {
-	return vault{
+func NewVault() *vault {
+	return &vault{
 		slot: make(map[[5]uint32]*wallet),
 	}
 }
 
-func (vault *vault) Add(id [5]uint32) error {
+func (vault *vault) Add(wallet *wallet) error {
 	vault.lock.Lock()
 	defer vault.lock.Unlock()
-	_, exists := vault.slot[id]
+	_, exists := vault.slot[wallet.walletID]
 	if exists {
-		return errors.New(fmt.Sprintf("wallet with id %+v already exists", id))
+		return errors.New(fmt.Sprintf("wallet with id %+v already exists", wallet.walletID))
 	}
-	newWallet := NewWallet(id, 0)
-	vault.slot[id] = newWallet
+	vault.slot[wallet.walletID] = wallet
 	return nil
 }
 
@@ -37,4 +36,15 @@ func (vault *vault) Remove(id [5]uint32) error {
 		return errors.New(fmt.Sprintf("wallet with id %+v already exists", id))
 	}
 	return nil
+}
+
+func (vault *vault) FindWallet(id [5]uint32) (*wallet, error) {
+	vault.lock.RLock()
+	defer vault.lock.RUnlock()
+	
+	wallet, ok := vault.slot[id]
+	if !ok {
+		return nil, errors.New("wallet not found")
+	}
+	return wallet, nil
 }
