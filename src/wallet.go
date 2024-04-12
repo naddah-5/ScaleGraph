@@ -39,3 +39,4 @@ func (wallet *wallet) BuildBlock(trx *transaction) *block {
 
 	return nil
 }
+

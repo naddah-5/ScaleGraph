@@ -81,6 +81,5 @@ func (blockchain *blockchain) ValidateConsensus(newBlock *block) error {
 }
 
 func (blockchain *blockchain) NewBlock(trx *transaction) *block {
-	height := len(blockchain.chain)
-	return BuildBlock(height, trx)
+	return BuildBlock(trx)
 }

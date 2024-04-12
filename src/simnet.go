@@ -141,12 +141,12 @@ func (s *Simnet) understand(rpc RPC) {
 	}
 	s.tableLock.RLock()
 	outChan, ok := s.table.content[rpc.receiver]
+	s.tableLock.RUnlock()
 	if !ok {
 		log.Printf("[server] - received rpc for unknown address, IP: %+v, sender: %+v", rpc.receiver, rpc.Sender.id)
 	} else {
 		outChan <- rpc
 	}
-	s.tableLock.RUnlock()
 	return
 }
 

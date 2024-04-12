@@ -28,7 +28,6 @@ func hashID(id [5]uint32) []byte {
 		hasher.Write([]byte(tmp))
 	}
 	return hasher.Sum(nil)
-
 }
 
 // Validates the concensus signature and returns and error if it is invalid.
@@ -44,7 +43,7 @@ func (sign *signature) Validate() error {
 type consensus struct {
 	*senderValidation
 	*receiverValidation
-	signatureList []signature
+	signatureList []*signature
 }
 
 type senderValidation struct {
@@ -59,7 +58,7 @@ type receiverValidation struct {
 
 func NewConsensus() *consensus {
 	return &consensus{
-		signatureList: make([]signature, 0, 2*REPLICATION),
+		signatureList: make([]*signature, 0, 2*REPLICATION),
 	}
 }
 

@@ -103,9 +103,11 @@ func (node *Node) deepSearch(prevContactList []contact, target [5]uint32) []cont
 		contactList = append(contactList, c.Value.(contact))
 		i++
 	}
-	
-	if prevContactList[0] == contactList[0] {
-		return prevContactList
+
+	if len(prevContactList) > 0 && len(contactList) > 0 {
+		if prevContactList[0] == contactList[0] {
+			return prevContactList
+		}
 	}
 	return node.deepSearch(contactList, target)
 }

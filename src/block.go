@@ -22,12 +22,12 @@ func BaseBlock(walletID [5]uint32) *block {
 	}
 	hasher.Write(hash)
 	block := block{
-		hash:    hash,
+		hash: hash,
 	}
 	return &block
 }
 
-func BuildBlock(height int, trx *transaction) *block {
+func BuildBlock(trx *transaction) *block {
 	hash := trx.Hash()
 	block := block{
 		transaction: trx,
