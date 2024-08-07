@@ -51,15 +51,15 @@ func (blockchain *blockchain) Grow(newBlock *block, walletID [5]uint32) error {
 func (blockchain *blockchain) validateBlockData(newBlock *block, walletID [5]uint32) error {
 	invalidBlock := errors.New(fmt.Sprintf("error: %+v is not a valid block for blockchain, last block %+v\n", newBlock, blockchain.lastBlock()))
 	if walletID == newBlock.receiver {
-		if newBlock.receiverBlockHeight != blockchain.lastHeight()+1 {
+		if newBlock.consensus.receiverValidation.blockHeight != blockchain.lastHeight()+1 {
 			return invalidBlock
-		} else if CompareHash(newBlock.receiverLastBlockHash, blockchain.lastBlock().hash) {
+		} else if CompareHash(newBlock.consensus.receiverValidation.hashLastBlock, blockchain.lastBlock().hash) {
 			return invalidBlock
 		}
 	} else if walletID == newBlock.sender {
-		if newBlock.senderBlockHeight != blockchain.lastHeight()+1 {
+		if newBlock.consensus.senderValidation.blockHeight != blockchain.lastHeight()+1 {
 			return invalidBlock
-		} else if CompareHash(newBlock.senderHashLastBlock, blockchain.lastBlock().hash) {
+		} else if CompareHash(newBlock.consensus.senderValidation.hashLastBlock, blockchain.lastBlock().hash) {
 			return invalidBlock
 		}
 	} else {

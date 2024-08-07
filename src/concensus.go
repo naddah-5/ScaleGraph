@@ -41,20 +41,25 @@ func (sign *signature) Validate() error {
 }
 
 type consensus struct {
-	*senderValidation
-	*receiverValidation
+	senderValidation *blockValidation
+	receiverValidation *blockValidation
 	signatureList []*signature
 }
 
-type senderValidation struct {
-	senderBlockHeight   int
-	senderHashLastBlock []byte
+type blockValidation struct {
+	blockHeight   int
+	hashLastBlock []byte
 }
 
-type receiverValidation struct {
-	receiverBlockHeight   int
-	receiverLastBlockHash []byte
+func (blockVal *blockValidation) display() string {
+	disp := "sender validation:\n"
+	disp += "senders block height "
+	disp += fmt.Sprint(blockVal.blockHeight) + "\n"
+	disp += "senders hash "
+	disp += fmt.Sprint(blockVal.hashLastBlock) + "\n"
+	return disp
 }
+
 
 func NewConsensus() *consensus {
 	return &consensus{
@@ -63,18 +68,19 @@ func NewConsensus() *consensus {
 }
 
 func (cons *consensus) fillSender(height int, hash []byte) {
-	sender := &senderValidation{
-		senderBlockHeight: height,
-		senderHashLastBlock: hash,
+	sender := &blockValidation{
+		blockHeight: height,
+		hashLastBlock: hash,
 	}
 	cons.senderValidation = sender
 }
+
 func (cons *consensus) fillReceiver(height int, hash []byte) {
-	receiver := &receiverValidation{
-		receiverBlockHeight: height,
-		receiverLastBlockHash: hash,
+	sender := &blockValidation{
+		blockHeight: height,
+		hashLastBlock: hash,
 	}
-	cons.receiverValidation = receiver
+	cons.receiverValidation = sender
 }
 
 func (cons *consensus) Merge(secondCons *consensus) {
