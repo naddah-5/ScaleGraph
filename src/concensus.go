@@ -12,6 +12,12 @@ type signature struct {
 	hash []byte
 }
 
+func (sig *signature) display() string {
+	disp := fmt.Sprintf("id: %v\n", sig.id)
+	disp += fmt.Sprintf("hash: %s\n", fmt.Sprint(sig.hash))
+	return disp
+}
+
 func NewSign(id [5]uint32) *signature {
 	pubSign := hashID(id)
 	sign := signature{
@@ -46,16 +52,28 @@ type consensus struct {
 	signatureList []*signature
 }
 
+func (cons *consensus) display() string {
+	disp := "signatures: \n"
+	for i := 0; i < len(cons.signatureList); i++ {
+		disp += cons.signatureList[i].display()
+	}
+	disp += "sender block:\n"
+	disp += fmt.Sprint(cons.senderValidation.display() + "\n")
+	disp += "receiver block:\n"
+	disp += fmt.Sprint(cons.receiverValidation.display() + "\n")
+	return disp
+}
+
 type blockValidation struct {
 	blockHeight   int
 	hashLastBlock []byte
 }
 
 func (blockVal *blockValidation) display() string {
-	disp := "sender validation:\n"
-	disp += "senders block height "
+	disp := "block validation:\n"
+	disp += "block height "
 	disp += fmt.Sprint(blockVal.blockHeight) + "\n"
-	disp += "senders hash "
+	disp += "hash "
 	disp += fmt.Sprint(blockVal.hashLastBlock) + "\n"
 	return disp
 }
@@ -83,11 +101,14 @@ func (cons *consensus) fillReceiver(height int, hash []byte) {
 	cons.receiverValidation = sender
 }
 
-func (cons *consensus) Merge(secondCons *consensus) {
-	if cons.senderValidation != nil {
+func (cons *consensus) Merge(secondCons *consensus) error {
+	if cons.receiverValidation == nil {
 		cons.receiverValidation = secondCons.receiverValidation
-	} else {
+	} else if cons.senderValidation == nil {
 		cons.senderValidation = secondCons.senderValidation
+	} else {
+		return errors.New(fmt.Sprintf("can not merge:\n %s \n with:\n %s", cons.display(), secondCons.display()))
 	}
 	cons.signatureList = append(cons.signatureList, secondCons.signatureList...)
+	return nil
 }
