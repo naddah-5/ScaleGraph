@@ -64,24 +64,31 @@ func NewConsensus() *consensus {
 
 func (cons *consensus) fillSender(height int, hash []byte) {
 	sender := &senderValidation{
-		senderBlockHeight: height,
+		senderBlockHeight:   height,
 		senderHashLastBlock: hash,
 	}
 	cons.senderValidation = sender
 }
+
 func (cons *consensus) fillReceiver(height int, hash []byte) {
 	receiver := &receiverValidation{
-		receiverBlockHeight: height,
+		receiverBlockHeight:   height,
 		receiverLastBlockHash: hash,
 	}
 	cons.receiverValidation = receiver
 }
 
-func (cons *consensus) Merge(secondCons *consensus) {
+// Merges the second cons validation data onto the the specified consensus.
+func (cons *consensus) MergeValdation(secondCons *consensus) {
 	if cons.senderValidation != nil {
 		cons.receiverValidation = secondCons.receiverValidation
-	} else {
+	}
+	if cons.receiverValidation != nil {
 		cons.senderValidation = secondCons.senderValidation
 	}
+}
+
+func (cons *consensus) MergeSignature(secondCons *consensus) {
+
 	cons.signatureList = append(cons.signatureList, secondCons.signatureList...)
 }
