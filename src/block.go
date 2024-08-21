@@ -14,13 +14,12 @@ type block struct {
 // Build the base block of a chain, which only contains the height and hash.
 // The base hash is a sha256 hash of the walletID
 func BaseBlock(walletID [5]uint32) *block {
-	var hash []byte
 	hasher := sha256.New()
 	for i := range walletID {
 		tmp := strconv.FormatUint(uint64(walletID[i]), 10)
 		hasher.Write([]byte(tmp))
 	}
-	hasher.Write(hash)
+	hash := hasher.Sum(nil)
 	block := block{
 		hash: hash,
 	}

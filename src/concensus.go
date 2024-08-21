@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 )
 
@@ -47,9 +48,9 @@ func (sign *signature) Validate() error {
 }
 
 type consensus struct {
-	senderValidation *blockValidation
+	senderValidation   *blockValidation
 	receiverValidation *blockValidation
-	signatureList []*signature
+	signatureList      []*signature
 }
 
 func (cons *consensus) display() string {
@@ -58,26 +59,34 @@ func (cons *consensus) display() string {
 		disp += cons.signatureList[i].display()
 	}
 	disp += "sender block:\n"
-	disp += fmt.Sprint(cons.senderValidation.display() + "\n")
+	if cons.senderValidation != nil {
+		disp += fmt.Sprint(cons.senderValidation.display() + "\n")
+	}
 	disp += "receiver block:\n"
-	disp += fmt.Sprint(cons.receiverValidation.display() + "\n")
+	if cons.receiverValidation != nil {
+		disp += fmt.Sprint(cons.receiverValidation.display() + "\n")
+	}
 	return disp
 }
 
 type blockValidation struct {
-	blockHeight   int
+	blockHeight   *int // must be a pointer to not get a default value
 	hashLastBlock []byte
 }
 
 func (blockVal *blockValidation) display() string {
 	disp := "block validation:\n"
 	disp += "block height "
-	disp += fmt.Sprint(blockVal.blockHeight) + "\n"
+	// since the zero value of a int is 0 and not nil we must check for 0.
+	if blockVal.blockHeight != nil {
+		disp += fmt.Sprint(blockVal.blockHeight) + "\n"
+	}
 	disp += "hash "
-	disp += fmt.Sprint(blockVal.hashLastBlock) + "\n"
+	if blockVal.hashLastBlock != nil {
+		disp += fmt.Sprint(blockVal.hashLastBlock) + "\n"
+	}
 	return disp
 }
-
 
 func NewConsensus() *consensus {
 	return &consensus{
@@ -87,7 +96,7 @@ func NewConsensus() *consensus {
 
 func (cons *consensus) fillSender(height int, hash []byte) {
 	sender := &blockValidation{
-		blockHeight: height,
+		blockHeight:   &height,
 		hashLastBlock: hash,
 	}
 	cons.senderValidation = sender
@@ -95,10 +104,20 @@ func (cons *consensus) fillSender(height int, hash []byte) {
 
 func (cons *consensus) fillReceiver(height int, hash []byte) {
 	sender := &blockValidation{
-		blockHeight: height,
+		blockHeight:   &height,
 		hashLastBlock: hash,
 	}
 	cons.receiverValidation = sender
+}
+
+func (cons *consensus) signConsensus(sign *signature) error {
+	err := sign.Validate()
+	if err != nil {
+		log.Printf("received invalid signature for consensus signature:\n%s", sign.display())
+		return err
+	}
+	cons.signatureList = append(cons.signatureList, sign)
+	return nil
 }
 
 func (cons *consensus) Merge(secondCons *consensus) error {

@@ -53,6 +53,36 @@ func TestMerge(t *testing.T) {
 
 func TestMergeSignatures(t *testing.T) {
 	testName := "TestMergeSignatures"
-	verbose := true
+	verbose := false
+	cons := NewConsensus()
+	for i := 0; i < 10; i++ {
+		sign := NewSign(NewRandomContact().id)
+		cons.signConsensus(sign)
+	}
 
+	secondCons := NewConsensus()
+	for i := 0; i < 5; i++ {
+		sign := NewSign(NewRandomContact().id)
+		secondCons.signConsensus(sign)
+	}
+
+	if verbose {
+		log.Printf("[%s]:\n", testName)
+		log.Print("first consensus")
+		log.Print(cons.display())
+		log.Print("second consensus")
+		log.Print(secondCons.display())
+	}
+
+	cons.Merge(secondCons)
+	if verbose {
+		log.Print("merged consensus:")
+		log.Print(cons.display())
+	}
+	for i := 10; i < 15; i++ {
+		if cons.signatureList[i] != secondCons.signatureList[i-10] {
+			t.Fail()
+			log.Printf("[%s]: consensus merge failed", testName)
+		}
+	}
 }
