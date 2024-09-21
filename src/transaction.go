@@ -63,3 +63,14 @@ func (trx *transaction) delta(walletID [5]uint32) (int, error) {
 	}
 	return 0, errors.New(fmt.Sprintf("error: %+v is not involved in transaction", walletID))
 }
+
+func (trx *transaction) display() string {
+	disp := ""
+	disp += fmt.Sprintf("transaction id: %v\n", trx.id)
+	disp += fmt.Sprintf("sender: %v\n", trx.sender)
+	disp += fmt.Sprintf("signature: %s\n", trx.signature.display())
+	disp += fmt.Sprintf("receiver: %v\n", trx.receiver)
+	disp += fmt.Sprintf("amount: %d\n", trx.amount)
+
+	return disp
+}

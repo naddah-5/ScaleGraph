@@ -2,6 +2,7 @@ package scalegraph
 
 import (
 	"crypto/sha256"
+	"fmt"
 	"strconv"
 )
 
@@ -33,4 +34,21 @@ func BuildBlock(trx *transaction) *block {
 		hash:        hash,
 	}
 	return &block
+}
+
+func (block *block) display() string {
+	disp := "block:\n"
+	if block.transaction != nil {
+		disp += block.transaction.display()
+	} else {
+		disp += "transaction:\n"
+	}
+	if block.consensus != nil {
+		disp += block.consensus.display()
+	} else {
+		disp += "consensus:\n"
+	}
+	disp += "hash: " + fmt.Sprint(block.hash)
+
+	return disp
 }

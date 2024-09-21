@@ -37,5 +37,5 @@ func (wallet *wallet) BuildBlock(trx *transaction) *block {
 	}
 	newBlock.consensus = cons
 
-	return nil
+	return newBlock
 }

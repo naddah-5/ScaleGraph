@@ -77,7 +77,6 @@ type blockValidation struct {
 func (blockVal *blockValidation) display() string {
 	disp := "block validation:\n"
 	disp += "block height "
-	// since the zero value of a int is 0 and not nil we must check for 0.
 	if blockVal.blockHeight != nil {
 		disp += fmt.Sprint(blockVal.blockHeight) + "\n"
 	}
@@ -120,14 +119,12 @@ func (cons *consensus) signConsensus(sign *signature) error {
 	return nil
 }
 
-func (cons *consensus) Merge(secondCons *consensus) error {
+func (cons *consensus) Merge(secondCons *consensus) {
 	if cons.receiverValidation == nil {
 		cons.receiverValidation = secondCons.receiverValidation
-	} else if cons.senderValidation == nil {
-		cons.senderValidation = secondCons.senderValidation
-	} else {
-		return errors.New(fmt.Sprintf("can not merge:\n %s \n with:\n %s", cons.display(), secondCons.display()))
 	}
+	if cons.senderValidation == nil {
+		cons.senderValidation = secondCons.senderValidation
+	} 
 	cons.signatureList = append(cons.signatureList, secondCons.signatureList...)
-	return nil
 }

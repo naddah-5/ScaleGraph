@@ -17,6 +17,16 @@ func NewBlockchain(walletID [5]uint32, balance int) *blockchain {
 	return &blockchain
 }
 
+func (blockchain *blockchain) display() string {
+	disp := "chain:\n"
+	for i, v := range blockchain.chain {
+		disp += fmt.Sprintf("block %d\n", i)
+		disp += v.display()
+	}
+
+	return disp
+}
+
 func (blockchain *blockchain) lastHash() []byte {
 	return blockchain.chain[len(blockchain.chain)-1].hash
 }
@@ -29,13 +39,11 @@ func (blockchain *blockchain) lastBlock() *block {
 	return blockchain.chain[len(blockchain.chain)-1]
 }
 
-// Currently uses a bad checking method, but it is simple.
 func (blockchain *blockchain) Grow(newBlock *block, walletID [5]uint32) error {
 	blockErr := blockchain.validateBlockData(newBlock, walletID)
 	if blockErr != nil {
 		return blockErr
 	}
-	// add check for consensus here
 	consErr := blockchain.ValidateConsensus(newBlock)
 	if consErr != nil {
 		return consErr

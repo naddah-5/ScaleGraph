@@ -32,10 +32,7 @@ func TestMerge(t *testing.T) {
 		log.Print(receiverCons.receiverValidation.display())
 	}
 
-	err := senderCons.Merge(receiverCons)
-	if err != nil {
-		log.Printf("%s failed: %s", testName, err.Error())
-	}
+	senderCons.Merge(receiverCons)
 	if verbose {
 		log.Printf("merged consensus: \n%v", senderCons.display())
 	}
@@ -79,10 +76,12 @@ func TestMergeSignatures(t *testing.T) {
 		log.Print("merged consensus:")
 		log.Print(cons.display())
 	}
+	j := 0
 	for i := 10; i < 15; i++ {
-		if cons.signatureList[i] != secondCons.signatureList[i-10] {
+		if cons.signatureList[i] != secondCons.signatureList[j] {
 			t.Fail()
 			log.Printf("[%s]: consensus merge failed", testName)
 		}
+		j++
 	}
 }
