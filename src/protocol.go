@@ -17,9 +17,6 @@ func (node *Node) Ping(ip [4]byte) error {
 	return nil
 }
 
-func (node *Node) Heartbeat(target contact) {
-
-}
 
 // High level find node RPC.
 func (node *Node) FindNode(target [5]uint32) ([]contact, error) {

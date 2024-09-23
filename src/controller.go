@@ -60,7 +60,6 @@ func (n *Node) controlStore(rpc RPC) {}
 
 func (n *Node) controlStoreResponse(rpc RPC) {}
 
-func (n *Node) controlStoresResponse(rpc RPC) {}
 
 // Handles the internal logic for find node rpc.
 func (n *Node) controlFindNode(rpc RPC) {

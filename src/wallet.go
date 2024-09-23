@@ -11,7 +11,7 @@ type wallet struct {
 }
 
 func NewWallet(id [5]uint32, balance int) *wallet {
-	chain := NewBlockchain(id, balance)
+	chain := NewBlockchain(id)
 	newWallet := wallet{
 		walletLock: sync.RWMutex{},
 		walletID:   id,

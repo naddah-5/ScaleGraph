@@ -9,7 +9,7 @@ type blockchain struct {
 	chain []*block
 }
 
-func NewBlockchain(walletID [5]uint32, balance int) *blockchain {
+func NewBlockchain(walletID [5]uint32) *blockchain {
 	blockchain := blockchain{
 		chain: make([]*block, 0, 100),
 	}
