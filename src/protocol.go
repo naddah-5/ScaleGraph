@@ -17,7 +17,6 @@ func (node *Node) Ping(ip [4]byte) error {
 	return nil
 }
 
-
 // High level find node RPC.
 func (node *Node) FindNode(target [5]uint32) ([]contact, error) {
 	closeIP, _ := node.routingTable.FindXClosest(REPLICATION, target)
@@ -110,5 +109,25 @@ func (node *Node) deepSearch(prevContactList []contact, target [5]uint32) []cont
 }
 
 func (node *Node) StoreWallet(wallet *wallet) error {
+	valGroup, err := node.FindNode(wallet.walletID)
+	if err != nil {
+		return err
+	}
+	for _, con := range valGroup {
+		go func(walletID [5]uint32, con contact) {
+			walletRPC := GenerateRPC(STORE, node.contact, con.IP())
+			walletRPC.Store(walletID)
+			resp, err := node.network.Send(walletRPC)
+			if err != nil {
+				log.Printf("ERROR: store wallet with id %v at node %v timed out with error - %s", walletID, con.ID(), err.Error())
+			}
+			if resp.Acknowledge == false {
+				errMsg := "FATAL: store wallet RPC response was incorrectly formated, acknowledge not true"
+				data := fmt.Sprintf("Sender %v, Store node %v, Wallet ID %v", node.contact.ID(), con.ID(), walletID)
+				log.Printf("%s\n%s", errMsg, data)
+			}
+		}(wallet.walletID, con)
+
+	}
 	return nil
 }

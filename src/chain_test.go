@@ -6,6 +6,6 @@ import (
 )
 
 func TestNewChain(t *testing.T) {
-	bc := NewBlockchain(NewRandomContact().id, 0)
+	bc := NewBlockchain(NewRandomContact().id)
 	log.Println(bc.display())
 }
