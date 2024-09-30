@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
+	"sync"
 )
 
 func (node *Node) Ping(ip [4]byte) error {
@@ -113,8 +115,12 @@ func (node *Node) StoreWallet(wallet *wallet) error {
 	if err != nil {
 		return err
 	}
+
+	var wg sync.WaitGroup
+
 	for _, con := range valGroup {
-		go func(walletID [5]uint32, con contact) {
+		wg.Add(1)
+		go func(walletID [5]uint32, con contact, wg *sync.WaitGroup) {
 			walletRPC := GenerateRPC(STORE, node.contact, con.IP())
 			walletRPC.Store(walletID)
 			resp, err := node.network.Send(walletRPC)
@@ -125,9 +131,13 @@ func (node *Node) StoreWallet(wallet *wallet) error {
 				errMsg := "FATAL: store wallet RPC response was incorrectly formated, acknowledge not true"
 				data := fmt.Sprintf("Sender %v, Store node %v, Wallet ID %v", node.contact.ID(), con.ID(), walletID)
 				log.Printf("%s\n%s", errMsg, data)
+				os.Exit(1)
 			}
-		}(wallet.walletID, con)
+			wg.Done()
+		}(wallet.walletID, con, &wg)
 
 	}
+
+	wg.Wait()
 	return nil
 }
