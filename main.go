@@ -35,7 +35,7 @@ func alphaScript() {
 	// max 10 000 nodes joining for now with logging
 	// max 100 000 nodes joining for now with NO logging
 	// limited number of goroutines?
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 5; i++ {
 		wg.Add(1)
 		node := s.SpawnNode()
 		go node.NodeAlphaScript(delay, done, prt)
@@ -51,6 +51,7 @@ func alphaScript() {
 	}(done, &wg)
 
 	wg.Wait()
+	time.Sleep(1*time.Second)
 	close(prt)
 	fmt.Println("closing")
 	time.Sleep(1 * time.Second)

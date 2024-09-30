@@ -36,6 +36,7 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 		contact:      me,
 		network:      net,
 		routingTable: NewRoutingTable(id),
+		vault: *NewVault(),
 	}
 }
 

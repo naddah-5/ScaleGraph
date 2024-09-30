@@ -8,7 +8,7 @@ import (
 )
 
 type routingTable struct {
-	homeNode [5]uint32 // depricated
+	homeNode [5]uint32 
 	router   [KEYSPACE]*bucket
 }
 
@@ -35,6 +35,9 @@ func (rt *routingTable) HomeNodeID() [5]uint32 {
 }
 
 func (rt *routingTable) AddContact(target contact) error {
+	if target.ID() == rt.homeNode {
+		return nil
+	}
 	bucketIndex := rt.BucketIndex(target.ID())
 	err := rt.router[bucketIndex].AddContact(target)
 	if err != nil {

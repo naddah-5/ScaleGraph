@@ -9,12 +9,22 @@ type blockchain struct {
 	chain []*block
 }
 
-func NewBlockchain(walletID [5]uint32, balance int) *blockchain {
+func NewBlockchain(walletID [5]uint32) *blockchain {
 	blockchain := blockchain{
 		chain: make([]*block, 0, 100),
 	}
 	blockchain.chain = append(blockchain.chain, BaseBlock(walletID))
 	return &blockchain
+}
+
+func (blockchain *blockchain) display() string {
+	disp := "chain:\n"
+	for i, v := range blockchain.chain {
+		disp += fmt.Sprintf("block %d\n", i)
+		disp += v.display()
+	}
+
+	return disp
 }
 
 func (blockchain *blockchain) lastHash() []byte {
@@ -29,13 +39,11 @@ func (blockchain *blockchain) lastBlock() *block {
 	return blockchain.chain[len(blockchain.chain)-1]
 }
 
-// Currently uses a bad checking method, but it is simple.
 func (blockchain *blockchain) Grow(newBlock *block, walletID [5]uint32) error {
 	blockErr := blockchain.validateBlockData(newBlock, walletID)
 	if blockErr != nil {
 		return blockErr
 	}
-	// add check for consensus here
 	consErr := blockchain.ValidateConsensus(newBlock)
 	if consErr != nil {
 		return consErr
@@ -51,15 +59,15 @@ func (blockchain *blockchain) Grow(newBlock *block, walletID [5]uint32) error {
 func (blockchain *blockchain) validateBlockData(newBlock *block, walletID [5]uint32) error {
 	invalidBlock := errors.New(fmt.Sprintf("error: %+v is not a valid block for blockchain, last block %+v\n", newBlock, blockchain.lastBlock()))
 	if walletID == newBlock.receiver {
-		if newBlock.receiverBlockHeight != blockchain.lastHeight()+1 {
+		if *newBlock.consensus.receiverValidation.blockHeight != blockchain.lastHeight()+1 {
 			return invalidBlock
-		} else if CompareHash(newBlock.receiverLastBlockHash, blockchain.lastBlock().hash) {
+		} else if CompareHash(newBlock.consensus.receiverValidation.hashLastBlock, blockchain.lastBlock().hash) {
 			return invalidBlock
 		}
 	} else if walletID == newBlock.sender {
-		if newBlock.senderBlockHeight != blockchain.lastHeight()+1 {
+		if *newBlock.consensus.senderValidation.blockHeight != blockchain.lastHeight()+1 {
 			return invalidBlock
-		} else if CompareHash(newBlock.senderHashLastBlock, blockchain.lastBlock().hash) {
+		} else if CompareHash(newBlock.consensus.senderValidation.hashLastBlock, blockchain.lastBlock().hash) {
 			return invalidBlock
 		}
 	} else {

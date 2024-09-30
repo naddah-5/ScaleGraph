@@ -8,20 +8,23 @@ import (
 )
 
 type transaction struct {
-	sender    [5]uint32
-	receiver  [5]uint32
-	amount    int
-	signature // account signature not the transaction hash
+	// note that the id is not unique, but has low collision risk
+	// espescially when combined with the hash
+	trxID  [5]uint32
+	sender [5]uint32
+	signature
+	receiver [5]uint32
+	amount   int
 }
 
-func NewTransaction(sender [5]uint32, receiver [5]uint32, amount int, sign signature) transaction {
+func NewTransaction(sender [5]uint32, receiver [5]uint32, amount int) transaction {
+	sign := *NewSign(sender)
 	trx := transaction{
+		trxID:     GenerateID(),
 		sender:    sender,
+		signature: sign,
 		receiver:  receiver,
 		amount:    amount,
-		signature: sign,
-		// signature is supposed to be PPK encryption of sender, receiver, and amount
-		// for now it can be a hash
 	}
 	return trx
 }
@@ -30,17 +33,21 @@ func NewTransaction(sender [5]uint32, receiver [5]uint32, amount int, sign signa
 func (trx *transaction) Hash() []byte {
 	var hash []byte
 	hasher := sha256.New()
+	for i := range trx.trxID {
+		tmp := strconv.FormatUint(uint64(trx.trxID[i]), 10)
+		hasher.Write([]byte(tmp))
+	}
 	for i := range trx.sender {
 		tmp := strconv.FormatUint(uint64(trx.sender[i]), 10)
 		hasher.Write([]byte(tmp))
 	}
+	hasher.Write(trx.signature.hash)
 	for i := range trx.receiver {
 		tmp := strconv.FormatUint(uint64(trx.receiver[i]), 10)
 		hasher.Write([]byte(tmp))
 	}
 	strAmount := strconv.FormatInt(int64(trx.amount), 10)
 	hasher.Write([]byte(strAmount))
-	hasher.Write(trx.signature.hash)
 
 	hash = hasher.Sum(nil)
 	return hash
@@ -55,4 +62,15 @@ func (trx *transaction) delta(walletID [5]uint32) (int, error) {
 		return trx.amount, nil
 	}
 	return 0, errors.New(fmt.Sprintf("error: %+v is not involved in transaction", walletID))
+}
+
+func (trx *transaction) display() string {
+	disp := ""
+	disp += fmt.Sprintf("transaction id: %v\n", trx.id)
+	disp += fmt.Sprintf("sender: %v\n", trx.sender)
+	disp += fmt.Sprintf("signature: %s\n", trx.signature.display())
+	disp += fmt.Sprintf("receiver: %v\n", trx.receiver)
+	disp += fmt.Sprintf("amount: %d\n", trx.amount)
+
+	return disp
 }

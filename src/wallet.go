@@ -3,17 +3,17 @@ package scalegraph
 import "sync"
 
 type wallet struct {
-	wLock    sync.RWMutex
-	walletID [5]uint32
-	pubKey   []byte
-	balance  int
+	walletLock sync.RWMutex
+	walletID   [5]uint32
+	pubKey     []byte
+	balance    int
 	*blockchain
 }
 
 func NewWallet(id [5]uint32, balance int) *wallet {
-	chain := NewBlockchain(id, balance)
+	chain := NewBlockchain(id)
 	newWallet := wallet{
-		wLock:      sync.RWMutex{},
+		walletLock: sync.RWMutex{},
 		walletID:   id,
 		blockchain: chain,
 	}
@@ -21,8 +21,8 @@ func NewWallet(id [5]uint32, balance int) *wallet {
 }
 
 func (wallet *wallet) Balance() int {
-	wallet.wLock.RLock()
-	defer wallet.wLock.RUnlock()
+	wallet.walletLock.RLock()
+	defer wallet.walletLock.RUnlock()
 	return wallet.balance
 }
 
@@ -37,6 +37,5 @@ func (wallet *wallet) BuildBlock(trx *transaction) *block {
 	}
 	newBlock.consensus = cons
 
-	return nil
+	return newBlock
 }
-

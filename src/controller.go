@@ -13,8 +13,6 @@ func (n *Node) Controller(rpc RPC) {
 		n.controlPong(rpc)
 	case FIND_NODE:
 		n.controlFindNode(rpc)
-	case FIND_NODE_RESPONSE:
-		n.controlFindNodeResponse(rpc)
 	case SEND:
 		n.controlSend(rpc)
 	}
@@ -56,11 +54,10 @@ func (n *Node) controlPong(rpc RPC) {
 	}
 }
 
-func (n *Node) controlStore(rpc RPC) {}
+func (n *Node) controlStore(rpc RPC) {
+	n.AddContact(rpc.Sender)
+}
 
-func (n *Node) controlStoreResponse(rpc RPC) {}
-
-func (n *Node) controlStoresResponse(rpc RPC) {}
 
 // Handles the internal logic for find node rpc.
 func (n *Node) controlFindNode(rpc RPC) {
@@ -74,20 +71,20 @@ func (n *Node) controlFindNode(rpc RPC) {
 	n.network.Send(resp)
 }
 
-func (n *Node) controlFindNodeResponse(rpc RPC) {
-	go func() {
-		for _, node := range rpc.KNodes {
-			go func(node contact) {
-				ping := GenerateRPC(PING, n.contact, node.IP())
-				resp, err := n.network.Send(ping)
-				if err != nil {
-					return
-				}
-				go n.Controller(resp)
-			}(node)
-		}
-	}()
-}
+//func (n *Node) controlFindNodeResponse(rpc RPC) {
+//	go func() {
+//		for _, node := range rpc.KNodes {
+//			go func(node contact) {
+//				ping := GenerateRPC(PING, n.contact, node.IP())
+//				resp, err := n.network.Send(ping)
+//				if err != nil {
+//					return
+//				}
+//				go n.Controller(resp)
+//			}(node)
+//		}
+//	}()
+//}
 
 
 func (n *Node) controlFindWallet(rpc RPC) {}

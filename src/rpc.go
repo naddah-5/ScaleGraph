@@ -51,19 +51,19 @@ func (c CMD) String() string {
 // note that fields may be nil.
 type RPC struct {
 	CMD
-	order    CMD
-	response bool
-	timeout  bool
-	ID       [5]uint32
-	Sender   contact
-	receiver [4]byte
-	*wallet
+	order       CMD
+	response    bool
+	timeout     bool
+	ID          [5]uint32
+	Sender      contact
+	receiver    [4]byte
 	WalletID    [5]uint32
 	WalletKey   []byte
 	Transaction []byte
 	FindTarget  [5]uint32
 	KNodes      []contact
 	Acknowledge bool
+	Fail        bool
 }
 
 // Creates and returns a new base case RPC.
@@ -107,11 +107,11 @@ func (rpc *RPC) Pong() {
 }
 
 // NOT IMPLEMENTED
-func (rpc *RPC) Store(wallet *wallet) {
+func (rpc *RPC) Store(walletID [5]uint32) {
 	if rpc.CMD != STORE {
 		log.Println("WARNING: applying store to non-STORE RPC")
 	}
-	rpc.wallet = wallet
+	rpc.WalletID = walletID
 }
 
 // Sets the rpc acknowledge to true
@@ -149,9 +149,9 @@ func (rpc *RPC) FindWallet(walletID [5]uint32) {
 	rpc.WalletID = walletID
 }
 
-func (rpc *RPC) FindWalletResponse(found *wallet) {
-	if rpc.CMD != FIND_WALLET_RESPONSE {
-		log.Println("WARNING: applying find wallet response to non-FIND_WALLET_RESPONSE")
-	}
-	rpc.wallet = found
-}
+//func (rpc *RPC) FindWalletResponse(found *wallet) {
+//	if rpc.CMD != FIND_WALLET_RESPONSE {
+//		log.Println("WARNING: applying find wallet response to non-FIND_WALLET_RESPONSE")
+//	}
+//	rpc.wallet = found
+//}

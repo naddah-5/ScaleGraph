@@ -5,15 +5,11 @@ import (
 	"testing"
 )
 
-func TestHash(t *testing.T) {
+func TestSanityHash(t *testing.T) {
 	verbose := false
-	trx := transaction{
-		sender:   GenerateID(),
-		receiver: GenerateID(),
-		amount:   10,
-	}
+	trx := NewTransaction(GenerateID(), GenerateID(), 10)
 	if verbose {
-		log.Printf("transaction is: %+v\n", trx)
+		log.Printf("transaction is: %+v\n\n", trx)
 	}
 	hash := trx.Hash()
 	if verbose {

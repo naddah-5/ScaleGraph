@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
+	"sync"
 )
 
 func (node *Node) Ping(ip [4]byte) error {
@@ -15,10 +17,6 @@ func (node *Node) Ping(ip [4]byte) error {
 	}
 	node.controlPong(resp)
 	return nil
-}
-
-func (node *Node) Heartbeat(target contact) {
-
 }
 
 // High level find node RPC.
@@ -113,5 +111,33 @@ func (node *Node) deepSearch(prevContactList []contact, target [5]uint32) []cont
 }
 
 func (node *Node) StoreWallet(wallet *wallet) error {
+	valGroup, err := node.FindNode(wallet.walletID)
+	if err != nil {
+		return err
+	}
+
+	var wg sync.WaitGroup
+
+	for _, con := range valGroup {
+		wg.Add(1)
+		go func(walletID [5]uint32, con contact, wg *sync.WaitGroup) {
+			walletRPC := GenerateRPC(STORE, node.contact, con.IP())
+			walletRPC.Store(walletID)
+			resp, err := node.network.Send(walletRPC)
+			if err != nil {
+				log.Printf("ERROR: store wallet with id %v at node %v timed out with error - %s", walletID, con.ID(), err.Error())
+			}
+			if resp.Acknowledge == false {
+				errMsg := "FATAL: store wallet RPC response was incorrectly formated, acknowledge not true"
+				data := fmt.Sprintf("Sender %v, Store node %v, Wallet ID %v", node.contact.ID(), con.ID(), walletID)
+				log.Printf("%s\n%s", errMsg, data)
+				os.Exit(1)
+			}
+			wg.Done()
+		}(wallet.walletID, con, &wg)
+
+	}
+
+	wg.Wait()
 	return nil
 }
