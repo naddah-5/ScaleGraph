@@ -11,14 +11,12 @@ const (
 	PING CMD = iota
 	PONG
 	STORE
-	STORE_RESPONSE
 	FIND_NODE
-	FIND_NODE_RESPONSE
 	FIND_WALLET
-	FIND_WALLET_RESPONSE
 	PROPOSE_TRANSACTION
 	ACCEPT_TRANSACTION
 	SEND
+	SHOW_WALLET
 )
 
 func (c CMD) String() string {
@@ -29,22 +27,18 @@ func (c CMD) String() string {
 		return "PONG"
 	case STORE:
 		return "STORE"
-	case STORE_RESPONSE:
-		return "STORE_RESPONSE"
 	case FIND_NODE:
 		return "FIND_NODE"
-	case FIND_NODE_RESPONSE:
-		return "FIND_NODE_RESPONSE"
 	case FIND_WALLET:
 		return "FIND_WALLET"
-	case FIND_WALLET_RESPONSE:
-		return "FIND_WALLET_RESPONSE"
 	case PROPOSE_TRANSACTION:
 		return "PROPOSE_TRANSACTION"
 	case ACCEPT_TRANSACTION:
 		return "ACCEPT_TRANSACTION"
 	case SEND:
 		return "SEND"
+	case SHOW_WALLET:
+		return "SHOW_WALLET"
 	}
 	return "unknown"
 }
@@ -119,7 +113,7 @@ func (rpc *RPC) Store(walletID [5]uint32, balance int) {
 
 // Sets the rpc acknowledge to true
 func (rpc *RPC) StoreResponse() {
-	if rpc.CMD != STORE_RESPONSE {
+	if rpc.CMD != STORE {
 		log.Println("WARNING: applying store response to non-STORE_RESPONSE RPC")
 	}
 	rpc.acknowledge = true
@@ -135,7 +129,7 @@ func (rpc *RPC) FindNode(target [5]uint32) {
 
 // Attatches the given list of contacts to the rpc as a slice.
 func (rpc *RPC) FindNodeResponse(found *list.List, target [5]uint32) {
-	if rpc.CMD != FIND_NODE_RESPONSE {
+	if rpc.CMD != FIND_NODE {
 		log.Println("WARNING: applying find node reponse to non-FIND_NODE_RESPONSE RPC")
 	}
 	rpc.kNodes = make([]contact, 0)
@@ -151,6 +145,10 @@ func (rpc *RPC) FindWallet(success bool) {
 	}
 	rpc.acknowledge = true
 	rpc.success = success
+}
+
+func (rpc *RPC) ShowWallet(walletID [5]uint32) {
+	rpc.walletID = walletID
 }
 
 //func (rpc *RPC) FindWalletResponse(found *wallet) {

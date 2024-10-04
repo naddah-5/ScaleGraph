@@ -2,7 +2,6 @@ package scalegraph
 
 import (
 	"log"
-	"net/rpc"
 )
 
 // Parses the RPC and dispatch subroutines
@@ -43,11 +42,11 @@ func (n *Node) controlPing(rpc RPC) {
 func (n *Node) controlStore(rpc RPC) {
 	n.AddContact(rpc.sender)
 	err := n.vault.Add(NewWallet(rpc.walletID, rpc.walletBalance))
-	if err != nil { 
+	if err != nil {
 		log.Printf("[INFO] - attempted overwrite of wallet, %v", rpc.walletID)
 	}
 
-	resp := GenerateResponse(STORE_RESPONSE, rpc.id, rpc.sender.IP(), n.contact)
+	resp := GenerateResponse(STORE, rpc.id, rpc.sender.IP(), n.contact)
 	resp.StoreResponse()
 
 	n.Send(resp)
@@ -60,17 +59,20 @@ func (n *Node) controlFindNode(rpc RPC) {
 	if err != nil {
 		log.Printf("%+v - find node error: %+v", n.ID(), err)
 	}
-	resp := GenerateResponse(FIND_NODE_RESPONSE, rpc.id, rpc.sender.IP(), n.contact)
+	resp := GenerateResponse(FIND_NODE, rpc.id, rpc.sender.IP(), n.contact)
 	resp.FindNodeResponse(res, rpc.findTarget)
 	n.network.Send(resp)
 }
 
-func (n *Node) controlFindWallet(rpc RPC) {
+func (n *Node) controlShowWallet(rpc RPC) {
 	n.AddContact(rpc.sender)
-	resp := GenerateResponse(FIND_WALLET_RESPONSE, rpc.id, rpc.sender.IP(), n.contact)
+	resp := GenerateResponse(SHOW_WALLET, rpc.id, rpc.sender.IP(), n.contact)
 
-	res, err := n.vault.FindWallet(rpc.walletID)
+	_, err := n.vault.FindWallet(rpc.walletID)
 	if err != nil {
 		resp.FindWallet(true)
+	} else {
+		resp.FindWallet(false)
 	}
+
 }

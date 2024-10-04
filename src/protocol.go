@@ -20,7 +20,7 @@ func (node *Node) Ping(ip [4]byte) error {
 }
 
 // High level find node RPC.
-func (node *Node) FindNode(target [5]uint32) ([]contact, error) {
+func (node *Node) FindNode(target [5]uint32) []contact {
 	closeIP, _ := node.routingTable.FindXClosest(REPLICATION, target)
 
 	res := list.New()
@@ -53,7 +53,7 @@ func (node *Node) FindNode(target [5]uint32) ([]contact, error) {
 		resSlice = append(resSlice, c.Value.(contact))
 	}
 	finalRes := node.deepSearch(resSlice, target)
-	return finalRes, nil
+	return finalRes
 }
 
 func (node *Node) alphaFindNode(rpc RPC, respChan chan []contact) {
@@ -114,11 +114,7 @@ func (node *Node) deepSearch(prevContactList []contact, target [5]uint32) []cont
 }
 
 func (node *Node) StoreWallet(wallet *wallet) error {
-	valGroup, err := node.FindNode(wallet.walletID)
-	if err != nil {
-		return err
-	}
-
+	valGroup := node.FindNode(wallet.walletID)
 	var wg sync.WaitGroup
 
 	for _, con := range valGroup {
@@ -143,4 +139,18 @@ func (node *Node) StoreWallet(wallet *wallet) error {
 
 	wg.Wait()
 	return nil
+}
+
+func (node *Node) ShowWallet(walletID [5]uint32) {
+	valGroup := node.FindNode(walletID)
+
+	for _, holder := range valGroup {
+		rpc := GenerateRPC(SHOW_WALLET, node.contact, holder.IP())
+		rpc.ShowWallet(walletID)
+		_, err := node.network.Send(rpc)
+		if err == nil {
+			// add data extraction
+		}
+	}
+	// no wallet error
 }

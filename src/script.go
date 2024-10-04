@@ -58,7 +58,7 @@ func (node *Node) NodeAlphaScript(delay chan struct{}, done chan struct{}, prt c
 	time.Sleep(3 * time.Second)
 	comp := make(chan struct{})
 	go func(node *Node, comp chan struct{}) {
-		res, _ := node.FindNode(node.ID())
+		res := node.FindNode(node.ID())
 
 		if POINT_DEBUG {
 			nodeDump := fmt.Sprintf("%+v found:\n", node.ID())
