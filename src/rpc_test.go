@@ -14,12 +14,12 @@ func TestAssertion(t *testing.T) {
 	}
 	testRPC := RPC{
 		CMD:    FIND_NODE_RESPONSE,
-		Sender: NewRandomContact(),
-		KNodes: kNodes,
+		sender: NewRandomContact(),
+		kNodes: kNodes,
 	}
 	if verbose {
 		log.Printf("%+v", testRPC)
-		log.Printf("%+v", testRPC.Sender)
-		log.Printf("%+v", testRPC.KNodes)
+		log.Printf("%+v", testRPC.sender)
+		log.Printf("%+v", testRPC.kNodes)
 	}
 }

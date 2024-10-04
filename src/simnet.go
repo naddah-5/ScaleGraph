@@ -143,7 +143,7 @@ func (s *Simnet) understand(rpc RPC) {
 	outChan, ok := s.table.content[rpc.receiver]
 	s.tableLock.RUnlock()
 	if !ok {
-		log.Printf("[server] - received rpc for unknown address, IP: %+v, sender: %+v", rpc.receiver, rpc.Sender.id)
+		log.Printf("[server] - received rpc for unknown address, IP: %+v, sender: %+v", rpc.receiver, rpc.sender.id)
 	} else {
 		outChan <- rpc
 	}
@@ -167,7 +167,7 @@ func (s *Simnet) AllNodes() []contact {
 func (s *Simnet) serverPing(rpc RPC) {
 	rpc.receiver = s.masterNode
 	if DEBUG {
-		log.Printf("[server] - redirecting %+v\n\tid: %+v \n\tsender: %+v \n\treceiver: %+v", rpc, rpc.ID, rpc.Sender, rpc.receiver)
+		log.Printf("[server] - redirecting %+v\n\tid: %+v \n\tsender: %+v \n\treceiver: %+v", rpc, rpc.id, rpc.sender, rpc.receiver)
 	}
 	s.listener <- rpc
 }
