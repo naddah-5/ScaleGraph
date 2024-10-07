@@ -141,16 +141,18 @@ func (node *Node) StoreWallet(wallet *wallet) error {
 	return nil
 }
 
-func (node *Node) ShowWallet(walletID [5]uint32) {
+func (node *Node) ShowWallet(walletID [5]uint32) (string, error) {
 	valGroup := node.FindNode(walletID)
+	var res string = ""
 
 	for _, holder := range valGroup {
 		rpc := GenerateRPC(SHOW_WALLET, node.contact, holder.IP())
 		rpc.ShowWallet(walletID)
-		_, err := node.network.Send(rpc)
+		resp, err := node.network.Send(rpc)
 		if err == nil {
-			// add data extraction
+			res = fmt.Sprintf("wallet: %v\nbalance: %d", resp.walletID, resp.walletBalance)
+			return res, nil
 		}
 	}
-	// no wallet error
+	return res, errors.New(fmt.Sprintf("[ERROR] - Could not find wallet %v", walletID))
 }

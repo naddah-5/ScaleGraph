@@ -68,11 +68,11 @@ func (n *Node) controlShowWallet(rpc RPC) {
 	n.AddContact(rpc.sender)
 	resp := GenerateResponse(SHOW_WALLET, rpc.id, rpc.sender.IP(), n.contact)
 
-	_, err := n.vault.FindWallet(rpc.walletID)
+	wallet, err := n.vault.FindWallet(rpc.walletID)
 	if err != nil {
-		resp.FindWallet(true)
+		resp.ShowWalletResponse(wallet.walletID, wallet.Balance())
 	} else {
-		resp.FindWallet(false)
+		resp.Fail()
 	}
 
 }

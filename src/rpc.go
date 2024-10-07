@@ -94,6 +94,10 @@ func (rpc *RPC) Redirect(ip [4]byte) {
 	rpc.receiver = ip
 }
 
+func (rpc *RPC) Fail() {
+	rpc.success = false
+}
+
 // Sets the rpc acknowledgement to true
 func (rpc *RPC) Pong() {
 	if rpc.CMD != PONG {
@@ -149,6 +153,12 @@ func (rpc *RPC) FindWallet(success bool) {
 
 func (rpc *RPC) ShowWallet(walletID [5]uint32) {
 	rpc.walletID = walletID
+}
+
+func (rpc *RPC) ShowWalletResponse(walletID [5]uint32, balance int) {
+	rpc.walletID = walletID
+	rpc.walletBalance = balance
+	rpc.success = true
 }
 
 //func (rpc *RPC) FindWalletResponse(found *wallet) {
