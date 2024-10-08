@@ -146,18 +146,32 @@ func (node *Node) NodeAlphaScript(delay chan struct{}, done chan struct{}, prt c
 }
 
 // Script for passive node
-func (node *Node) BetaScript() {
+func BetaScript(size int) {
 	s := NewServer()
 	go s.StartServer()
 	time.Sleep(1 * time.Second)
+	nodes := make([]*Node, 0, size)
 
-	for i := 0; i < 50; i++ {
-		s.SpawnNode()
+	for i := 0; i < size; i++ {
+		nodes = append(nodes, s.SpawnNode())
 	}
 
 	time.Sleep(1 * time.Second)
 	//----------
 	// do stuff here
+	wallet := NewWallet(GenerateID(), 0)
+
+	entry := nodes[rand.Intn(len(nodes))]
+	err := entry.StoreWallet(wallet)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	res, err := entry.ShowWallet(wallet.walletID)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	log.Println(res)
 
 	//----------
 	time.Sleep(1 * time.Second)

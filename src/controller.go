@@ -5,16 +5,16 @@ import (
 )
 
 // Parses the RPC and dispatch subroutines
-func (n *Node) Controller(rpc RPC) {
+func (node *Node) Controller(rpc RPC) {
 	switch rpc.CMD {
 	case PING:
-		n.controlPing(rpc)
+		node.controlPing(rpc)
 	case FIND_NODE:
-		n.controlFindNode(rpc)
+		node.controlFindNode(rpc)
 	case SEND:
-		n.controlSend(rpc)
+		node.controlSend(rpc)
 	case STORE:
-		n.controlStore(rpc)
+		node.controlStore(rpc)
 
 	}
 }
@@ -27,48 +27,51 @@ func (node *Node) controlSend(rpc RPC) {
 }
 
 // Handles the internal logic for a received ping RPC.
-func (n *Node) controlPing(rpc RPC) {
+func (node *Node) controlPing(rpc RPC) {
 	if DEBUG {
 		log.Printf("[node] - received %+v, from %+v", rpc.CMD, rpc.sender.id)
 	}
-	n.AddContact(rpc.sender)
-	resp := GenerateResponse(PONG, rpc.id, rpc.sender.ip, n.contact)
+	node.AddContact(rpc.sender)
+	resp := GenerateResponse(PONG, rpc.id, rpc.sender.ip, node.contact)
 	resp.Pong()
-	n.network.Send(resp)
+	node.network.Send(resp)
 }
 
 // Handle the store wallet logic, does NOT overwrite existing wallet or wallet balance.
 // i.e. does not overwrite an incorrect chain.
-func (n *Node) controlStore(rpc RPC) {
-	n.AddContact(rpc.sender)
-	err := n.vault.Add(NewWallet(rpc.walletID, rpc.walletBalance))
+func (node *Node) controlStore(rpc RPC) {
+	node.AddContact(rpc.sender)
+	wallet := NewWallet(rpc.walletID, rpc.walletBalance)
+	err := node.vault.Add(wallet)
 	if err != nil {
 		log.Printf("[INFO] - attempted overwrite of wallet, %v", rpc.walletID)
+	} else {
+		log.Printf("[INFO] - Stored wallet: %v", wallet.walletID)
 	}
 
-	resp := GenerateResponse(STORE, rpc.id, rpc.sender.IP(), n.contact)
+	resp := GenerateResponse(STORE, rpc.id, rpc.sender.IP(), node.contact)
 	resp.StoreResponse()
 
-	n.Send(resp)
+	node.Send(resp)
 }
 
 // Handles the internal logic for find node rpc.
-func (n *Node) controlFindNode(rpc RPC) {
-	n.AddContact(rpc.sender)
-	res, err := n.FindXClosest(REPLICATION, rpc.findTarget)
+func (node *Node) controlFindNode(rpc RPC) {
+	node.AddContact(rpc.sender)
+	res, err := node.FindXClosest(REPLICATION, rpc.findTarget)
 	if err != nil {
-		log.Printf("%+v - find node error: %+v", n.ID(), err)
+		log.Printf("%+v - find node error: %+v", node.ID(), err)
 	}
-	resp := GenerateResponse(FIND_NODE, rpc.id, rpc.sender.IP(), n.contact)
+	resp := GenerateResponse(FIND_NODE, rpc.id, rpc.sender.IP(), node.contact)
 	resp.FindNodeResponse(res, rpc.findTarget)
-	n.network.Send(resp)
+	node.network.Send(resp)
 }
 
-func (n *Node) controlShowWallet(rpc RPC) {
-	n.AddContact(rpc.sender)
-	resp := GenerateResponse(SHOW_WALLET, rpc.id, rpc.sender.IP(), n.contact)
+func (node *Node) controlShowWallet(rpc RPC) {
+	node.AddContact(rpc.sender)
+	resp := GenerateResponse(SHOW_WALLET, rpc.id, rpc.sender.IP(), node.contact)
 
-	wallet, err := n.vault.FindWallet(rpc.walletID)
+	wallet, err := node.vault.FindWallet(rpc.walletID)
 	if err != nil {
 		resp.ShowWalletResponse(wallet.walletID, wallet.Balance())
 	} else {
@@ -76,3 +79,4 @@ func (n *Node) controlShowWallet(rpc RPC) {
 	}
 
 }
+

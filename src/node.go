@@ -45,4 +45,6 @@ func (node *Node) Start() {
 		log.Printf("started node: %+v", node.id)
 	}
 	go node.network.Listen(node)
+	time.Sleep(time.Millisecond * 10)
+	go node.Ping(node.serverIP)
 }

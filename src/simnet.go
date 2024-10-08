@@ -13,7 +13,7 @@ type spawned struct {
 	network   map[[5]uint32][4]byte
 }
 
-type table struct {
+type nodeTable struct {
 	tableLock sync.RWMutex
 	content   map[[4]byte]chan RPC
 }
@@ -23,7 +23,7 @@ type table struct {
 type Simnet struct {
 	listener chan RPC
 	spawned
-	table
+	nodeTable
 	serverID   [5]uint32
 	serverIP   [4]byte
 	masterNode [4]byte
@@ -39,7 +39,7 @@ func NewServer() *Simnet {
 			spawnedIP: make(map[[4]byte]bool),
 			network:   make(map[[5]uint32][4]byte),
 		},
-		table: table{
+		nodeTable: nodeTable{
 			tableLock: sync.RWMutex{},
 			content:   make(map[[4]byte]chan RPC),
 		},
@@ -51,7 +51,7 @@ func NewServer() *Simnet {
 	s.spawnedID[rootID] = true
 	s.spawnedIP[rootIP] = true
 	servChan := make(chan RPC, 100)
-	s.table.content[s.serverIP] = servChan
+	s.nodeTable.content[s.serverIP] = servChan
 
 	master := s.SpawnNode()
 	s.masterNode = master.IP()
@@ -96,7 +96,7 @@ func (s *Simnet) generateRandomNode() *Node {
 
 	receiver := make(chan RPC, 100)
 	newNode := NewNode(id, ip, receiver, s.listener, s.serverIP, s.masterNode)
-	s.table.content[ip] = receiver
+	s.nodeTable.content[ip] = receiver
 	s.spawnedID[id] = true
 	s.spawnedIP[ip] = true
 	s.network[id] = ip
@@ -109,7 +109,7 @@ func (s *Simnet) generateRandomNode() *Node {
 func (s *Simnet) AttachThisNode(node *Node) {
 	s.spawnLock.Lock()
 	defer s.spawnLock.Unlock()
-	s.table.content[node.IP()] = node.listener
+	s.nodeTable.content[node.IP()] = node.listener
 	s.spawnedID[node.ID()] = true
 	s.spawnedIP[node.IP()] = true
 	s.network[node.ID()] = node.IP()
@@ -140,7 +140,7 @@ func (s *Simnet) understand(rpc RPC) {
 		s.serverPing(rpc)
 	}
 	s.tableLock.RLock()
-	outChan, ok := s.table.content[rpc.receiver]
+	outChan, ok := s.nodeTable.content[rpc.receiver]
 	s.tableLock.RUnlock()
 	if !ok {
 		log.Printf("[server] - received rpc for unknown address, IP: %+v, sender: %+v", rpc.receiver, rpc.sender.id)

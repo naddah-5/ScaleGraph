@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	scaleGraph.AlphaScript()
+	scaleGraph.BetaScript(60)
 }

@@ -116,13 +116,18 @@ func (node *Node) deepSearch(prevContactList []contact, target [5]uint32) []cont
 func (node *Node) StoreWallet(wallet *wallet) error {
 	valGroup := node.FindNode(wallet.walletID)
 	var wg sync.WaitGroup
+	s := fmt.Sprintln("intention to store wallet in the following nodes")
+	for _, con := range valGroup {
+		s += fmt.Sprintf("node ID: %v\n", con.ID())
+	}
+	log.Println(s)
 
 	for _, con := range valGroup {
 		wg.Add(1)
 		go func(walletID [5]uint32, con contact, wg *sync.WaitGroup) {
-			walletRPC := GenerateRPC(STORE, node.contact, con.IP())
-			walletRPC.Store(walletID, 0)
-			resp, err := node.network.Send(walletRPC)
+			rpc := GenerateRPC(STORE, node.contact, con.IP())
+			rpc.Store(walletID, 0)
+			resp, err := node.network.Send(rpc)
 			if err != nil {
 				log.Printf("ERROR: store wallet with id %v at node %v timed out with error - %s", walletID, con.ID(), err.Error())
 			}
