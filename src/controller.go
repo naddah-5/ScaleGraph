@@ -28,9 +28,6 @@ func (node *Node) controlSend(rpc RPC) {
 
 // Handles the internal logic for a received ping RPC.
 func (node *Node) controlPing(rpc RPC) {
-	if DEBUG {
-		log.Printf("[node] - received %+v, from %+v", rpc.CMD, rpc.sender.id)
-	}
 	node.AddContact(rpc.sender)
 	resp := GenerateResponse(PONG, rpc.id, rpc.sender.ip, node.contact)
 	resp.Pong()
@@ -44,9 +41,9 @@ func (node *Node) controlStore(rpc RPC) {
 	wallet := NewWallet(rpc.walletID, rpc.walletBalance)
 	err := node.vault.Add(wallet)
 	if err != nil {
-		log.Printf("[INFO] - attempted overwrite of wallet, %v", rpc.walletID)
+		log.Printf("[INFO] - attempted overwrite of wallet, %v\n", rpc.walletID)
 	} else {
-		log.Printf("[INFO] - Stored wallet: %v", wallet.walletID)
+		log.Printf("[INFO] - Stored wallet: %v\n", wallet.walletID)
 	}
 
 	resp := GenerateResponse(STORE, rpc.id, rpc.sender.IP(), node.contact)

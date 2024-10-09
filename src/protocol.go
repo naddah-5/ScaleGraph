@@ -29,15 +29,12 @@ func (node *Node) FindNode(target [5]uint32) []contact {
 	for n := closeIP.Front(); n != nil; n = n.Next() {
 		closeNode := n.Value.(contact)
 		rpc := GenerateRPC(FIND_NODE, node.contact, closeNode.ip)
-		rpc.FindNode(closeNode.ID())
+		rpc.FindNode(target)
 		go node.alphaFindNode(rpc, respChan)
 	}
 
 	for i := 0; i < min(CONCURRENCY, closeIP.Len()); i++ {
 		foundNodes := <-respChan
-		if DEBUG {
-			log.Printf("[info] - received find node alpha response: %+v", foundNodes)
-		}
 		for _, val := range foundNodes {
 			res.PushBack(val)
 		}
@@ -62,9 +59,6 @@ func (node *Node) alphaFindNode(rpc RPC, respChan chan []contact) {
 		log.Println("[error] - find node alpha: no response")
 		respChan <- make([]contact, 0)
 		return
-	}
-	if DEBUG {
-		log.Println("[info] - sending find node alpha response")
 	}
 	respChan <- resp.kNodes
 	go func(rpc RPC) {
@@ -161,3 +155,13 @@ func (node *Node) ShowWallet(walletID [5]uint32) (string, error) {
 	}
 	return res, errors.New(fmt.Sprintf("[ERROR] - Could not find wallet %v", walletID))
 }
+
+//func (node *Node) NewFindNode(target [5]uint32) []contact {
+//	closeNodes, _ := node.routingTable.FindXClosest(REPLICATION, target)
+//
+//	for n := closeNodes.Front(); n != nil; n = n.Next() {
+//		aNode := n.Value.(contact)
+//		rpc := GenerateRPC(FIND_NODE, node.contact, aNode.IP())
+//		rpc.FindNode()
+//	}
+//}

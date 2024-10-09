@@ -1,7 +1,6 @@
 package scalegraph
 
 import (
-	"log"
 	"time"
 )
 
@@ -41,9 +40,6 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 }
 
 func (node *Node) Start() {
-	if DEBUG {
-		log.Printf("started node: %+v", node.id)
-	}
 	go node.network.Listen(node)
 	time.Sleep(time.Millisecond * 10)
 	go node.Ping(node.serverIP)

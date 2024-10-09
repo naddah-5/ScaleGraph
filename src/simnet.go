@@ -63,9 +63,6 @@ func NewServer() *Simnet {
 // Checks for duplicate value conflicts
 func (s *Simnet) SpawnNode() *Node {
 	newNode := s.generateRandomNode()
-	if DEBUG {
-		log.Printf("generated id: %+v, ip: %+v", newNode.ID(), newNode.IP())
-	}
 	go newNode.Start()
 	return newNode
 }
@@ -74,9 +71,6 @@ func (s *Simnet) SpawnNode() *Node {
 func (s *Simnet) generateRandomNode() *Node {
 	s.spawnLock.Lock()
 	defer s.spawnLock.Unlock()
-	if DEBUG {
-		log.Println("spawning node")
-	}
 	var id [5]uint32
 	for {
 		id = GenerateID()
@@ -130,11 +124,6 @@ func (s *Simnet) StartServer() {
 func (s *Simnet) understand(rpc RPC) {
 	if rpc.receiver == s.serverIP {
 		if DEBUG {
-			if rpc.CMD == PONG {
-				log.Printf("[warning] - server received a PONG")
-			}
-		}
-		if DEBUG {
 			log.Printf("[server] - received a server rpc: %+v", rpc)
 		}
 		s.serverPing(rpc)
@@ -163,7 +152,7 @@ func (s *Simnet) AllNodes() []contact {
 	return res
 }
 
-// Redirect pings to the server to a random node in the network.
+// Redirect pings to the server to master node
 func (s *Simnet) serverPing(rpc RPC) {
 	rpc.receiver = s.masterNode
 	if DEBUG {

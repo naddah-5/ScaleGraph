@@ -108,15 +108,8 @@ func (node *Node) NodeAlphaScript(delay chan struct{}, done chan struct{}, prt c
 	time.Sleep(3 * time.Second)
 	comp := make(chan struct{})
 	go func(node *Node, comp chan struct{}) {
-		res := node.FindNode(node.ID())
+		node.FindNode(node.ID())
 
-		if POINT_DEBUG {
-			nodeDump := fmt.Sprintf("%+v found:\n", node.ID())
-			for _, val := range res {
-				nodeDump += fmt.Sprintf("%+v\n", val)
-			}
-			log.Println(nodeDump)
-		}
 		time.Sleep(100 * time.Microsecond)
 
 		close(comp)
