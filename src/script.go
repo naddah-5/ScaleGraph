@@ -155,6 +155,7 @@ func BetaScript(size int) {
 	wallet := NewWallet(GenerateID(), 0)
 
 	entry := nodes[rand.Intn(len(nodes))]
+	fmt.Println("storing wallet")
 	err := entry.StoreWallet(wallet)
 	if err != nil {
 		log.Println(err.Error())
