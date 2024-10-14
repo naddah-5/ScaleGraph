@@ -1,6 +1,5 @@
 package scalegraph
 
-
 import (
 	"container/list"
 	"errors"
@@ -52,9 +51,21 @@ func CloserNode(nodeA [5]uint32, nodeB [5]uint32, target [5]uint32) bool {
 	return false
 }
 
-// Sorts the list by relative distance to the target id, returns an error if 
+// Returns true if node A is larger than node B, otherwise returns false.
+func LargerNode(nodeA [5]uint32, nodeB [5]uint32) bool {
+	for i, v := range nodeA {
+		if v > nodeB[i] {
+			return true
+		} else if v < nodeB[i] {
+			return false
+		}
+	}
+	return false
+}
+
+// Sorts the list by relative distance to the target id, returns an error if
 // a non-contact element is found.
-func SortByDistance(contactList *list.List, target [5]uint32) error {
+func SortListByDistance(contactList *list.List, target [5]uint32) error {
 	var relDist int
 	var nextRelDist int
 	for i := 0; i <= contactList.Len(); i++ {
@@ -81,7 +92,7 @@ func SortByDistance(contactList *list.List, target [5]uint32) error {
 	// clear out duplicates.
 	for e := contactList.Front(); e != nil; e = e.Next() {
 		elem := e.Value.(contact)
-		for p := e.Next(); p != nil; p = p.Next(){
+		for p := e.Next(); p != nil; p = p.Next() {
 			pElem := p.Value.(contact)
 			if elem.ID() == pElem.ID() {
 				stepBack := p.Prev()
@@ -193,7 +204,7 @@ func CompareHash(a []byte, b []byte) bool {
 	if len(a) != len(b) {
 		return false
 	}
-	for i := range(a) {
+	for i := range a {
 		if a[i] != b[i] {
 			return false
 		}
@@ -216,4 +227,21 @@ func CompareContactSlice(a []contact, b []contact) bool {
 	return true
 }
 
-
+// In place sort for the input slice relative to the target ID.
+// Larger IDs are pushed forward if same relative distance, this is to maintain consistency
+// regardless of the input order.
+func SortSliceByDistance(input *[]contact, target [5]uint32) {
+	for i := 1; i < len(*input); i++ {
+		for j := 0; j < len(*input)-i; j++ {
+			nodeA := (*input)[j]
+			nodeB := (*input)[j+1]
+			sortCriterion := RelativeDistance(nodeA.ID(), target) > RelativeDistance(nodeB.ID(), target)
+			equality := RelativeDistance(nodeA.ID(), target) == RelativeDistance(nodeB.ID(), target)
+			preferenceCriterion := LargerNode(nodeA.ID(), nodeB.ID())
+			if sortCriterion || (equality && !preferenceCriterion) {
+				(*input)[j] = nodeB
+				(*input)[j+1] = nodeA
+			}
+		}
+	}
+}

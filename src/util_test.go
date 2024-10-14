@@ -3,6 +3,7 @@ package scalegraph
 import (
 	"container/list"
 	"crypto/sha256"
+	"fmt"
 	"log"
 	"strconv"
 	"testing"
@@ -181,7 +182,7 @@ func TestSortContactList(t *testing.T) {
 		}
 	}
 
-	SortByDistance(testList, targetNode)
+	SortListByDistance(testList, targetNode)
 
 	if verbose {
 		log.Printf("list after sorting:\n")
@@ -217,7 +218,7 @@ func TestSortEmptyList(t *testing.T) {
 		}
 	}
 
-	err := SortByDistance(testList, targetNode)
+	err := SortListByDistance(testList, targetNode)
 	if err != nil {
 		log.Printf("[%s] - failed to properly sort empty list", testName)
 		t.Fail()
@@ -264,8 +265,8 @@ func TestMergeByDistance(t *testing.T) {
 	testListB.PushFront(contact11)
 	testListB.PushFront(contact12)
 
-	SortByDistance(testListA, target)
-	SortByDistance(testListB, target)
+	SortListByDistance(testListA, target)
+	SortListByDistance(testListB, target)
 
 	res, err := MergeByDistance(testListA, testListB, target)
 	if err != nil {
@@ -370,5 +371,98 @@ func TestCompareSlice(t *testing.T) {
 	if !shouldBeTrue {
 		log.Printf("[%+v] - matching of empty lists should be true", testName)
 		t.Fail()
+	}
+}
+
+func TestLargerNode(t *testing.T) {
+	testName := "TestLargerNode"
+	nodeA := [5]uint32{0, 0, 1, 0, 0}
+	nodeB := [5]uint32{0, 0, 0, 0, 1}
+	nodeC := [5]uint32{0, 0, 0, 1, 0}
+	nodeD := [5]uint32{0, 0, 1, 0, 0}
+	nodeE := [5]uint32{0, 1, 0, 0, 0}
+	nodeF := [5]uint32{1, 0, 0, 0, 0}
+
+	nodeG := [5]uint32{0, 23, 153, 123, 0}
+	nodeH := [5]uint32{0, 23, 73, 123, 0}
+
+	if !LargerNode(nodeA, nodeB) {
+		log.Printf("[%s] - node A should be larger than node B", testName)
+		t.Fail()
+	}
+
+	if !LargerNode(nodeA, nodeC) {
+		log.Printf("[%s] - node A should be larger than node C", testName)
+		t.Fail()
+	}
+	if LargerNode(nodeA, nodeD) {
+		log.Printf("[%s] - node A should not be larger than node D", testName)
+		t.Fail()
+	}
+	if LargerNode(nodeA, nodeE) {
+		log.Printf("[%s] - node A should not be larger than node E", testName)
+		t.Fail()
+	}
+	if LargerNode(nodeA, nodeF) {
+		log.Printf("[%s] - node A should not be larger than node F", testName)
+		t.Fail()
+	}
+	if !LargerNode(nodeG, nodeH) {
+		log.Printf("[%s] - node G should be larger than node H", testName)
+		t.Fail()
+	}
+}
+
+func TestSortSliceByDistance(t *testing.T) {
+	verbose := false
+	testName := "TestSortSliceByDistance"
+	target := [5]uint32{0, 0, 0, 0, 0}
+	input := make([]contact, 0)
+	nodeA := contact{[4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0}}
+	nodeB := contact{[4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1}}
+	nodeC := contact{[4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 5, 0}}
+	nodeD := contact{[4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 5, 0, 0}}
+	nodeE := contact{[4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0}}
+	nodeF := contact{[4]byte{0, 0, 0, 0}, [5]uint32{0, 1, 0, 0, 0}}
+	nodeG := contact{[4]byte{0, 0, 0, 0}, [5]uint32{1, 0, 0, 0, 0}}
+	nodeH := contact{[4]byte{0, 0, 0, 0}, [5]uint32{10, 92, 23, 233, 0}}
+	nodeI := contact{[4]byte{0, 0, 0, 0}, [5]uint32{0, 99, 32, 0, 0}}
+	nodeJ := contact{[4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 10, 1}}
+	nodeK := contact{[4]byte{0, 0, 0, 0}, [5]uint32{1, 1, 1, 1, 1}}
+	input = append(input, nodeA)
+	input = append(input, nodeB)
+	input = append(input, nodeC)
+	input = append(input, nodeD)
+	input = append(input, nodeE)
+	input = append(input, nodeF)
+	input = append(input, nodeG)
+	input = append(input, nodeH)
+	input = append(input, nodeI)
+	input = append(input, nodeJ)
+	input = append(input, nodeK)
+
+	if verbose {
+		s := fmt.Sprintf("[%s]\nbefore sort:\n", testName)
+		for _, v := range input {
+			s += fmt.Sprintf("node - %v, relative distance %d\n", v, RelativeDistance(v.ID(), target))
+		}
+		log.Println(s)
+	}
+
+	SortSliceByDistance(&input, target)
+
+	if verbose {
+		res := fmt.Sprintf("[%s]\nafter sort:\n", testName)
+		for _, v := range input {
+			res += fmt.Sprintf("node - %v, relative distance %d\n", v, RelativeDistance(v.ID(), target))
+		}
+		log.Println(res)
+	}
+
+	for i := 0; i < len(input)-1; i++ {
+		if RelativeDistance(input[i].ID(), target) > RelativeDistance(input[i+1].ID(), target) {
+			t.Fail()
+			log.Printf("[%s] - incorrect sorting", testName)
+		}
 	}
 }

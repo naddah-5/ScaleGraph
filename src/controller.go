@@ -43,7 +43,7 @@ func (node *Node) controlStore(rpc RPC) {
 	if err != nil {
 		log.Printf("[INFO] - attempted overwrite of wallet, %v\n", rpc.walletID)
 	} else {
-		log.Printf("[INFO] - Stored wallet: %v\n", wallet.walletID)
+		log.Printf("[INFO] - Stored wallet: %v at node %v\n", wallet.walletID, node.ID())
 	}
 
 	resp := GenerateResponse(STORE, rpc.id, rpc.sender.IP(), node.contact)

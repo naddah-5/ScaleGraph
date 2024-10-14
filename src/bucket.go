@@ -94,7 +94,7 @@ func (bucket *bucket) FindXClosestBucket(x int, target [5]uint32) (*list.List, e
 		}
 		res.PushFront(elem)
 	}
-	err := SortByDistance(res, target)
+	err := SortListByDistance(res, target)
 	if err != nil {
 		return res, err
 	}

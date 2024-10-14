@@ -19,53 +19,19 @@ func (node *Node) Ping(ip [4]byte) error {
 	return nil
 }
 
-// High level find node RPC.
-func (node *Node) FindNode(target [5]uint32) []contact {
-	closeIP, _ := node.routingTable.FindXClosest(REPLICATION, target)
-
-	res := list.New()
-	respChan := make(chan []contact, CONCURRENCY)
-
-	for n := closeIP.Front(); n != nil; n = n.Next() {
-		closeNode := n.Value.(contact)
-		rpc := GenerateRPC(FIND_NODE, node.contact, closeNode.ip)
-		rpc.FindNode(target)
-		go node.alphaFindNode(rpc, respChan)
-	}
-
-	for i := 0; i < min(CONCURRENCY, closeIP.Len()); i++ {
-		foundNodes := <-respChan
-		for _, val := range foundNodes {
-			res.PushBack(val)
-		}
-	}
-
-	// TODO: Replace list sort with a slice sort
-	SortByDistance(res, target)
-	var resSlice []contact = make([]contact, 0, REPLICATION)
-	for c := res.Front(); c != nil; c = c.Next() {
-		if len(resSlice) >= REPLICATION {
-			break
-		}
-		resSlice = append(resSlice, c.Value.(contact))
-	}
-	finalRes := node.deepSearch(resSlice, target)
-	return finalRes
-}
-
-func (node *Node) alphaFindNode(rpc RPC, respChan chan []contact) {
-	resp, err := node.network.Send(rpc)
+func (node *Node) alphaFindNode(rpc RPC, responseChannel chan []contact) {
+	response, err := node.network.Send(rpc)
 	if err != nil {
 		log.Println("[error] - find node alpha: no response")
-		respChan <- make([]contact, 0)
+		responseChannel <- make([]contact, 0)
 		return
 	}
-	respChan <- resp.kNodes
+	responseChannel <- response.kNodes
 	go func(rpc RPC) {
 		for _, con := range rpc.kNodes {
 			go node.Ping(con.IP())
 		}
-	}(resp)
+	}(response)
 	return
 
 }
@@ -86,7 +52,7 @@ func (node *Node) deepSearch(prevContactList []contact, target [5]uint32) []cont
 			res.PushBack(val)
 		}
 	}
-	SortByDistance(res, target)
+	SortListByDistance(res, target)
 	contactList := make([]contact, 0, REPLICATION)
 	i := 0
 	for c := res.Front(); c != nil; c = c.Next() {
@@ -156,12 +122,54 @@ func (node *Node) ShowWallet(walletID [5]uint32) (string, error) {
 	return res, errors.New(fmt.Sprintf("[ERROR] - Could not find wallet %v", walletID))
 }
 
-//func (node *Node) NewFindNode(target [5]uint32) []contact {
-//	closeNodes, _ := node.routingTable.FindXClosest(REPLICATION, target)
-//
-//	for n := closeNodes.Front(); n != nil; n = n.Next() {
-//		aNode := n.Value.(contact)
-//		rpc := GenerateRPC(FIND_NODE, node.contact, aNode.IP())
-//		rpc.FindNode()
-//	}
-//}
+func (node *Node) FindNode(target [5]uint32) []contact {
+	// find the closest internal nodes
+	closeNodes, _ := node.routingTable.FindXClosest(REPLICATION, target)
+
+	// send find node RPC to those nodes
+	responses := make(chan []contact, REPLICATION)
+	for n := closeNodes.Front(); n != nil; n = n.Next() {
+		aNode := n.Value.(contact)
+		rpc := GenerateRPC(FIND_NODE, node.contact, aNode.IP())
+		rpc.FindNode(target)
+		go node.alphaFindNode(rpc, responses)
+	}
+
+	// extract the returned contacts
+	foundNodes := make([]contact, 0, REPLICATION*REPLICATION)
+	for i := 0; i < min(CONCURRENCY, closeNodes.Len()); i++ {
+		foundNodes = append(foundNodes, <-responses...)
+	}
+
+	// sort the result with a bias towards larger nodes
+	SortSliceByDistance(&foundNodes, target)
+
+	// start recursion
+	recIndex := min(REPLICATION, len(foundNodes))
+	finalRes := node.searchProtocol(foundNodes[:recIndex], target)
+
+	return finalRes
+}
+
+func (node *Node) searchProtocol(prevContactList []contact, target [5]uint32) []contact {
+	respChan := make(chan []contact)
+
+	for _, v := range prevContactList {
+		rpc := GenerateRPC(FIND_NODE, node.contact, v.IP())
+		rpc.FindNode(target)
+		go node.alphaFindNode(rpc, respChan)
+	}
+
+	respList := make([]contact, REPLICATION*REPLICATION)
+	for i := 0; i < min(len(prevContactList), CONCURRENCY); i++ {
+		respList = append(respList, <-respChan...)
+	}
+
+	SortSliceByDistance(&respList, target)
+
+	if RelativeDistance(prevContactList[0].ID(), target) == RelativeDistance(respList[0].ID(), target) {
+		return respList
+	} else {
+		return node.searchProtocol(respList, target)
+	}
+}
