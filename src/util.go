@@ -29,17 +29,27 @@ func RelativeDistance(nodeA [5]uint32, nodeB [5]uint32) [5]uint32 {
 
 // Returns true if node A is closer to the target than node B, returns false if node B is closer to target than node A.
 // Returns an error if node A and B are the same distance from the target.
-func CloserNode(nodeA [5]uint32, nodeB [5]uint32, target [5]uint32) (bool, error) {
+func CloserNode(nodeA [5]uint32, nodeB [5]uint32, target [5]uint32) bool {
 	distA := RelativeDistance(nodeA, target)
 	distB := RelativeDistance(nodeB, target)
 	for i := 0; i < 5; i++ {
-		if distA[i] > distB[i] {
-			return true, nil
-		} else if distB[i] > distA[i] {
-			return false, nil
+		if distA[i] < distB[i] {
+			return true
+		} else if distB[i] < distA[i] {
+			return false
 		}
 	}
-	return false, errors.New("nodes have same distance to target node")
+	return false
+}
+
+// Returns true if node A and B are the same distance from the target, otherwise returns false.
+func EquiDistantNode(nodeA [5]uint32, nodeB [5]uint32, target [5]uint32) bool {
+	distA := RelativeDistance(nodeA, target)
+	distB := RelativeDistance(nodeB, target)
+	if distA == distB {
+		return true
+	}
+	return false
 }
 
 // Returns the shared prefix length between the supplied ID's
@@ -59,11 +69,11 @@ func DistPrefixLength(idA [5]uint32, idB [5]uint32) int {
 // returns false if node B is larger than or equal to node A
 func LargerNode(nodeA [5]uint32, nodeB [5]uint32) bool {
 	for i := 0; i < 5; i++ {
-		if nodeA[i] < nodeB[i] {
-			return false
+		if nodeA[i] > nodeB[i] {
+			return true
 		}
 	}
-	return true
+	return false
 }
 
 // sorts contact slice based on distance to the target
@@ -72,10 +82,17 @@ func SortContactsByDistance(input *[]kademlia.Contact, target [5]uint32) {
 		for j := 0; j < len(*input)-1; j++ {
 			nodeA := (*input)[j]
 			nodeB := (*input)[j+1]
-			sortCriterion, err := CloserNode(nodeA.ID(), nodeB.ID(), target)
-			if sortCriterion || (err != nil) {
+			sortCriterion := CloserNode(nodeB.ID(), nodeA.ID(), target)
+
+			// if node B is close to target than node A
+			if sortCriterion {
 				(*input)[j] = nodeB
 				(*input)[j+1] = nodeA
+
+				//if node A and B are the same distance from target
+			} else if EquiDistantNode(nodeA.ID(), nodeB.ID(), target) {
+
+				// if node A is larger than node B
 				if LargerNode(nodeA.ID(), nodeB.ID()) {
 					(*input)[j] = nodeB
 					(*input)[j+1] = nodeA
