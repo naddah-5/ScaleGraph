@@ -153,3 +153,46 @@ func TestRemoveContact3(t *testing.T) {
 		}
 	}
 }
+
+func TestFindXClosest(t *testing.T) {
+	testName := "TestFindXClosest"
+	verbose := true
+	testBucketSize := 10
+	bucket := NewBucket(testBucketSize)
+	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
+	nodeB := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1})
+	nodeC := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 5, 0})
+	nodeD := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 5, 0, 0})
+	nodeE := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
+	nodeF := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 1, 0, 0, 0})
+	nodeG := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{1, 0, 0, 0, 0})
+	nodeH := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{10, 92, 23, 233, 0})
+	nodeI := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 99, 32, 0, 0})
+	nodeJ := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 10, 1})
+
+	bucket.AddContact(nodeA)
+	bucket.AddContact(nodeB)
+	bucket.AddContact(nodeC)
+	bucket.AddContact(nodeD)
+	bucket.AddContact(nodeE)
+	bucket.AddContact(nodeF)
+	bucket.AddContact(nodeG)
+	bucket.AddContact(nodeH)
+	bucket.AddContact(nodeI)
+	bucket.AddContact(nodeJ)
+
+	target := [5]uint32{10, 92, 0, 0, 0}
+	res := bucket.FindXClosest(3, target)
+	if verbose {
+		log.Printf("[%s]\n", testName)
+		log.Println("input slice")
+		for _, v := range bucket.content {
+			log.Printf("contact: %v\n", v)
+		}
+		log.Printf("target ID: %v", target)
+		log.Println("returned contacts")
+		for _, v := range res {
+			log.Printf("contact: %2v\tdistance: %2v", v, RelativeDistance(v.ID(), target))
+		}
+	}
+}

@@ -49,3 +49,15 @@ func (bucket *Bucket) RemoveContact(contact Contact) {
 		}
 	}
 }
+
+// Returns up to x contacts from the bucket.
+// Does not error if there are less than x contacts in bucket to return.
+func (bucket *Bucket) FindXClosest(x int, target [5]uint32) []Contact {
+	bucket.Lock()
+	defer bucket.Unlock()
+	res := make([]Contact, 0, x)
+	res = append(res, bucket.content...)
+	SortContactsByDistance(&res, target)
+	res = res[:x]
+	return res
+}
