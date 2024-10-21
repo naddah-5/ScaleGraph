@@ -1,5 +1,9 @@
 package kademlia
 
+import (
+	"math/rand"
+)
+
 type Contact struct {
 	ip   [4]byte
 	id   [5]uint32
@@ -22,3 +26,15 @@ func NewContact(ip [4]byte, id [5]uint32) Contact {
 	return contact
 }
 
+func NewRandomContact() Contact {
+	var ip [4]byte
+	var id [5]uint32
+	for i := 0; i < 4; i++ {
+		seg, _ := RandU32(0, 256)
+		ip[i] = byte(seg)
+	}
+	for i := 0; i < 5; i++ {
+		id[i] = rand.Uint32()
+	}
+	return NewContact(ip, id)
+}

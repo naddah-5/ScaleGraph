@@ -1,8 +1,8 @@
 package src
 
 import (
+	"main/src/kademlia"
 	"time"
-    "main/src/kademlia"
 )
 
 const (
@@ -17,6 +17,6 @@ const (
 )
 
 type Node struct {
-    kademlia.Contact
-    kademlia.Network
+	kademlia.Contact
+	kademlia.Network
 }

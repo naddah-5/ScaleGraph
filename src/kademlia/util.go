@@ -1,14 +1,13 @@
-package src
+package kademlia
 
 import (
 	"errors"
-	"main/src/kademlia"
 	"math/bits"
 	"math/rand"
 )
 
 // returns a pseudo-random uint32 in the range (min, max]
-func randU32(min uint32, max uint32) (uint32, error) {
+func RandU32(min uint32, max uint32) (uint32, error) {
 	if min >= max {
 		return 0, errors.New("invalid range")
 	}
@@ -77,7 +76,7 @@ func LargerNode(nodeA [5]uint32, nodeB [5]uint32) bool {
 }
 
 // sorts contact slice based on distance to the target
-func SortContactsByDistance(input *[]kademlia.Contact, target [5]uint32) {
+func SortContactsByDistance(input *[]Contact, target [5]uint32) {
 	for i := 1; i < len(*input); i++ {
 		for j := 0; j < len(*input)-1; j++ {
 			nodeA := (*input)[j]

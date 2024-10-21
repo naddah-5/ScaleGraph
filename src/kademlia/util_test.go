@@ -1,9 +1,8 @@
-package src
+package kademlia
 
 import (
 	"fmt"
 	"log"
-	"main/src/kademlia"
 	"testing"
 )
 
@@ -107,21 +106,21 @@ func TestDistPrefixLength4(t *testing.T) {
 }
 
 func TestSortSliceByDistance(t *testing.T) {
-	verbose := true
+	verbose := false
 	testName := "TestSortSliceByDistance"
 	target := [5]uint32{0, 0, 0, 0, 0}
-	input := make([]kademlia.Contact, 0)
-	nodeA := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
-	nodeB := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1})
-	nodeC := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 5, 0})
-	nodeD := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 5, 0, 0})
-	nodeE := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
-	nodeF := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 1, 0, 0, 0})
-	nodeG := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{1, 0, 0, 0, 0})
-	nodeH := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{10, 92, 23, 233, 0})
-	nodeI := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 99, 32, 0, 0})
-	nodeJ := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 10, 1})
-	nodeK := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{1, 1, 1, 1, 1})
+	input := make([]Contact, 0)
+	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
+	nodeB := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1})
+	nodeC := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 5, 0})
+	nodeD := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 5, 0, 0})
+	nodeE := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
+	nodeF := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 1, 0, 0, 0})
+	nodeG := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{1, 0, 0, 0, 0})
+	nodeH := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{10, 92, 23, 233, 0})
+	nodeI := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 99, 32, 0, 0})
+	nodeJ := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 10, 1})
+	nodeK := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{1, 1, 1, 1, 1})
 	input = append(input, nodeA)
 	input = append(input, nodeB)
 	input = append(input, nodeC)
@@ -166,17 +165,17 @@ func TestSortSliceByDistance(t *testing.T) {
 
 func TestGreaterNode(t *testing.T) {
 	testName := "TestGreaterNode"
-	nodeA := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{10, 92, 23, 233, 0})
-	nodeB := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{1, 1, 1, 1, 1})
-	nodeC := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{1, 0, 0, 0, 0})
-	nodeD := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 99, 32, 0, 0})
-	nodeE := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 1, 0, 0, 0})
-	nodeF := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 5, 0, 0})
-	nodeG := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
-	nodeH := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
-	nodeI := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 10, 1})
-	nodeJ := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 5, 0})
-	nodeK := kademlia.NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1})
+	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{10, 92, 23, 233, 0})
+	nodeB := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{1, 1, 1, 1, 1})
+	nodeC := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{1, 0, 0, 0, 0})
+	nodeD := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 99, 32, 0, 0})
+	nodeE := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 1, 0, 0, 0})
+	nodeF := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 5, 0, 0})
+	nodeG := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
+	nodeH := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
+	nodeI := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 10, 1})
+	nodeJ := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 5, 0})
+	nodeK := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1})
 	if !LargerNode(nodeA.ID(), nodeB.ID()) {
 		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeA, nodeB)
 		t.Fail()
