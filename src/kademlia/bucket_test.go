@@ -156,7 +156,7 @@ func TestRemoveContact3(t *testing.T) {
 
 func TestFindXClosest(t *testing.T) {
 	testName := "TestFindXClosest"
-	verbose := true
+	verbose := false
 	testBucketSize := 10
 	bucket := NewBucket(testBucketSize)
 	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
@@ -194,5 +194,9 @@ func TestFindXClosest(t *testing.T) {
 		for _, v := range res {
 			log.Printf("contact: %2v\tdistance: %2v", v, RelativeDistance(v.ID(), target))
 		}
+	}
+	if res[0].ID() != nodeH.ID() {
+		log.Printf("[%s] - incorrect closest contact returned")
+		t.Fail()
 	}
 }
