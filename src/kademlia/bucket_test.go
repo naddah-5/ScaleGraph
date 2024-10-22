@@ -156,7 +156,7 @@ func TestRemoveContact3(t *testing.T) {
 
 func TestFindXClosest(t *testing.T) {
 	testName := "TestFindXClosest"
-	verbose := true
+	verbose := false
 	testBucketSize := 10
 	bucket := NewBucket(testBucketSize)
 	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
@@ -197,6 +197,93 @@ func TestFindXClosest(t *testing.T) {
 	}
 	if res[0].ID() != nodeH.ID() {
 		log.Printf("[%s] - incorrect closest contact returned", testName)
+		t.Fail()
+	}
+}
+
+func TestFindContact(t *testing.T) {
+	testName := "TestFindContact"
+	verbose := false
+	testBucketSize := 10
+	bucket := NewBucket(testBucketSize)
+	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
+	nodeB := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1})
+	nodeC := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 5, 0})
+	nodeD := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 5, 0, 0})
+	nodeE := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
+	nodeF := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 1, 0, 0, 0})
+	nodeG := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{1, 0, 0, 0, 0})
+	nodeH := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{10, 92, 23, 233, 0})
+	nodeI := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 99, 32, 0, 0})
+	nodeJ := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 10, 1})
+
+	bucket.AddContact(nodeA)
+	bucket.AddContact(nodeB)
+	bucket.AddContact(nodeC)
+	bucket.AddContact(nodeD)
+	bucket.AddContact(nodeE)
+	bucket.AddContact(nodeF)
+	bucket.AddContact(nodeG)
+	bucket.AddContact(nodeH)
+	bucket.AddContact(nodeI)
+	bucket.AddContact(nodeJ)
+
+	res, err := bucket.FindContact(nodeD.ID())
+	if verbose {
+		log.Printf("[%s]\n", testName)
+		log.Printf("searched for ID: %v", nodeD.ID())
+		log.Printf("found: %v", res)
+	}
+	if err != nil {
+		log.Printf("[%s] - did not find contact %v, in %v\n", testName, nodeD.ID(), bucket.content)
+		t.Fail()
+	}
+	if res.ID() != nodeD.ID() {
+		log.Printf("[%s] - returned contact, %v, does not match search ID, %v\n", testName, res.ID(), nodeD.ID())
+		t.Fail()
+	}
+}
+
+func TestFindContact1(t *testing.T) {
+	testName := "TestFindContact"
+	verbose := false
+	testBucketSize := 10
+	bucket := NewBucket(testBucketSize)
+	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
+	nodeB := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1})
+	nodeC := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 5, 0})
+	nodeD := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 5, 0, 0})
+	nodeE := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
+	nodeF := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 1, 0, 0, 0})
+	nodeG := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{1, 0, 0, 0, 0})
+	nodeH := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{10, 92, 23, 233, 0})
+	nodeI := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 99, 32, 0, 0})
+	nodeJ := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 10, 1})
+
+	bucket.AddContact(nodeA)
+	bucket.AddContact(nodeB)
+	bucket.AddContact(nodeC)
+	bucket.AddContact(nodeD)
+	bucket.AddContact(nodeE)
+	bucket.AddContact(nodeF)
+	bucket.AddContact(nodeG)
+	bucket.AddContact(nodeH)
+	bucket.AddContact(nodeI)
+	bucket.AddContact(nodeJ)
+
+	target := [5]uint32{1, 1, 1, 1, 1}
+	res, err := bucket.FindContact(target)
+	if verbose {
+		log.Printf("[%s]\n", testName)
+		log.Printf("searched for ID: %v", target)
+		log.Printf("found: %v", res)
+	}
+	if err == nil {
+		log.Printf("[%s] - found contact %v, in:\n", testName, res)
+		for _, v := range bucket.content {
+			log.Printf("contact: %v\n", v)
+		}
+		log.Printf("searched for target %v, expected an error", target)
 		t.Fail()
 	}
 }

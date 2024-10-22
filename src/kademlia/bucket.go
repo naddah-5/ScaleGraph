@@ -61,3 +61,17 @@ func (bucket *Bucket) FindXClosest(x int, target [5]uint32) []Contact {
 	res = res[:min(x, len(bucket.content))]
 	return res
 }
+
+
+// Returns a contact with matching ID to target if present.
+// Otherwise returns an error.
+func (bucket *Bucket) FindContact(target [5]uint32) (Contact, error) {
+	bucket.Lock()
+	defer bucket.Unlock()
+	for _, v := range bucket.content {
+		if v.ID() == target {
+			return v, nil
+		}
+	}
+	return Contact{}, errors.New("contact not found")
+}
