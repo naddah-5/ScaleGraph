@@ -58,6 +58,6 @@ func (bucket *Bucket) FindXClosest(x int, target [5]uint32) []Contact {
 	res := make([]Contact, 0, x)
 	res = append(res, bucket.content...)
 	SortContactsByDistance(&res, target)
-	res = res[:x]
+	res = res[:min(x, len(bucket.content))]
 	return res
 }
