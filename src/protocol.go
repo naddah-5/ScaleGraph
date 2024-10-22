@@ -154,22 +154,30 @@ func (node *Node) FindNode(target [5]uint32) []contact {
 func (node *Node) searchProtocol(prevContactList []contact, target [5]uint32) []contact {
 	respChan := make(chan []contact)
 
+	// parallel find node RPC's
 	for _, v := range prevContactList {
 		rpc := GenerateRPC(FIND_NODE, node.contact, v.IP())
 		rpc.FindNode(target)
 		go node.alphaFindNode(rpc, respChan)
 	}
 
+	// extract the responses into respList
 	respList := make([]contact, REPLICATION*REPLICATION)
 	for i := 0; i < min(len(prevContactList), CONCURRENCY); i++ {
 		respList = append(respList, <-respChan...)
 	}
 
+	// sort the response list and filter out the current node
 	SortSliceByDistance(&respList, target)
+	respList = FilterContactSliceByID(respList, node.ID())
+	respList = respList[:REPLICATION]
 
-	if RelativeDistance(prevContactList[0].ID(), target) == RelativeDistance(respList[0].ID(), target) {
-		return respList
-	} else {
-		return node.searchProtocol(respList, target)
+	if len(prevContactList) > 0 && len(respList) > 0 {
+		if RelativeDistance(prevContactList[0].ID(), target) == RelativeDistance(respList[0].ID(), target) {
+			return respList
+		}
+	} else if len(respList) == 0 {
+		return prevContactList
 	}
+	return node.searchProtocol(respList, target)
 }

@@ -13,6 +13,7 @@ type vault struct {
 
 func NewVault() *vault {
 	return &vault{
+		lock: sync.RWMutex{},
 		slot: make(map[[5]uint32]*wallet),
 	}
 }

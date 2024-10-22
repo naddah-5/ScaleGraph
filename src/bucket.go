@@ -111,3 +111,18 @@ func (bucket *bucket) FindXClosestBucket(x int, target [5]uint32) (*list.List, e
 
 	return res, nil
 }
+
+
+// Returns up to x closest contacts to the given node id
+// The result is returned in a sorted slice, from closest to target to furthest from target.
+func (bucket *bucket) NewFindXClosestBucket(x int, target [5]uint32) []contact {
+	bucket.lock.Lock()
+	defer bucket.lock.Unlock()
+
+	res := make([]contact, 0, x)
+	for e := bucket.content.Front(); e != nil; e = e.Next() {
+		res = append(res, e.Value.(contact))
+	}
+	SortSliceByDistance(&res, target)
+	return res
+}

@@ -90,6 +90,8 @@ func (s *Simnet) generateRandomNode() *Node {
 
 	receiver := make(chan RPC, 100)
 	newNode := NewNode(id, ip, receiver, s.listener, s.serverIP, s.masterNode)
+	s.nodeTable.tableLock.Lock()
+	defer s.nodeTable.tableLock.Unlock()
 	s.nodeTable.content[ip] = receiver
 	s.spawnedID[id] = true
 	s.spawnedIP[ip] = true
@@ -103,6 +105,8 @@ func (s *Simnet) generateRandomNode() *Node {
 func (s *Simnet) AttachThisNode(node *Node) {
 	s.spawnLock.Lock()
 	defer s.spawnLock.Unlock()
+	s.nodeTable.tableLock.Lock()
+	defer s.nodeTable.tableLock.Unlock()
 	s.nodeTable.content[node.IP()] = node.listener
 	s.spawnedID[node.ID()] = true
 	s.spawnedIP[node.IP()] = true

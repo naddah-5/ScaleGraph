@@ -85,6 +85,7 @@ func (rt *routingTable) FindXClosest(x int, target [5]uint32) (*list.List, error
 	return res, nil
 }
 
+
 // Returns a list of 'count' contacts closest to the target id, sliding outwards to from the starting bucket index.
 // Returns an error if a non-contact element is found.
 func (rt *routingTable) findSlider(startIndex int, count int, target [5]uint32) (*list.List, error) {
@@ -109,4 +110,10 @@ func (rt *routingTable) findSlider(startIndex int, count int, target [5]uint32) 
 	}
 
 	return res, nil
+}
+
+func (routingTable *routingTable) NewFindXClosest(x int, target [5]uint32) ([]contact, error) {
+	bucketIndex := routingTable.BucketIndex(target)
+	_ = routingTable.router[bucketIndex].NewFindXClosestBucket(x, target)
+	return make([]contact, 0), nil
 }

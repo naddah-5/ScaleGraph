@@ -43,8 +43,8 @@ func DistPrefixLength(idA [5]uint32, idB [5]uint32) int {
 
 // Returns true if node A is closer to or the same distance to target node as node B.
 func CloserNode(nodeA [5]uint32, nodeB [5]uint32, target [5]uint32) bool {
-	var relDistA int = RelativeDistance(nodeA, target)
-	var relDistB int = RelativeDistance(nodeB, target)
+	relDistA := RelativeDistance(nodeA, target)
+	relDistB := RelativeDistance(nodeB, target)
 	if relDistA <= relDistB {
 		return true
 	}
@@ -244,4 +244,15 @@ func SortSliceByDistance(input *[]contact, target [5]uint32) {
 			}
 		}
 	}
+}
+
+// filters out contacts with the target ID from slice
+func FilterContactSliceByID(input []contact, target [5]uint32) []contact {
+	res := make([]contact, 0, len(input))
+	for _, v := range input {
+		if v.ID() != target {
+			res = append(res, v)
+		}
+	}
+	return res
 }

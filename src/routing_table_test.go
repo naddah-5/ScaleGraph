@@ -145,3 +145,46 @@ func TestRoutingTableRemoveContact(t *testing.T) {
 		log.Printf("search for target after removal returned, %+v\n", checkRemoved)
 	}
 }
+
+func TestRoutingTableFindXClosest(t *testing.T) {
+	testName := "TestRoutingTableFindXClosest"
+	verbose := true
+	router := NewRoutingTable([5]uint32{0, 0, 0, 0, 0})
+	for i := 0; i < 10000; i++ {
+		router.AddContact(NewRandomContact())
+	}
+
+	nodeA := BuildContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1})
+	nodeB := BuildContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 2})
+	nodeC := BuildContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 3})
+	nodeD := BuildContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 4})
+	nodeE := BuildContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 5})
+	nodeF := BuildContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 6})
+	nodeG := BuildContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 7})
+	nodeH := BuildContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 8})
+	nodeI := BuildContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 9})
+	nodeJ := BuildContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 10})
+
+	router.AddContact(nodeA)
+	router.AddContact(nodeB)
+	router.AddContact(nodeC)
+	router.AddContact(nodeD)
+	router.AddContact(nodeE)
+	router.AddContact(nodeF)
+	router.AddContact(nodeG)
+	router.AddContact(nodeH)
+	router.AddContact(nodeI)
+	router.AddContact(nodeJ)
+
+	res, err := router.FindXClosest(20, [5]uint32{0, 0, 0, 0, 0})
+	if err != nil {
+		log.Printf("[%s] - failed... %s", testName, err.Error())
+		t.Fail()
+	}
+	if verbose {
+		log.Printf("[%s]", testName)
+		for e := res.Front(); e != nil; e = e.Next() {
+			log.Printf("contact: %10v", e)
+		}
+	}
+}
