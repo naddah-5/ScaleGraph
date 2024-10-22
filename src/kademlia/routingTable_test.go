@@ -1,6 +1,7 @@
 package kademlia
 
 import (
+	"fmt"
 	"log"
 	"testing"
 )
@@ -109,16 +110,26 @@ func TestRoutingTableFindXClosestSpecific(t *testing.T) {
 
 	res, err := router.FindXClosest(20, nodeE.ID())
 	if err != nil {
-		log.Printf("[%s] - failed... %s", testName, err.Error())
+		log.Printf("[%s] - failed... %s\n", testName, err.Error())
 		t.Fail()
 	}
 	if verbose {
 		log.Printf("[%s]", testName)
+		log.Printf("result for findXClosest to %v resulted in", nodeE)
 		for _, v := range res {
-			log.Printf("contact: %10v", v)
+			log.Printf("contact: %2s %10v\n", "...", v)
 		}
 	}
 	if res[0] != nodeE {
 		t.Fail()
+	}
+	if verbose {
+		for i, v := range router.table {
+			b := fmt.Sprintf("bucket ... %d contains\n", i)
+			for _, u := range v.content {
+				b += fmt.Sprintf("contact: %10v\n", u)
+			}
+			log.Println(b)
+		}
 	}
 }
