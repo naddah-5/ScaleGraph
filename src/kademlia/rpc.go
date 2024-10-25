@@ -1,8 +1,6 @@
 package kademlia
 
-import (
-	"main/src/scalegraph"
-)
+import ()
 
 type cmd int
 
@@ -36,5 +34,6 @@ func (c cmd) String() string {
 }
 
 type RPC struct {
-	transaction scalegraph.Transaction
+	id       [5]uint32
+	response bool
 }

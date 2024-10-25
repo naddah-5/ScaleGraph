@@ -155,7 +155,7 @@ func TestSortSliceByDistance(t *testing.T) {
 		nodeA := input[i]
 		nodeB := input[i+1]
 		ok := CloserNode(nodeA.ID(), nodeB.ID(), target)
-		if !ok && !EquiDistantNode(nodeA.ID(), nodeB.ID(), target){
+		if !ok && !EquiDistantNode(nodeA.ID(), nodeB.ID(), target) {
 			log.Printf("[%s] - node %v should be before node %v", testName, nodeA, nodeB)
 			t.Fail()
 
@@ -165,55 +165,113 @@ func TestSortSliceByDistance(t *testing.T) {
 
 func TestGreaterNode(t *testing.T) {
 	testName := "TestGreaterNode"
-	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{10, 92, 23, 233, 0})
-	nodeB := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{1, 1, 1, 1, 1})
-	nodeC := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{1, 0, 0, 0, 0})
-	nodeD := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 99, 32, 0, 0})
-	nodeE := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 1, 0, 0, 0})
-	nodeF := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 5, 0, 0})
-	nodeG := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
-	nodeH := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
-	nodeI := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 10, 1})
-	nodeJ := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 5, 0})
-	nodeK := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1})
-	if !LargerNode(nodeA.ID(), nodeB.ID()) {
-		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeA, nodeB)
+
+	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1})
+	nodeB := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 2})
+	nodeC := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 3})
+	nodeD := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 4})
+	nodeE := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 5})
+	nodeF := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 6})
+	nodeG := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 7})
+	nodeH := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 8})
+	nodeI := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 9})
+	nodeJ := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 10})
+	nodeK := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 11})
+
+	if LargerNode(nodeA.ID(), nodeB.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeB.ID(), nodeA.ID())
+		t.Fail()
+	} else if !LargerNode(nodeB.ID(), nodeA.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeB.ID(), nodeA.ID())
 		t.Fail()
 	}
-	if !LargerNode(nodeB.ID(), nodeC.ID()) {
-		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeB, nodeC)
+	if LargerNode(nodeB.ID(), nodeC.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeC.ID(), nodeB.ID())
+		t.Fail()
+	} else if !LargerNode(nodeC.ID(), nodeB.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeC.ID(), nodeB.ID())
 		t.Fail()
 	}
-	if !LargerNode(nodeC.ID(), nodeD.ID()) {
-		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeC, nodeD)
+
+	if LargerNode(nodeC.ID(), nodeD.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeD.ID(), nodeC.ID())
+		t.Fail()
+	} else if !LargerNode(nodeD.ID(), nodeC.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeD.ID(), nodeC.ID())
 		t.Fail()
 	}
-	if !LargerNode(nodeD.ID(), nodeE.ID()) {
-		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeD, nodeE)
+
+	if LargerNode(nodeD.ID(), nodeE.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeE.ID(), nodeD.ID())
+		t.Fail()
+	} else if !LargerNode(nodeE.ID(), nodeD.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeE.ID(), nodeD.ID())
 		t.Fail()
 	}
-	if !LargerNode(nodeE.ID(), nodeF.ID()) {
-		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeE, nodeF)
+
+	if LargerNode(nodeE.ID(), nodeF.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeF.ID(), nodeE.ID())
+		t.Fail()
+	} else if !LargerNode(nodeF.ID(), nodeE.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeF.ID(), nodeE.ID())
 		t.Fail()
 	}
-	if !LargerNode(nodeF.ID(), nodeG.ID()) {
-		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeF, nodeG)
+
+	if LargerNode(nodeF.ID(), nodeG.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeG.ID(), nodeF.ID())
+		t.Fail()
+	} else if !LargerNode(nodeG.ID(), nodeF.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeG.ID(), nodeF.ID())
 		t.Fail()
 	}
+
 	if LargerNode(nodeG.ID(), nodeH.ID()) {
-		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeG, nodeH)
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeH.ID(), nodeG.ID())
+		t.Fail()
+	} else if !LargerNode(nodeH.ID(), nodeG.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeH.ID(), nodeG.ID())
 		t.Fail()
 	}
-	if !LargerNode(nodeH.ID(), nodeI.ID()) {
-		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeH, nodeI)
+
+	if LargerNode(nodeH.ID(), nodeI.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeI.ID(), nodeH.ID())
+		t.Fail()
+	} else if !LargerNode(nodeI.ID(), nodeH.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeI.ID(), nodeH.ID())
 		t.Fail()
 	}
-	if !LargerNode(nodeI.ID(), nodeJ.ID()) {
-		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeI, nodeJ)
+
+	if LargerNode(nodeI.ID(), nodeJ.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeJ.ID(), nodeI.ID())
+		t.Fail()
+	} else if !LargerNode(nodeJ.ID(), nodeI.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeJ.ID(), nodeI.ID())
 		t.Fail()
 	}
-	if !LargerNode(nodeJ.ID(), nodeK.ID()) {
-		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeJ, nodeK)
+
+	if LargerNode(nodeJ.ID(), nodeK.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeK.ID(), nodeJ.ID())
+		t.Fail()
+	} else if !LargerNode(nodeK.ID(), nodeJ.ID()) {
+		log.Printf("[%s] - incorrect size assertion node %v is larger than node %v", testName, nodeK.ID(), nodeJ.ID())
+		t.Fail()
+	}
+
+}
+
+func TestEquiDistant(t *testing.T) {
+	testName := "TestEquiDistant"
+	target := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 0})
+	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1})
+	nodeB := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 2})
+
+	if !EquiDistantNode(nodeA.ID(), nodeA.ID(), target.ID()) {
+		log.Printf("[%s] - nodeA should be equidistant with nodeA to all nodes", testName)
+		t.Fail()
+	}
+
+	if EquiDistantNode(nodeA.ID(), nodeB.ID(), target.ID()) {
+		log.Printf("[%s] - nodeA should not be equidistant with nodeB to %v", testName, target)
 		t.Fail()
 	}
 }

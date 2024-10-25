@@ -80,6 +80,7 @@ func (router *RoutingTable) FindXClosest(x int, target [5]uint32) ([]Contact, er
 			break
 		}
 	}
+	SortContactsByDistance(&res, target)
 	if len(res) > x {
 		res = res[:x]
 	}

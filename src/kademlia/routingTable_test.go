@@ -1,7 +1,6 @@
 package kademlia
 
 import (
-	"fmt"
 	"log"
 	"testing"
 )
@@ -79,8 +78,8 @@ func TestRoutingTableFindXClosestOrder(t *testing.T) {
 
 }
 
-func TestRoutingTableFindXClosestSpecific(t *testing.T) {
-	testName := "TestRoutingTableFindXClosestSpecific"
+func TestRoutingTableFindXClosestSpecificOrder(t *testing.T) {
+	testName := "TestRoutingTableFindXClosestSpecificOrder"
 	verbose := false
 	router := NewRoutingTable([5]uint32{0, 0, 0, 0, 0}, 160, 10)
 	for i := 0; i < 10000; i++ {
@@ -122,14 +121,48 @@ func TestRoutingTableFindXClosestSpecific(t *testing.T) {
 	}
 	if res[0] != nodeE {
 		t.Fail()
+		log.Printf("[%s] - nodeE incorrect position", testName)
 	}
-	if verbose {
-		for i, v := range router.table {
-			b := fmt.Sprintf("bucket ... %d contains\n", i)
-			for _, u := range v.content {
-				b += fmt.Sprintf("contact: %10v\n", u)
-			}
-			log.Println(b)
+	if res[1] != nodeD {
+		t.Fail()
+		log.Printf("[%s] - nodeD incorrect position", testName)
+	}
+	if res[2] != nodeG {
+		t.Fail()
+		log.Printf("[%s] - nodeG incorrect position", testName)
+	}
+	if res[3] != nodeF {
+		t.Fail()
+		log.Printf("[%s] - nodeF incorrect position", testName)
+	}
+	if res[4] != nodeA {
+		t.Fail()
+		log.Printf("[%s] - nodeA incorrect position", testName)
+	}
+	if res[5] != nodeC {
+		t.Fail()
+		log.Printf("[%s] - nodeC incorrect position", testName)
+	}
+	if res[6] != nodeB {
+		t.Fail()
+		log.Printf("[%s] - nodeB incorrect position", testName)
+	}
+	if res[7] != nodeI {
+		t.Fail()
+		log.Printf("[%s] - nodeI incorrect position", testName)
+	}
+	if res[8] != nodeH {
+		t.Fail()
+		log.Printf("[%s] - nodeH incorrect position", testName)
+	}
+	if res[9] != nodeJ {
+		t.Fail()
+		log.Printf("[%s] - nodeJ incorrect position", testName)
+	}
+
+	if t.Failed() {
+		for _, v := range res {
+			log.Printf("contact: %v", v.ID())
 		}
 	}
 }

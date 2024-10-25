@@ -6,6 +6,15 @@ import (
 	"math/rand"
 )
 
+// Returns a randomly generated id.
+func RandomID() [5]uint32 {
+	var res [5]uint32
+	for i := 0; i < 5; i++ {
+		res[i] = rand.Uint32()
+	}
+	return res
+}
+
 // returns a pseudo-random uint32 in the range (min, max]
 func RandU32(min uint32, max uint32) (uint32, error) {
 	if min >= max {
@@ -70,6 +79,8 @@ func LargerNode(nodeA [5]uint32, nodeB [5]uint32) bool {
 	for i := 0; i < 5; i++ {
 		if nodeA[i] > nodeB[i] {
 			return true
+		} else if nodeA[i] < nodeB[i] {
+			return false
 		}
 	}
 	return false

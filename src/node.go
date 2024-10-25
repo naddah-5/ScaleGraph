@@ -19,4 +19,6 @@ const (
 type Node struct {
 	kademlia.Contact
 	kademlia.Network
+	controller chan kademlia.RPC // the channel for internal network, new rpc's are to be sent here for handling
 }
+
