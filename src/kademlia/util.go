@@ -15,6 +15,15 @@ func RandomID() [5]uint32 {
 	return res
 }
 
+func RandomIP() [4]byte {
+	var res [4]byte
+	for i := 0; i < 4; i++ {
+		b, _ := RandU32(0, 256)
+		res[i] = byte(b)
+	}
+	return res
+}
+
 // returns a pseudo-random uint32 in the range (min, max]
 func RandU32(min uint32, max uint32) (uint32, error) {
 	if min >= max {
