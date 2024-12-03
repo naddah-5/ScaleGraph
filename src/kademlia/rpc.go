@@ -36,4 +36,5 @@ func (c cmd) String() string {
 type RPC struct {
 	ID       [5]uint32
 	Response bool
+	Receiver [4]byte
 }

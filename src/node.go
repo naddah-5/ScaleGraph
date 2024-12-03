@@ -34,3 +34,8 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan kademlia.RPC, sender chan k
 		RoutingTable: *router,
 	}
 }
+
+func (node *Node) Start() {
+	go node.Network.Listen()
+	time.Sleep(time.Millisecond * 10)
+}

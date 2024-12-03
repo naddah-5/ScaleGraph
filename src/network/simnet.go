@@ -1,6 +1,7 @@
 package network
 
 import (
+	"log"
 	"main/src"
 	"main/src/kademlia"
 	"sync"
@@ -87,6 +88,7 @@ func (simnet *Simnet) GenerateRandomNode() *src.Node {
 	return newNode
 }
 
+// Initialize listening loop which spawns goroutines.
 func (simnet *Simnet) StartServer() {
 	for {
 		rpc := <-simnet.listener
@@ -94,9 +96,14 @@ func (simnet *Simnet) StartServer() {
 	}
 }
 
+// Routes incomming RPC to the correct nodes.
 func (simnet *Simnet) Route(rpc kademlia.RPC) {
-	if rpc.Response {
-
+	simnet.chanTable.RLock()
+	routeChan, ok := simnet.chanTable.content[rpc.Receiver]
+	simnet.chanTable.RUnlock()
+	if !ok {
+		log.Printf("[ERROR] - could not locate node channel for node IP %v", rpc.Receiver)
+		return
 	}
-
+	routeChan <- rpc
 }

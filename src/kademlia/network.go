@@ -60,7 +60,7 @@ func (table *table) DropChan(id [5]uint32) {
 type Network struct {
 	listener   chan RPC
 	sender     chan RPC
-	controller    chan RPC
+	controller chan RPC
 	serverIP   [4]byte
 	masterNode Contact
 	patience   int // Waiting time before giving up on reponse
@@ -72,7 +72,7 @@ func NewNetwork(listener chan RPC, sender chan RPC, controller chan RPC, serverI
 	newNetwork := Network{
 		listener:   listener,
 		sender:     sender,
-		controller:    controller,
+		controller: controller,
 		serverIP:   serverIP,
 		masterNode: master,
 		table:      NewTable(),
@@ -81,24 +81,24 @@ func NewNetwork(listener chan RPC, sender chan RPC, controller chan RPC, serverI
 }
 
 // Sends a RPC and creates a corresponding RPC id handle.
-// Returns an error if the response exceedes the timeout.
+// Returns an error if the Response exceedes the timeout.
 func (net *Network) Send(rpc RPC) (RPC, error) {
-	if rpc.response {
+	if rpc.Response {
 		net.sender <- rpc
 	} else {
-		rpc.id = RandomID()
-		respChan, err := net.Add(rpc.id)
+		rpc.ID = RandomID()
+		respChan, err := net.Add(rpc.ID)
 		// loops through randomly generated rpc id's until a free one is found.
 		for err != nil {
-			rpc.id = RandomID()
-			respChan, err = net.Add(rpc.id)
+			rpc.ID = RandomID()
+			respChan, err = net.Add(rpc.ID)
 		}
 		net.sender <- rpc
 		select {
 		case res := <-respChan:
 			return res, nil
 		case <-time.After(time.Duration(net.patience) * time.Second):
-			net.DropChan(rpc.id)
+			net.DropChan(rpc.ID)
 			break
 		}
 	}
@@ -118,19 +118,18 @@ func (net *Network) Listen() error {
 }
 
 // Routes the rpc to the appropriate components.
-// If the rpc is a response it tries to route it to that channel, otherwise routes it to the controller.
+// If the rpc is a Response it tries to route it to that channel, otherwise routes it to the controller.
 func (net *Network) route(rpc RPC) {
-	if rpc.response {
-		respChan, err := net.RetrieveChan(rpc.id)
+	if rpc.Response {
+		respChan, err := net.RetrieveChan(rpc.ID)
 		if err != nil {
 			errMSg := fmt.Sprintf("[ERROR] - possible time out\n error: %s", err.Error())
 			log.Println(errMSg)
 			return
 		}
-		net.DropChan(rpc.id)
+		go net.DropChan(rpc.ID)
 		respChan <- rpc
 	} else {
 		net.controller <- rpc
 	}
 }
-
