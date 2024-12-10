@@ -5,7 +5,7 @@ type cmd int
 const (
 	PING cmd = iota
 	PONG
-	STORE
+	STORE_WALLET
 	FIND_NODE
 	FIND_WALLET
 	PROPOSE_TRANSACTION
@@ -21,12 +21,12 @@ func (c cmd) String() string {
 		return "PING"
 	case PONG:
 		return "PONG"
-	case STORE:
-		return "STORE"
 	case FIND_NODE:
-		return "FIND_NODE"
+		return "FIND NODE"
+	case STORE_WALLET:
+		return "STORE WALLET"
 	case FIND_WALLET:
-		return "FIND_WALLET"
+		return "FIND WALLET"
 	}
 	return "unknown"
 }
@@ -60,7 +60,13 @@ func GenerateResponse(id [5]uint32, sender Contact) RPC {
 }
 
 // Set a RPC as a ping.
-func (rpc *RPC) ping(receiver [4]byte) {
+func (rpc *RPC) Ping(receiver [4]byte) {
 	rpc.CMD = PING
+	rpc.Receiver = receiver
+}
+
+// Ping response.
+func (rpc *RPC) Pong(receiver [4]byte) {
+	rpc.CMD = PONG
 	rpc.Receiver = receiver
 }
