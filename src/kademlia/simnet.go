@@ -1,9 +1,7 @@
-package network
+package kademlia
 
 import (
 	"log"
-	"main/src"
-	"main/src/kademlia"
 	"sync"
 )
 
@@ -16,7 +14,7 @@ type spawned struct {
 }
 
 type chanTable struct {
-	content map[[4]byte]chan kademlia.RPC
+	content map[[4]byte]chan RPC
 	sync.RWMutex
 }
 
@@ -25,10 +23,10 @@ type chanTable struct {
 type Simnet struct {
 	spawned
 	chanTable
-	listener   chan kademlia.RPC
+	listener   chan RPC
 	serverID   [5]uint32
 	serverIP   [4]byte
-	masterNode kademlia.Contact
+	masterNode Contact
 }
 
 func NewServer() *Simnet {
@@ -39,52 +37,52 @@ func NewServer() *Simnet {
 			node: make(map[[5]uint32][4]byte),
 		},
 		chanTable: chanTable{
-			content: make(map[[4]byte]chan kademlia.RPC),
+			content: make(map[[4]byte]chan RPC),
 		},
-		listener: make(chan kademlia.RPC),
+		listener: make(chan RPC),
 		serverID: [5]uint32{0, 0, 0, 0, 0},
 		serverIP: [4]byte{0, 0, 0, 0},
 	}
 
 	// Generate master node and attach it to the server.
 	master := s.GenerateRandomNode()
-	s.masterNode = kademlia.NewContact(master.IP(), master.ID())
+	s.masterNode = NewContact(master.IP(), master.ID())
 
 	return &s
 }
 
-func (simnet *Simnet) SpawnNode() *src.Node {
+func (simnet *Simnet) SpawnNode() *Node {
 	newNode := simnet.GenerateRandomNode()
 	// go newNode.Start()
 	return newNode
 }
 
 // Generates a new node with random values attaches it to the server and returns a pointer to it.
-func (simnet *Simnet) GenerateRandomNode() *src.Node {
+func (simnet *Simnet) GenerateRandomNode() *Node {
 	simnet.spawned.Lock()
 	defer simnet.spawned.Unlock()
 
-	id := kademlia.RandomID()
+	id := RandomID()
 	_, ok := simnet.spawned.id[id]
 	// if the generated id is already taken, generate new ones until a free one is found.
 	for ok {
-		id = kademlia.RandomID()
+		id = RandomID()
 		_, ok = simnet.spawned.id[id]
 	}
 	simnet.spawned.id[id] = true
 
-	ip := kademlia.RandomIP()
+	ip := RandomIP()
 	_, ok = simnet.spawned.ip[ip]
 	// if the generated ip is already taken, generate new ones until a free one is found.
 	for ok {
-		ip = kademlia.RandomIP()
+		ip = RandomIP()
 		_, ok = simnet.spawned.ip[ip]
 	}
 	simnet.spawned.ip[ip] = true
 
-	nodeReceiver := make(chan kademlia.RPC, 128)
+	nodeReceiver := make(chan RPC, 128)
 	simnet.chanTable.content[ip] = nodeReceiver
-	newNode := src.NewNode(id, ip, nodeReceiver, simnet.listener, simnet.serverIP, simnet.masterNode)
+	newNode := NewNode(id, ip, nodeReceiver, simnet.listener, simnet.serverIP, simnet.masterNode)
 	return newNode
 }
 
@@ -97,7 +95,7 @@ func (simnet *Simnet) StartServer() {
 }
 
 // Routes incomming RPC to the correct nodes.
-func (simnet *Simnet) Route(rpc kademlia.RPC) {
+func (simnet *Simnet) Route(rpc RPC) {
 	simnet.chanTable.RLock()
 	routeChan, ok := simnet.chanTable.content[rpc.Receiver]
 	simnet.chanTable.RUnlock()
