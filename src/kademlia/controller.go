@@ -1,7 +1,6 @@
 package kademlia
 
-
-// Controller handles the logic for sending and receiving RPC's
+// Controller handles the logic for receiving RPC's
 
 // Similar to the network listening loop, but here its purpose is to accept
 // the incoming RPC's from lower levels in the system.
@@ -13,31 +12,20 @@ func (node *Node) InputLoop() {
 }
 
 func (node *Node) handler(rpc RPC) {
+	node.AddContact(rpc.Sender)
 	switch rpc.CMD {
 	case PING:
 		node.HandlePing(rpc)
-	case PONG:
-		node.HandlePong(rpc)
 	case STORE_WALLET:
 		node.HandleStoreWallet(rpc)
 	}
 }
 
-// Logic for sending a ping RPC.
-func (node *Node) Ping() {
-
-}
-
 // Response logic for an incoming ping RPC.
 func (node *Node) HandlePing(rpc RPC) {
-	node.AddContact(rpc.Sender)
 	resp := GenerateResponse(rpc.ID, node.Contact)
 	resp.Pong(rpc.Sender.IP())
 	node.Send(resp)
-}
-
-func (node *Node) HandlePong(rpc RPC) {
-
 }
 
 // Logic for sending a store wallet RPC.

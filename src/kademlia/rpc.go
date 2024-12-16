@@ -4,7 +4,6 @@ type cmd int
 
 const (
 	PING cmd = iota
-	PONG
 	STORE_WALLET
 	FIND_NODE
 	FIND_WALLET
@@ -19,8 +18,6 @@ func (c cmd) String() string {
 	switch c {
 	case PING:
 		return "PING"
-	case PONG:
-		return "PONG"
 	case FIND_NODE:
 		return "FIND NODE"
 	case STORE_WALLET:
