@@ -120,3 +120,21 @@ func SortContactsByDistance(input *[]Contact, target [5]uint32) {
 		}
 	}
 }
+
+// Merges two slices of Contacts and removes all duplicates.
+func MergeContactsByDistance(setA *[]Contact, setB *[]Contact, target [5]uint32) []Contact {
+	res := make([]Contact, 0)
+	res = append(res, (*setA)...)
+	res = append(res, (*setB)...)
+	SortContactsByDistance(&res, target)
+	RemoveDuplicateContacts(&res)
+	return res
+}
+
+func RemoveDuplicateContacts(set *[]Contact) {
+	for i := len(*set) - 1; i > 0; i-- {
+		if (*set)[i].ID() == (*set)[i-1].ID() {
+			*set = append((*set)[:i-1], (*set)[i:]...)
+		}
+	}
+}

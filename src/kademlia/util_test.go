@@ -275,3 +275,154 @@ func TestEquiDistant(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestMergeContactsByDistance(t *testing.T) {
+	testName := "TestMergeContactByDistance"
+	verbose := false
+
+	target := [5]uint32{0, 0, 0, 0, 5}
+
+	setA := make([]Contact, 0, 5)
+	setB := make([]Contact, 0, 5)
+
+	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1})
+	nodeB := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 2})
+	nodeC := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 3})
+	nodeD := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 4})
+	nodeE := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 5})
+	nodeF := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 6})
+	nodeG := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 7})
+	nodeH := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 8})
+	nodeI := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 9})
+	nodeJ := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 10})
+
+	ref := make([]Contact, 0, 10)
+	ref = append(ref, nodeA)
+	ref = append(ref, nodeB)
+	ref = append(ref, nodeC)
+	ref = append(ref, nodeD)
+	ref = append(ref, nodeE)
+
+	ref = append(ref, nodeF)
+	ref = append(ref, nodeG)
+	ref = append(ref, nodeH)
+	ref = append(ref, nodeI)
+	ref = append(ref, nodeJ)
+
+	setA = ref[:5]
+	setB = ref[5:]
+
+	res := MergeContactsByDistance(&setA, &setB, target)
+	if verbose {
+		inputData := fmt.Sprintf("[%s] - input data\n", testName)
+		inA := ""
+		inB := ""
+		for i := 0; i < 5; i++ {
+			a := setA[i]
+			b := setB[i]
+			inA += fmt.Sprintf("setA: %v \n", a.ID())
+			inB += fmt.Sprintf("setB: %v \n", b.ID())
+		}
+		inputData += inA + "\n" + inB
+		log.Println(inputData)
+
+		resS := fmt.Sprintf("output data:\n")
+		for _, v := range res {
+			resS += fmt.Sprintf("%v\n", v.ID())
+		}
+		log.Println(resS)
+	}
+
+	SortContactsByDistance(&ref, target)
+
+	if verbose {
+		refS := "reference data\n"
+		for _, v := range ref {
+			refS += fmt.Sprintf("%v\n", v.ID())
+		}
+		log.Println(refS)
+	}
+
+	for i := range res {
+		if res[i].ID() != ref[i].ID() {
+			t.Fail()
+		}
+	}
+}
+
+func TestMergeContactsByDistanceDuplicates(t *testing.T) {
+	testName := "TestMergeContactByDistanceDuplicates"
+	verbose := true
+
+	target := [5]uint32{0, 0, 0, 0, 5}
+
+	setA := make([]Contact, 0, 5)
+	setB := make([]Contact, 0, 5)
+
+	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 3})
+	nodeB := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 8})
+	nodeC := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 3})
+	nodeD := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 5})
+	nodeE := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 5})
+	nodeF := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 10})
+	nodeG := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 7})
+	nodeH := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 8})
+	nodeI := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 9})
+	nodeJ := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 10})
+
+	ref := make([]Contact, 0, 10)
+	ref = append(ref, nodeA)
+	ref = append(ref, nodeB)
+	ref = append(ref, nodeC)
+	ref = append(ref, nodeD)
+	ref = append(ref, nodeE)
+
+	ref = append(ref, nodeF)
+	ref = append(ref, nodeG)
+	ref = append(ref, nodeH)
+	ref = append(ref, nodeI)
+	ref = append(ref, nodeJ)
+
+	setA = append(setA, ref[:5]...)
+	setB = append(setB, ref[5:]...)
+
+	res := MergeContactsByDistance(&setA, &setB, target)
+	if verbose {
+		inputData := fmt.Sprintf("[%s] - input data\n", testName)
+		inA := ""
+		inB := ""
+		for i := range setA {
+			a := setA[i]
+			inA += fmt.Sprintf("setA: %v \n", a.ID())
+		}
+		for i := range setB {
+			b := setB[i]
+			inB += fmt.Sprintf("setB: %v \n", b.ID())
+		}
+		inputData += inA + "\n" + inB
+		log.Println(inputData)
+
+		resS := fmt.Sprintf("output data:\n")
+		for _, v := range res {
+			resS += fmt.Sprintf("%v\n", v.ID())
+		}
+		log.Println(resS)
+	}
+
+	SortContactsByDistance(&ref, target)
+
+	if verbose {
+		refS := "reference data\n"
+		for _, v := range ref {
+			refS += fmt.Sprintf("%v\n", v.ID())
+		}
+		log.Println(refS)
+
+		fmt.Printf("res len: %d\nref len: %d\n", len(res), len(ref))
+		for i := range res {
+			if res[i].ID() != ref[i].ID() {
+				t.Fail()
+			}
+		}
+	}
+}

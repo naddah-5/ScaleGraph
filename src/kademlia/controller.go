@@ -22,9 +22,10 @@ func (node *Node) handler(rpc RPC) {
 }
 
 // Response logic for an incoming ping RPC.
+// Simply respond with a ping marked as a response.
 func (node *Node) HandlePing(rpc RPC) {
 	resp := GenerateResponse(rpc.ID, node.Contact)
-	resp.Pong(rpc.Sender.IP())
+	resp.Ping(rpc.Sender.IP())
 	node.Send(resp)
 }
 
@@ -37,4 +38,5 @@ func (node *Node) StoreWallet() {
 func (node *Node) HandleStoreWallet(rpc RPC) {
 	
 }
+
 

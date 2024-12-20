@@ -29,19 +29,21 @@ func (c cmd) String() string {
 }
 
 type RPC struct {
-	ID       [5]uint32
-	CMD      cmd
-	Response bool
-	Sender   Contact
-	Receiver [4]byte
+	ID             [5]uint32
+	CMD            cmd
+	Response       bool
+	Sender         Contact
+	Receiver       [4]byte
+	FindNodeTarget [5]uint32
+	FoundNodes     []Contact
 }
 
 // Generate a fresh send RPC, for a response RPC use GenerateResponse instead.
 func GenerateRPC(sender Contact) RPC {
 	rpc := RPC{
-		ID: RandomID(),
+		ID:       RandomID(),
 		Response: false,
-		Sender: sender,
+		Sender:   sender,
 	}
 	return rpc
 }
@@ -49,9 +51,9 @@ func GenerateRPC(sender Contact) RPC {
 // Generates a fresh response RPC.
 func GenerateResponse(id [5]uint32, sender Contact) RPC {
 	rpc := RPC{
-		ID: id,
+		ID:       id,
 		Response: true,
-		Sender: sender,
+		Sender:   sender,
 	}
 	return rpc
 }
@@ -62,8 +64,7 @@ func (rpc *RPC) Ping(receiver [4]byte) {
 	rpc.Receiver = receiver
 }
 
-// Ping response.
-func (rpc *RPC) Pong(receiver [4]byte) {
-	rpc.CMD = PONG
-	rpc.Receiver = receiver
+func (rpc *RPC) FindNode(targetNode [5]uint32) {
+	rpc.CMD = FIND_NODE
+	rpc.FindNodeTarget = targetNode
 }
