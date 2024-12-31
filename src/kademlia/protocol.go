@@ -5,9 +5,9 @@ import "log"
 // Protocol handles the logic for sending RPC's
 
 // Logic for sending a ping RPC.
-func (node *Node) Ping(ip [4]byte) {
+func (node *Node) Ping(target [4]byte) {
 	rpc := GenerateRPC(node.Contact)
-	rpc.Ping(ip)
+	rpc.Ping(target)
 	go node.Send(rpc)
 }
 

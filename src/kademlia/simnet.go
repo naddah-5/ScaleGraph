@@ -1,6 +1,7 @@
 package kademlia
 
 import (
+	"fmt"
 	"log"
 	"sync"
 )
@@ -23,10 +24,11 @@ type chanTable struct {
 type Simnet struct {
 	spawned
 	chanTable
-	listener   chan RPC
-	serverID   [5]uint32
-	serverIP   [4]byte
-	masterNode Contact
+	listener          chan RPC
+	serverID          [5]uint32
+	serverIP          [4]byte
+	masterNode        *Node
+	masterNodeContact Contact
 }
 
 func NewServer() *Simnet {
@@ -45,15 +47,15 @@ func NewServer() *Simnet {
 	}
 
 	// Generate master node and attach it to the server.
-	master := s.GenerateRandomNode()
-	s.masterNode = NewContact(master.IP(), master.ID())
+	s.masterNode = s.GenerateRandomNode()
+	s.masterNodeContact = NewContact(s.masterNode.ip, s.masterNode.id)
 
 	return &s
 }
 
 func (simnet *Simnet) SpawnNode() *Node {
 	newNode := simnet.GenerateRandomNode()
-	// go newNode.Start()
+	go newNode.Start()
 	return newNode
 }
 
@@ -82,16 +84,29 @@ func (simnet *Simnet) GenerateRandomNode() *Node {
 
 	nodeReceiver := make(chan RPC, 128)
 	simnet.chanTable.content[ip] = nodeReceiver
-	newNode := NewNode(id, ip, nodeReceiver, simnet.listener, simnet.serverIP, simnet.masterNode)
+	newNode := NewNode(id, ip, nodeReceiver, simnet.listener, simnet.serverIP, simnet.masterNodeContact)
 	return newNode
 }
 
 // Initialize listening loop which spawns goroutines.
 func (simnet *Simnet) StartServer() {
+	go simnet.masterNode.Start()
 	for {
 		rpc := <-simnet.listener
 		go simnet.Route(rpc)
 	}
+}
+
+func (simnet *Simnet) DebugKnownIPChannels() string {
+	keys := make([][4]byte, 0, len(simnet.chanTable.content))
+	for k := range simnet.chanTable.content {
+		keys = append(keys, k)
+	}
+	keyString := fmt.Sprint("known IP channels:")
+	for _, val := range keys {
+		keyString += fmt.Sprintf("\n%v", val)
+	}
+	return keyString
 }
 
 // Routes incomming RPC to the correct nodes.
@@ -101,6 +116,8 @@ func (simnet *Simnet) Route(rpc RPC) {
 	simnet.chanTable.RUnlock()
 	if !ok {
 		log.Printf("[ERROR] - could not locate node channel for node IP %v", rpc.Receiver)
+		log.Println(simnet.DebugKnownIPChannels())
+		log.Printf("master node data:\n%s", simnet.masterNode.Display())
 		return
 	}
 	routeChan <- rpc

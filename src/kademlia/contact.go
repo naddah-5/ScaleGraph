@@ -1,6 +1,7 @@
 package kademlia
 
 import (
+	"fmt"
 	"math/rand"
 )
 
@@ -37,4 +38,9 @@ func NewRandomContact() Contact {
 		id[i] = rand.Uint32()
 	}
 	return NewContact(ip, id)
+}
+
+func (con *Contact) Display() string {
+	conString := fmt.Sprintf("IP: %4v ID: %10v", con.IP(), con.ID())
+	return conString
 }

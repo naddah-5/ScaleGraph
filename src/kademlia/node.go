@@ -1,6 +1,7 @@
 package kademlia
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -28,16 +29,27 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 	me := NewContact(ip, id)
 	router := NewRoutingTable(id, KEYSPACE, KBUCKETVOLUME)
 	return &Node{
-		Contact: me,
-		Network: *net,
+		Contact:      me,
+		Network:      *net,
 		RoutingTable: *router,
 	}
 }
 
 func (node *Node) Start() {
 	go node.Network.Listen()
-	rpc := GenerateRPC(node.Contact)
-	rpc.Ping(node.masterNode.IP())
-	go node.Send(rpc)
-	time.Sleep(time.Millisecond * 10)
+	if node.Contact.IP() == node.masterNode.IP() {
+		return
+	} else {
+		rpc := GenerateRPC(node.Contact)
+		rpc.Ping(node.masterNode.IP())
+		
+		go node.Send(rpc)
+		time.Sleep(time.Millisecond * 100)
+	}
+}
+
+func (node *Node) Display() string {
+	res := fmt.Sprintf("node ID: %v:\n", node.ID())
+	res += node.RoutingTable.Display()
+	return res
 }

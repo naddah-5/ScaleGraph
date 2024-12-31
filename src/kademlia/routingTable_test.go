@@ -40,7 +40,7 @@ func TestRoutingTableFindXClosestOrder(t *testing.T) {
 		t.Fail()
 	}
 	if verbose {
-		log.Printf("[%s]", testName)
+		log.Printf("[%s] - contacts in node", testName)
 		for _, v := range res {
 			log.Printf("contact: %10v", v)
 		}

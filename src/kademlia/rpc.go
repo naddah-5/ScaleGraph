@@ -1,5 +1,7 @@
 package kademlia
 
+import "fmt"
+
 type cmd int
 
 const (
@@ -67,4 +69,20 @@ func (rpc *RPC) Ping(receiver [4]byte) {
 func (rpc *RPC) FindNode(targetNode [5]uint32) {
 	rpc.CMD = FIND_NODE
 	rpc.FindNodeTarget = targetNode
+}
+
+func (rpc *RPC) Display() string {
+	rpcString := fmt.Sprintf("id: %v\n", rpc.ID)
+	rpcString += fmt.Sprintf("CMD: %s\n", rpc.CMD)
+	rpcString += fmt.Sprintf("Response: %t\n", rpc.Response)
+	rpcString += fmt.Sprintf("Sender %s\n", rpc.Sender.Display())
+	if rpc.CMD == FIND_NODE && rpc.Response {
+		rpcString += "Found Nodes:"
+		for _, val := range rpc.FoundNodes {
+			rpcString += fmt.Sprintf("\n%s", val.Display())
+		}
+		rpcString += "\n"
+	}
+
+	return rpcString
 }

@@ -352,7 +352,7 @@ func TestMergeContactsByDistance(t *testing.T) {
 
 func TestMergeContactsByDistanceDuplicates(t *testing.T) {
 	testName := "TestMergeContactByDistanceDuplicates"
-	verbose := true
+	verbose := false
 
 	target := [5]uint32{0, 0, 0, 0, 5}
 

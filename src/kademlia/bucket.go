@@ -61,7 +61,6 @@ func (bucket *Bucket) FindXClosest(x int, target [5]uint32) []Contact {
 	return res
 }
 
-
 // Returns a contact with matching ID to target if present.
 // Otherwise returns an error.
 func (bucket *Bucket) FindContact(target [5]uint32) (Contact, error) {
@@ -73,4 +72,12 @@ func (bucket *Bucket) FindContact(target [5]uint32) (Contact, error) {
 		}
 	}
 	return Contact{}, errors.New("contact not found")
+}
+
+func (bucket *Bucket) Display() string {
+	res := ""
+	for _, val := range bucket.content {
+		res += val.Display()
+	}
+	return res
 }

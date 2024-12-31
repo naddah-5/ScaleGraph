@@ -1,5 +1,7 @@
 package kademlia
 
+import "log"
+
 // Controller handles the logic for receiving RPC's
 
 // Similar to the network listening loop, but here its purpose is to accept
@@ -12,7 +14,8 @@ func (node *Node) InputLoop() {
 }
 
 func (node *Node) handler(rpc RPC) {
-	node.AddContact(rpc.Sender)
+	go node.AddContact(rpc.Sender)
+	log.Printf("hanling: %s", rpc.CMD)
 	switch rpc.CMD {
 	case PING:
 		node.HandlePing(rpc)

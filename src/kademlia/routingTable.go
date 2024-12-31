@@ -2,6 +2,7 @@ package kademlia
 
 import (
 	"errors"
+	"fmt"
 )
 
 type RoutingTable struct {
@@ -86,4 +87,17 @@ func (router *RoutingTable) FindXClosest(x int, target [5]uint32) ([]Contact, er
 	}
 
 	return res, nil
+}
+
+func (rt *RoutingTable) Display() string {
+	res := ""
+
+	for buckID, val := range rt.table {
+		if len(val.content) == 0 {
+			continue
+		}
+		res += fmt.Sprintf("Bucket %d\n", buckID)
+		res += val.Display()
+	}
+	return res
 }
