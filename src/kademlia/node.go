@@ -49,7 +49,7 @@ func (node *Node) Start() {
 }
 
 func (node *Node) Display() string {
-	res := fmt.Sprintf("node ID: %v:\n", node.ID())
+	res := fmt.Sprintf("node ID: %v\tnode IP: %v\n", node.IP(), node.ID())
 	res += node.RoutingTable.Display()
 	return res
 }

@@ -75,7 +75,12 @@ func (rpc *RPC) Display() string {
 	rpcString := fmt.Sprintf("id: %v\n", rpc.ID)
 	rpcString += fmt.Sprintf("CMD: %s\n", rpc.CMD)
 	rpcString += fmt.Sprintf("Response: %t\n", rpc.Response)
-	rpcString += fmt.Sprintf("Sender %s\n", rpc.Sender.Display())
+	rpcString += fmt.Sprintf("Sender: %s\n", rpc.Sender.Display())
+	rpcString += fmt.Sprintf("Receiver: %v\n", rpc.Receiver)
+
+	if rpc.CMD == FIND_NODE {
+		rpcString += fmt.Sprintf("Find Node Target: %v", rpc.FindNodeTarget)
+	}
 	if rpc.CMD == FIND_NODE && rpc.Response {
 		rpcString += "Found Nodes:"
 		for _, val := range rpc.FoundNodes {

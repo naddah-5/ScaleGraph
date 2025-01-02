@@ -49,6 +49,8 @@ func NewServer() *Simnet {
 	// Generate master node and attach it to the server.
 	s.masterNode = s.GenerateRandomNode()
 	s.masterNodeContact = NewContact(s.masterNode.ip, s.masterNode.id)
+	// looks stupid but the master node should know that it is in fact the master node.
+	s.masterNode.masterNode = s.masterNodeContact
 
 	return &s
 }
@@ -116,8 +118,6 @@ func (simnet *Simnet) Route(rpc RPC) {
 	simnet.chanTable.RUnlock()
 	if !ok {
 		log.Printf("[ERROR] - could not locate node channel for node IP %v", rpc.Receiver)
-		log.Println(simnet.DebugKnownIPChannels())
-		log.Printf("master node data:\n%s", simnet.masterNode.Display())
 		return
 	}
 	routeChan <- rpc

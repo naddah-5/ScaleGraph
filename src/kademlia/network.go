@@ -83,7 +83,7 @@ func NewNetwork(listener chan RPC, sender chan RPC, controller chan RPC, serverI
 // Sends a RPC and creates a corresponding RPC id handle.
 // Returns an error if the Response exceedes the timeout.
 func (net *Network) Send(rpc RPC) (RPC, error) {
-	log.Printf("sending %s to %v", rpc.CMD, rpc.Receiver)
+	log.Printf("sending %s to %v\tfrom node %v", rpc.CMD, rpc.Receiver, rpc.Sender.ID())
 	if rpc.Response {
 		net.sender <- rpc
 	} else {
