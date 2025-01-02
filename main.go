@@ -19,7 +19,7 @@ func script() {
 		node := s.SpawnNode()
 		nodes = append(nodes, node)
 	}
-	time.Sleep(time.Millisecond * 100)
+	time.Sleep(time.Millisecond * 5000)
 	for _, val := range nodes {
 		log.Print(val.Display())
 	}

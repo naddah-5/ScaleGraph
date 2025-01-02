@@ -75,6 +75,7 @@ func NewNetwork(listener chan RPC, sender chan RPC, controller chan RPC, serverI
 		controller: controller,
 		serverIP:   serverIP,
 		masterNode: master,
+		patience: int(TIMEOUT),
 		table:      NewTable(),
 	}
 	return &newNetwork
@@ -108,19 +109,19 @@ func (net *Network) Send(rpc RPC) (RPC, error) {
 
 // Start a listener on the network channel.
 // Returns an error if the channel closes.
-func (net *Network) Listen() error {
+func (net *Network) Listen(node *Node) error {
 	for {
 		rpc, ok := <-net.listener
 		if !ok {
 			return errors.New("server down")
 		}
-		go net.route(rpc)
+		go net.route(node, rpc)
 	}
 }
 
 // Routes the rpc to the appropriate components.
 // If the rpc is a Response it tries to route it to that channel, otherwise routes it to the controller.
-func (net *Network) route(rpc RPC) {
+func (net *Network) route(node *Node, rpc RPC) {
 	if rpc.Response {
 		respChan, err := net.RetrieveChan(rpc.ID)
 		if err != nil {
@@ -131,6 +132,6 @@ func (net *Network) route(rpc RPC) {
 		go net.DropChan(rpc.ID)
 		respChan <- rpc
 	} else {
-		net.controller <- rpc
+		node.Handler(rpc)
 	}
 }

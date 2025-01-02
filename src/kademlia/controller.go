@@ -4,16 +4,7 @@ import "log"
 
 // Controller handles the logic for receiving RPC's
 
-// Similar to the network listening loop, but here its purpose is to accept
-// the incoming RPC's from lower levels in the system.
-func (node *Node) InputLoop() {
-	for {
-		rpc := <-node.controller
-		node.handler(rpc)
-	}
-}
-
-func (node *Node) handler(rpc RPC) {
+func (node *Node) Handler(rpc RPC) {
 	go node.AddContact(rpc.Sender)
 	log.Printf("hanling: %s", rpc.CMD)
 	switch rpc.CMD {
@@ -29,7 +20,8 @@ func (node *Node) handler(rpc RPC) {
 func (node *Node) HandlePing(rpc RPC) {
 	resp := GenerateResponse(rpc.ID, node.Contact)
 	resp.Ping(rpc.Sender.IP())
-	node.Send(resp)
+	res, _ := node.Send(resp)
+	res.Display()
 }
 
 // Logic for sending a store wallet RPC.
