@@ -5,10 +5,18 @@ import "log"
 // Protocol handles the logic for sending RPC's
 
 // Logic for sending a ping RPC.
-func (node *Node) Ping(target [4]byte) {
+func (node *Node) Ping(address [4]byte) {
 	rpc := GenerateRPC(node.Contact)
-	rpc.Ping(target)
-	go node.Send(rpc)
+	rpc.Ping(address)
+	res, err := node.Send(rpc)
+	if err != nil {
+		log.Printf("[ERROR] - %s", err.Error())
+	}
+	node.AddContact(res.sender)
+}
+
+func (node *Node) Pong() {
+
 }
 
 func (node *Node) FindNode(target [5]uint32) []Contact {

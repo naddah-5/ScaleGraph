@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"sync"
-	"time"
 )
 
 type table struct {
@@ -83,27 +82,26 @@ func NewNetwork(listener chan RPC, sender chan RPC, controller chan RPC, serverI
 // Sends a RPC and creates a corresponding RPC id handle.
 // Returns an error if the Response exceedes the timeout.
 func (net *Network) Send(rpc RPC) (RPC, error) {
-	log.Printf("sending %s to %v\tfrom node %v", rpc.CMD, rpc.Receiver, rpc.Sender.ID())
-	if rpc.Response {
+	log.Printf("sending %s to %v\tfrom node %v", rpc.cmd, rpc.receiver, rpc.sender.ID())
+	if rpc.response {
 		net.sender <- rpc
+		return rpc, nil
 	} else {
-		rpc.ID = RandomID()
-		respChan, err := net.Add(rpc.ID)
-		// loops through randomly generated rpc id's until a free one is found.
-		for err != nil {
-			rpc.ID = RandomID()
-			respChan, err = net.Add(rpc.ID)
-		}
+		rpc.id = RandomID()
+		respChan, _ := net.Add(rpc.id)
 		net.sender <- rpc
-		select {
-		case res := <-respChan:
-			return res, nil
-		case <-time.After(TIMEOUT):
-			net.DropChan(rpc.ID)
-			break
-		}
+		res := <-respChan
+		return res, nil
+		// select {
+		// case res := <-respChan:
+		// 	log.Printf("received rpc\n%s", rpc.Display())
+		// 	return res, nil
+		// case <-time.After(TIMEOUT):
+		// 	net.DropChan(rpc.ID)
+		// 	break
+		// }
 	}
-	return rpc, errors.New("timeout")
+	// return rpc, errors.New("timeout")
 }
 
 // Start a listener on the network channel.
@@ -121,14 +119,14 @@ func (net *Network) Listen(node *Node) error {
 // Routes the rpc to the appropriate components.
 // If the rpc is a Response it tries to route it to that channel, otherwise routes it to the controller.
 func (net *Network) route(node *Node, rpc RPC) {
-	if rpc.Response {
-		respChan, err := net.RetrieveChan(rpc.ID)
+	if rpc.response {
+		respChan, err := net.RetrieveChan(rpc.id)
 		if err != nil {
 			errMSg := fmt.Sprintf("[ERROR] - possible time out\n error: %s", err.Error())
 			log.Println(errMSg)
 			return
 		}
-		go net.DropChan(rpc.ID)
+		go net.DropChan(rpc.id)
 		respChan <- rpc
 	} else {
 		node.Handler(rpc)

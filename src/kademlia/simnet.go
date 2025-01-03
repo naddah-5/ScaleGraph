@@ -114,10 +114,10 @@ func (simnet *Simnet) DebugKnownIPChannels() string {
 // Routes incomming RPC to the correct nodes.
 func (simnet *Simnet) Route(rpc RPC) {
 	simnet.chanTable.RLock()
-	routeChan, ok := simnet.chanTable.content[rpc.Receiver]
+	routeChan, ok := simnet.chanTable.content[rpc.receiver]
 	simnet.chanTable.RUnlock()
 	if !ok {
-		log.Printf("[ERROR] - could not locate node channel for node IP %v", rpc.Receiver)
+		log.Printf("[ERROR] - could not locate node channel for node IP %v", rpc.receiver)
 		return
 	}
 	routeChan <- rpc

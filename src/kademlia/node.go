@@ -40,11 +40,9 @@ func (node *Node) Start() {
 	if node.Contact.IP() == node.masterNode.IP() {
 		return
 	} else {
-		rpc := GenerateRPC(node.Contact)
-		rpc.Ping(node.masterNode.IP())
 
 		time.Sleep(time.Millisecond * 100)
-		go node.Send(rpc)
+		node.Ping(node.masterNode.ip)
 		time.Sleep(time.Millisecond * 100)
 	}
 }
@@ -54,3 +52,5 @@ func (node *Node) Display() string {
 	res += node.RoutingTable.Display()
 	return res
 }
+
+
