@@ -96,7 +96,7 @@ func (rt *RoutingTable) Display() string {
 		if len(val.content) == 0 {
 			continue
 		}
-		res += fmt.Sprintf("Bucket %d\n", buckID)
+		res += fmt.Sprintf("\nBucket %d\n", buckID)
 		res += val.Display()
 	}
 	return res

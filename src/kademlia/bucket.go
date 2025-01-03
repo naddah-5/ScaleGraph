@@ -2,6 +2,7 @@ package kademlia
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 	"sync"
 )
@@ -77,7 +78,7 @@ func (bucket *Bucket) FindContact(target [5]uint32) (Contact, error) {
 func (bucket *Bucket) Display() string {
 	res := ""
 	for _, val := range bucket.content {
-		res += val.Display()
+		res += fmt.Sprintf("%s\n", val.Display())
 	}
 	return res
 }

@@ -75,7 +75,6 @@ func NewNetwork(listener chan RPC, sender chan RPC, controller chan RPC, serverI
 		controller: controller,
 		serverIP:   serverIP,
 		masterNode: master,
-		patience: int(TIMEOUT),
 		table:      NewTable(),
 	}
 	return &newNetwork
@@ -99,7 +98,7 @@ func (net *Network) Send(rpc RPC) (RPC, error) {
 		select {
 		case res := <-respChan:
 			return res, nil
-		case <-time.After(time.Duration(net.patience) * time.Second):
+		case <-time.After(TIMEOUT):
 			net.DropChan(rpc.ID)
 			break
 		}

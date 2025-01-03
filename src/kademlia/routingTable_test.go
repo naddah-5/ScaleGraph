@@ -166,3 +166,15 @@ func TestRoutingTableFindXClosestSpecificOrder(t *testing.T) {
 		}
 	}
 }
+
+func TestRoutingTableDisplay(t *testing.T) {
+	testName := "TestRoutingTableDisplay"
+	verbose := true
+	if verbose {
+		rt := NewRoutingTable(RandomID(), KEYSPACE, KBUCKETVOLUME)
+		for range 10 {
+			rt.AddContact(NewRandomContact())
+		}
+		log.Printf("[%s]\n%s", testName, rt.Display())
+	}
+}

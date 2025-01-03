@@ -21,7 +21,7 @@ func (node *Node) HandlePing(rpc RPC) {
 	resp := GenerateResponse(rpc.ID, node.Contact)
 	resp.Ping(rpc.Sender.IP())
 	res, _ := node.Send(resp)
-	res.Display()
+	log.Printf(res.Display() + "\n")
 }
 
 // Logic for sending a store wallet RPC.

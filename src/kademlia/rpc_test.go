@@ -6,7 +6,7 @@ import (
 )
 
 func TestRPCDisplay(t *testing.T) {
-	verbose := true
+	verbose := false
 	if verbose {
 		sender := NewRandomContact()
 		rpc := GenerateRPC(sender)
