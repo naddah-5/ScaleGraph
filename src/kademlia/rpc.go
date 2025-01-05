@@ -5,7 +5,8 @@ import "fmt"
 type cmd int
 
 const (
-	PING cmd = iota
+	NO_CMD cmd = iota
+	PING
 	PONG
 	STORE_WALLET
 	FIND_NODE
@@ -20,18 +21,20 @@ const (
 
 func (c cmd) String() string {
 	switch c {
+	case NO_CMD:
+		return "NO_CMD"
 	case PING:
 		return "PING"
 	case PONG:
 		return "PONG"
 	case FIND_NODE:
-		return "FIND NODE"
+		return "FIND_NODE"
 	case FOUND_NODES:
 		return "FOUND_NODES"
 	case STORE_WALLET:
-		return "STORE WALLET"
+		return "STORE_WALLET"
 	case FIND_WALLET:
-		return "FIND WALLET"
+		return "FIND_WALLET"
 	}
 	return "unknown"
 }
@@ -77,13 +80,15 @@ func (rpc *RPC) Pong(receiver [4]byte) {
 	rpc.receiver = receiver
 }
 
-func (rpc *RPC) FindNode(targetNode [5]uint32) {
+func (rpc *RPC) FindNode(receiver [4]byte, targetNode [5]uint32) {
 	rpc.cmd = FIND_NODE
+	rpc.receiver = receiver
 	rpc.findNodeTarget = targetNode
 }
 
-func (rpc *RPC) FoundNodes(target [5]uint32, nodes []Contact) {
+func (rpc *RPC) FoundNodes(receiver [4]byte, target [5]uint32, nodes []Contact) {
 	rpc.cmd = FOUND_NODES
+	rpc.receiver = receiver
 	rpc.findNodeTarget = target
 	rpc.foundNodes = nodes
 }
@@ -106,6 +111,6 @@ func (rpc *RPC) Display() string {
 		rpcString += "\n"
 	}
 	rpcString += "\n"
-	
+
 	return rpcString
 }

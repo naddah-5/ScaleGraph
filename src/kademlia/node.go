@@ -40,10 +40,11 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 func (node *Node) Start() {
 	go node.Network.Listen(node)
 	if node.Contact.IP() == node.masterNode.IP() {
-		return
 	} else {
 		node.Ping(node.masterNode.IP())
 	}
+	time.Sleep(time.Millisecond * 10)
+	node.FindNode(node.Contact.ID())
 }
 
 func (node *Node) Display() string {

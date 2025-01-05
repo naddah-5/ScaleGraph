@@ -27,7 +27,7 @@ func (node *Node) findNodeRec(initNodes []Contact, target [5]uint32) []Contact {
 	// Launch parallel queries to initial nodes.
 	for _, tar := range initNodes {
 		rpc := GenerateRPC(node.Contact)
-		rpc.FindNode(tar.ID())
+		rpc.FindNode(tar.IP(), tar.ID())
 		go node.nodeQuery(rpc, respChan)
 	}
 

@@ -31,7 +31,7 @@ func (node *Node) HandleFindNode(rpc RPC) {
 		log.Printf("Node %v - Handle Find Node Error\n%s", node.ID(), err.Error())
 	}
 	resp := GenerateResponse(rpc.id, node.Contact)
-	resp.FoundNodes(rpc.findNodeTarget, res)
+	resp.FoundNodes(rpc.sender.IP(), rpc.findNodeTarget, res)
 	node.Send(resp)
 }
 
