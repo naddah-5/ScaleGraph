@@ -86,7 +86,7 @@ func (simnet *Simnet) GenerateRandomNode() *Node {
 
 	nodeReceiver := make(chan RPC, 128)
 	simnet.chanTable.content[ip] = nodeReceiver
-	newNode := NewNode(id, ip, nodeReceiver, simnet.listener, simnet.serverIP, simnet.masterNodeContact)
+	newNode := NewNode(id, ip, nodeReceiver, simnet.listener, simnet.serverIP, simnet.masterNodeContact, false)
 	return newNode
 }
 
@@ -117,7 +117,7 @@ func (simnet *Simnet) Route(rpc RPC) {
 	routeChan, ok := simnet.chanTable.content[rpc.receiver]
 	simnet.chanTable.RUnlock()
 	if !ok {
-		log.Printf("[ERROR] - could not locate node channel for node IP %v", rpc.receiver)
+		log.Printf("[ERROR] - could not locate node channel for node IP %v RPC %s", rpc.receiver, rpc.Display())
 		return
 	}
 	routeChan <- rpc

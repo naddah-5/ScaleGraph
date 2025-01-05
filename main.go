@@ -21,7 +21,7 @@ func script() {
 	}
 	time.Sleep(time.Millisecond * 5000)
 	for _, val := range nodes {
-		log.Print(val.Display())
+		log.Printf("\n%s\n", val.Display())
 	}
 	return
 }

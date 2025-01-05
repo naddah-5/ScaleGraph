@@ -15,16 +15,12 @@ func (node *Node) Ping(address [4]byte) {
 	node.AddContact(res.sender)
 }
 
-func (node *Node) Pong() {
-
-}
-
 func (node *Node) FindNode(target [5]uint32) []Contact {
 	initNodes, _ := node.FindXClosest(REPLICATION, target)
-	return node.FindNodeRec(initNodes, target)
+	return node.findNodeRec(initNodes, target)
 }
 
-func (node *Node) FindNodeRec(initNodes []Contact, target [5]uint32) []Contact {
+func (node *Node) findNodeRec(initNodes []Contact, target [5]uint32) []Contact {
 	retNodes := make([]Contact, 0, REPLICATION*REPLICATION)
 	respChan := make(chan any, REPLICATION)
 
@@ -55,7 +51,7 @@ func (node *Node) FindNodeRec(initNodes []Contact, target [5]uint32) []Contact {
 	if len(retNodes) == 0 || retNodes[0].ID() == initNodes[0].ID() {
 		return initNodes
 	} else {
-		return node.FindNodeRec(retNodes, target)
+		return node.findNodeRec(retNodes, target)
 	}
 }
 
@@ -64,8 +60,9 @@ func (node *Node) FindNodeRec(initNodes []Contact, target [5]uint32) []Contact {
 // NOTE that you must assert the type of the result from respChan.
 func (node *Node) nodeQuery(rpc RPC, respChan chan any) {
 	resp, err := node.Send(rpc)
-	if (err != nil) || (resp.FoundNodes == nil) {
-		respChan <- make([]Contact, 0)
+	if err != nil {
+		log.Printf("[ERROR] - %s\nin node %v with rpc:\n%s\n", err.Error(), node.ID(), rpc.Display())
+		respChan <- resp.foundNodes
 		return
 	}
 	respChan <- resp.FoundNodes

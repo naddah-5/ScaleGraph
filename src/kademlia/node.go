@@ -21,9 +21,10 @@ type Node struct {
 	Network
 	RoutingTable
 	controller chan RPC // the channel for internal network, new rpc's are to be sent here for handling
+	debug      bool
 }
 
-func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serverIP [4]byte, masterNode Contact) *Node {
+func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serverIP [4]byte, masterNode Contact, debug bool) *Node {
 	controller := make(chan RPC)
 	net := NewNetwork(listener, sender, controller, serverIP, masterNode)
 	me := NewContact(ip, id)
@@ -32,6 +33,7 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 		Contact:      me,
 		Network:      *net,
 		RoutingTable: *router,
+		debug:        debug,
 	}
 }
 
@@ -40,17 +42,12 @@ func (node *Node) Start() {
 	if node.Contact.IP() == node.masterNode.IP() {
 		return
 	} else {
-
-		time.Sleep(time.Millisecond * 100)
-		node.Ping(node.masterNode.ip)
-		time.Sleep(time.Millisecond * 100)
+		node.Ping(node.masterNode.IP())
 	}
 }
 
 func (node *Node) Display() string {
-	res := fmt.Sprintf("node ID: %v\tnode IP: %v\n", node.IP(), node.ID())
+	res := fmt.Sprintf("node ID routing table state: %v\tnode IP: %v", node.IP(), node.ID())
 	res += node.RoutingTable.Display()
 	return res
 }
-
-

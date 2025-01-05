@@ -72,7 +72,6 @@ func (rpc *RPC) Ping(receiver [4]byte) {
 	rpc.receiver = receiver
 }
 
-// Set a RPC as a pong.
 func (rpc *RPC) Pong(receiver [4]byte) {
 	rpc.cmd = PONG
 	rpc.receiver = receiver
@@ -83,7 +82,10 @@ func (rpc *RPC) FindNode(targetNode [5]uint32) {
 	rpc.findNodeTarget = targetNode
 }
 
-func (rpc *RPC) FoundNodes() {
+func (rpc *RPC) FoundNodes(target [5]uint32, nodes []Contact) {
+	rpc.cmd = FOUND_NODES
+	rpc.findNodeTarget = target
+	rpc.foundNodes = nodes
 }
 
 func (rpc *RPC) Display() string {
@@ -103,6 +105,7 @@ func (rpc *RPC) Display() string {
 		}
 		rpcString += "\n"
 	}
-
+	rpcString += "\n"
+	
 	return rpcString
 }
