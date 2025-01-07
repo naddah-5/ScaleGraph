@@ -26,7 +26,7 @@ type Node struct {
 
 func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serverIP [4]byte, masterNode Contact, debug bool) *Node {
 	controller := make(chan RPC)
-	net := NewNetwork(listener, sender, controller, serverIP, masterNode)
+	net := NewNetwork(listener, sender, controller, serverIP, masterNode, false)
 	me := NewContact(ip, id)
 	router := NewRoutingTable(id, KEYSPACE, KBUCKETVOLUME)
 	return &Node{
@@ -44,7 +44,11 @@ func (node *Node) Start() {
 		node.Ping(node.masterNode.IP())
 	}
 	time.Sleep(time.Millisecond * 10)
-	node.FindNode(node.Contact.ID())
+	res := node.FindNode(node.Contact.ID())
+	findNodeRes := ""
+	for _, val := range res {
+		findNodeRes += fmt.Sprintf("%s\n", val.Display())
+	}
 }
 
 func (node *Node) Display() string {

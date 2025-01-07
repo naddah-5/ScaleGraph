@@ -15,7 +15,7 @@ func script() {
 	s := kademlia.NewServer()
 	go s.StartServer()
 	var nodes []*kademlia.Node
-	for i := 0; i < 2; i++ {
+	for i := 0; i < 5; i++ {
 		node := s.SpawnNode()
 		nodes = append(nodes, node)
 	}

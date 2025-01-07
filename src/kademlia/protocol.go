@@ -22,7 +22,7 @@ func (node *Node) FindNode(target [5]uint32) []Contact {
 
 func (node *Node) findNodeRec(initNodes []Contact, target [5]uint32) []Contact {
 	retNodes := make([]Contact, 0, REPLICATION*REPLICATION)
-	respChan := make(chan any, REPLICATION)
+	respChan := make(chan []Contact, REPLICATION)
 
 	// Launch parallel queries to initial nodes.
 	for _, tar := range initNodes {
@@ -38,13 +38,7 @@ func (node *Node) findNodeRec(initNodes []Contact, target [5]uint32) []Contact {
 			continue
 		}
 
-		// Assert correct type for the response from respChan, else log error and continue.
-		if respCon, ok := resp.([]Contact); ok {
-			retNodes = append(retNodes, respCon...)
-		} else {
-			log.Println("[ERROR] - received incorrect response from find node query")
-			continue
-		}
+		retNodes = append(retNodes, resp...)
 	}
 
 	SortContactsByDistance(&retNodes, target)
@@ -58,14 +52,14 @@ func (node *Node) findNodeRec(initNodes []Contact, target [5]uint32) []Contact {
 // Sends the given RPC and returns the reponse to the provided channel.
 // If the RPC times out or returns an error, returns an empty contact.
 // NOTE that you must assert the type of the result from respChan.
-func (node *Node) nodeQuery(rpc RPC, respChan chan any) {
+func (node *Node) nodeQuery(rpc RPC, respChan chan []Contact) {
 	resp, err := node.Send(rpc)
 	if err != nil {
 		log.Printf("[ERROR] - %s\nin node %v with rpc:\n%s\n", err.Error(), node.ID(), rpc.Display())
 		respChan <- resp.foundNodes
 		return
 	}
-	respChan <- resp.FoundNodes
+	respChan <- resp.foundNodes
 	return
 
 }

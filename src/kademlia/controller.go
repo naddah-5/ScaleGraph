@@ -32,6 +32,7 @@ func (node *Node) HandleFindNode(rpc RPC) {
 	}
 	resp := GenerateResponse(rpc.id, node.Contact)
 	resp.FoundNodes(rpc.sender.IP(), rpc.findNodeTarget, res)
+	log.Printf("responging to find node with RPC:\n%s", rpc.Display())
 	node.Send(resp)
 }
 

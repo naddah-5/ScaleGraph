@@ -64,17 +64,19 @@ type Network struct {
 	serverIP   [4]byte
 	masterNode Contact
 	patience   int // Waiting time before giving up on reponse
+	debug      bool
 	*table
 }
 
 // Returns a network pointer.
-func NewNetwork(listener chan RPC, sender chan RPC, controller chan RPC, serverIP [4]byte, master Contact) *Network {
+func NewNetwork(listener chan RPC, sender chan RPC, controller chan RPC, serverIP [4]byte, master Contact, debug bool) *Network {
 	newNetwork := Network{
 		listener:   listener,
 		sender:     sender,
 		controller: controller,
 		serverIP:   serverIP,
 		masterNode: master,
+		debug:      debug,
 		table:      NewTable(),
 	}
 	return &newNetwork
@@ -92,7 +94,9 @@ func (net *Network) Send(rpc RPC) (RPC, error) {
 		net.sender <- rpc
 		select {
 		case res := <-respChan:
-			log.Printf("received rpc\n%s", rpc.Display())
+			if net.debug {
+				log.Printf("received rpc\n%s", rpc.Display())
+			}
 			return res, nil
 		case <-time.After(TIMEOUT):
 			net.DropChan(rpc.id)
