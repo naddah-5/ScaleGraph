@@ -426,3 +426,91 @@ func TestMergeContactsByDistanceDuplicates(t *testing.T) {
 		}
 	}
 }
+
+func TestSliceContainsTrue(t *testing.T) {
+	testName := "TestSliceContainsTrue"
+	verbose := true
+	verbosePrint := fmt.Sprintf("[%s]", testName)
+	testSlice := make([]Contact, 0)
+	for range 10 {
+		testSlice = append(testSlice, NewRandomContact())
+	}
+
+	if verbose {
+		verbosePrint += fmt.Sprintf("test slice:\n")
+		for _, node := range testSlice {
+			verbosePrint += fmt.Sprintf("node id - %v\n", node.ID())
+		}
+		verbosePrint += fmt.Sprintf("found nodes\n")
+	}
+
+	output := fmt.Sprintf("[%s] - failed to locate\n", testName)
+	for _, point := range testSlice {
+		res := SliceContains(point.ID(), &testSlice)
+		if verbose {
+			verbosePrint += fmt.Sprintf("%v\n", point.ID())
+		}
+		if !res {
+			output += fmt.Sprintf("%v\n", point.ID())
+			t.Fail()
+		}
+	}
+	if verbose {
+		log.Println(verbosePrint)
+	}
+	if t.Failed() {
+		log.Printf(output)
+	}
+}
+
+func TestSliceContainsFalse(t *testing.T) {
+	testName := "TestSliceContainsFalse"
+	verbose := true
+	verbosePrint := fmt.Sprintf("[%s]\n", testName)
+	testSlice := make([]Contact, 0)
+	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 3})
+	nodeB := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 8})
+	nodeC := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 3})
+	nodeD := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 5})
+	nodeE := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 5})
+	nodeF := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 10})
+	nodeG := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 7})
+	nodeH := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 8})
+	nodeI := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 9})
+	nodeJ := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 10})
+
+	testSlice = append(testSlice, nodeA)
+	testSlice = append(testSlice, nodeB)
+	testSlice = append(testSlice, nodeC)
+	testSlice = append(testSlice, nodeD)
+	testSlice = append(testSlice, nodeE)
+	testSlice = append(testSlice, nodeF)
+	testSlice = append(testSlice, nodeG)
+	testSlice = append(testSlice, nodeH)
+	testSlice = append(testSlice, nodeI)
+	testSlice = append(testSlice, nodeJ)
+
+	invalidID := [5]uint32{132, 231, 421, 412, 411}
+
+	if verbose {
+		verbosePrint += fmt.Sprintf("test slice:\n")
+		for _, node := range testSlice {
+			verbosePrint += fmt.Sprintf("node id - %v\n", node.ID())
+		}
+	}
+	if verbose {
+		verbosePrint +=  fmt.Sprintf("looking for invalid ID: %v\n", invalidID)
+	}
+
+	res := SliceContains(invalidID, &testSlice)
+	if res {
+		log.Printf("[%s] - incorrect location of %v\n", testName, invalidID)
+		t.Fail()
+	}
+	if verbose {
+		if t.Failed() {
+			verbosePrint += fmt.Sprintf("incorrect possitive for node ID %v", invalidID)
+		}
+		log.Println(verbosePrint)
+	}
+}

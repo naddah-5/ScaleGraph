@@ -103,14 +103,14 @@ func (rpc *RPC) Display() string {
 	if rpc.cmd == FIND_NODE {
 		rpcString += fmt.Sprintf("Find Node Target: %v", rpc.findNodeTarget)
 	}
-	if rpc.cmd == FIND_NODE && rpc.response {
+	if rpc.cmd == FOUND_NODES && rpc.response {
 		rpcString += "Found Nodes:"
 		for _, val := range rpc.foundNodes {
 			rpcString += fmt.Sprintf("\n%s", val.Display())
 		}
 		rpcString += "\n"
 	}
-	rpcString += "\n"
+	rpcString += "\n\n"
 
 	return rpcString
 }

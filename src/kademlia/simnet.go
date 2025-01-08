@@ -29,9 +29,10 @@ type Simnet struct {
 	serverIP          [4]byte
 	masterNode        *Node
 	masterNodeContact Contact
+	debug             bool
 }
 
-func NewServer() *Simnet {
+func NewServer(debugMode bool) *Simnet {
 	s := Simnet{
 		spawned: spawned{
 			id:   make(map[[5]uint32]bool),
@@ -41,9 +42,10 @@ func NewServer() *Simnet {
 		chanTable: chanTable{
 			content: make(map[[4]byte]chan RPC),
 		},
-		listener: make(chan RPC),
+		listener: make(chan RPC, 64),
 		serverID: [5]uint32{0, 0, 0, 0, 0},
 		serverIP: [4]byte{0, 0, 0, 0},
+		debug: debugMode,
 	}
 
 	// Generate master node and attach it to the server.
@@ -55,16 +57,22 @@ func NewServer() *Simnet {
 	return &s
 }
 
-func (simnet *Simnet) SpawnNode() *Node {
+func (simnet *Simnet) MasterNode() *Node {
+	return simnet.masterNode
+}
+
+func (simnet *Simnet) SpawnNode(done chan [5]uint32) *Node {
 	newNode := simnet.GenerateRandomNode()
-	go newNode.Start()
+	go newNode.Start(done)
 	return newNode
 }
 
 // Generates a new node with random values attaches it to the server and returns a pointer to it.
 func (simnet *Simnet) GenerateRandomNode() *Node {
 	simnet.spawned.Lock()
+	simnet.chanTable.Lock()
 	defer simnet.spawned.Unlock()
+	defer simnet.chanTable.Unlock()
 
 	id := RandomID()
 	_, ok := simnet.spawned.id[id]
@@ -92,14 +100,20 @@ func (simnet *Simnet) GenerateRandomNode() *Node {
 
 // Initialize listening loop which spawns goroutines.
 func (simnet *Simnet) StartServer() {
-	go simnet.masterNode.Start()
+	// Master node should not be part of the main wait group.
+	go simnet.masterNode.Start(make(chan [5]uint32, 64))
 	for {
 		rpc := <-simnet.listener
+		if simnet.debug {
+			log.Printf("[DEBUG] - simnet queue: %d", len(simnet.listener))
+		}
 		go simnet.Route(rpc)
 	}
 }
 
-func (simnet *Simnet) DebugKnownIPChannels() string {
+func (simnet *Simnet) ListKnownIPChannels() string {
+	simnet.chanTable.RLock()
+	defer simnet.chanTable.RUnlock()
 	keys := make([][4]byte, 0, len(simnet.chanTable.content))
 	for k := range simnet.chanTable.content {
 		keys = append(keys, k)
@@ -114,11 +128,12 @@ func (simnet *Simnet) DebugKnownIPChannels() string {
 // Routes incomming RPC to the correct nodes.
 func (simnet *Simnet) Route(rpc RPC) {
 	simnet.chanTable.RLock()
+	defer simnet.chanTable.RUnlock()
 	routeChan, ok := simnet.chanTable.content[rpc.receiver]
-	simnet.chanTable.RUnlock()
 	if !ok {
 		log.Printf("[ERROR] - could not locate node channel for node IP %v RPC %s", rpc.receiver, rpc.Display())
 		return
 	}
 	routeChan <- rpc
+	return
 }

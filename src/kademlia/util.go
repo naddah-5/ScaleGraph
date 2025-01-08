@@ -138,3 +138,12 @@ func RemoveDuplicateContacts(set *[]Contact) {
 		}
 	}
 }
+
+func SliceContains(id [5]uint32, slice *[]Contact) bool {
+	for _, node := range *slice {
+		if node.ID() == id {
+			return true
+		}
+	}
+	return false
+}

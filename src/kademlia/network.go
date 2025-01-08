@@ -58,6 +58,7 @@ func (table *table) DropChan(id [5]uint32) {
 }
 
 type Network struct {
+	nodeID     [5]uint32
 	listener   chan RPC
 	sender     chan RPC
 	controller chan RPC
@@ -69,8 +70,9 @@ type Network struct {
 }
 
 // Returns a network pointer.
-func NewNetwork(listener chan RPC, sender chan RPC, controller chan RPC, serverIP [4]byte, master Contact, debug bool) *Network {
+func NewNetwork(id [5]uint32, listener chan RPC, sender chan RPC, controller chan RPC, serverIP [4]byte, master Contact, debug bool) *Network {
 	newNetwork := Network{
+		nodeID:     id,
 		listener:   listener,
 		sender:     sender,
 		controller: controller,
@@ -82,28 +84,37 @@ func NewNetwork(listener chan RPC, sender chan RPC, controller chan RPC, serverI
 	return &newNetwork
 }
 
+func (net *Network) Debug(mode bool) {
+	net.debug = mode
+}
+
 // Sends a RPC and creates a corresponding RPC id handle.
 // Returns an error if the Response exceedes the timeout.
 func (net *Network) Send(rpc RPC) (RPC, error) {
 	if rpc.response {
+		if net.debug {
+			log.Printf("[DEBUG]\nNode %v sending rpc:\n%s", net.nodeID, rpc.Display())
+		}
 		net.sender <- rpc
 		return rpc, nil
 	} else {
 		rpc.id = RandomID()
-		respChan, _ := net.Add(rpc.id)
+		respChan, err := net.Add(rpc.id)
+		if err != nil {
+			log.Printf("[ERROR] - %s", err.Error())
+		}
 		net.sender <- rpc
+		if net.debug {
+			log.Printf("[DEBUG]\nNode %v sending rpc:\n%s", net.nodeID, rpc.Display())
+		}
 		select {
 		case res := <-respChan:
-			if net.debug {
-				log.Printf("received rpc\n%s", rpc.Display())
-			}
 			return res, nil
 		case <-time.After(TIMEOUT):
-			net.DropChan(rpc.id)
-			break
+			go net.DropChan(rpc.id)
+			return rpc, errors.New("timeout")
 		}
 	}
-	return rpc, errors.New("timeout")
 }
 
 // Start a listener on the network channel.
@@ -121,6 +132,9 @@ func (net *Network) Listen(node *Node) error {
 // Routes the rpc to the appropriate components.
 // If the rpc is a Response it tries to route it to that channel, otherwise routes it to the controller.
 func (net *Network) route(node *Node, rpc RPC) {
+	if net.debug {
+		log.Printf("[DEBUG]\nNode %v - routing rpc:\n%s", node.ID(), rpc.Display())
+	}
 	if rpc.response {
 		respChan, err := net.RetrieveChan(rpc.id)
 		if err != nil {
@@ -131,6 +145,9 @@ func (net *Network) route(node *Node, rpc RPC) {
 		go net.DropChan(rpc.id)
 		respChan <- rpc
 	} else {
+		if net.debug {
+			log.Printf("[DEBUG]\nNode %v - routing rpc %v to handler", node.ID(), rpc.id)
+		}
 		node.Handler(rpc)
 	}
 }

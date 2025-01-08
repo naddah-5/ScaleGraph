@@ -169,7 +169,7 @@ func TestRoutingTableFindXClosestSpecificOrder(t *testing.T) {
 
 func TestRoutingTableDisplay(t *testing.T) {
 	testName := "TestRoutingTableDisplay"
-	verbose := true
+	verbose := false
 	if verbose {
 		rt := NewRoutingTable(RandomID(), KEYSPACE, KBUCKETVOLUME)
 		for range 10 {
