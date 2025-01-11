@@ -9,6 +9,7 @@ const (
 	PING
 	PONG
 	STORE_WALLET
+	ENTER
 	FIND_NODE
 	FOUND_NODES
 	FIND_WALLET
@@ -27,6 +28,8 @@ func (c cmd) String() string {
 		return "PING"
 	case PONG:
 		return "PONG"
+	case ENTER:
+		return "ENTER"
 	case FIND_NODE:
 		return "FIND_NODE"
 	case FOUND_NODES:
@@ -78,6 +81,11 @@ func (rpc *RPC) Ping(receiver [4]byte) {
 func (rpc *RPC) Pong(receiver [4]byte) {
 	rpc.cmd = PONG
 	rpc.receiver = receiver
+}
+
+// Used to get a random existing node in the network from the simulated network.
+func (rpc *RPC) Enter() {
+	rpc.cmd = ENTER
 }
 
 func (rpc *RPC) FindNode(receiver [4]byte, targetNode [5]uint32) {

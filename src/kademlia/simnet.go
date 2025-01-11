@@ -8,9 +8,9 @@ import (
 
 // Record and all active IDs and IPs as well as pairwise connections.
 type spawned struct {
-	id   map[[5]uint32]bool
-	ip   map[[4]byte]bool
-	node map[[5]uint32][4]byte
+	id    map[[5]uint32]bool
+	ip    map[[4]byte]bool
+	nodes []Contact
 	sync.RWMutex
 }
 
@@ -35,9 +35,9 @@ type Simnet struct {
 func NewServer(debugMode bool) *Simnet {
 	s := Simnet{
 		spawned: spawned{
-			id:   make(map[[5]uint32]bool),
-			ip:   make(map[[4]byte]bool),
-			node: make(map[[5]uint32][4]byte),
+			id:    make(map[[5]uint32]bool),
+			ip:    make(map[[4]byte]bool),
+			nodes: make([]Contact, 0),
 		},
 		chanTable: chanTable{
 			content: make(map[[4]byte]chan RPC),
@@ -45,7 +45,7 @@ func NewServer(debugMode bool) *Simnet {
 		listener: make(chan RPC, 64),
 		serverID: [5]uint32{0, 0, 0, 0, 0},
 		serverIP: [4]byte{0, 0, 0, 0},
-		debug: debugMode,
+		debug:    debugMode,
 	}
 
 	// Generate master node and attach it to the server.
@@ -92,10 +92,20 @@ func (simnet *Simnet) GenerateRandomNode() *Node {
 	}
 	simnet.spawned.ip[ip] = true
 
+	node := NewContact(ip, id)
+	simnet.spawned.nodes = append(simnet.spawned.nodes, node)
+
 	nodeReceiver := make(chan RPC, 128)
 	simnet.chanTable.content[ip] = nodeReceiver
 	newNode := NewNode(id, ip, nodeReceiver, simnet.listener, simnet.serverIP, simnet.masterNodeContact, false)
 	return newNode
+}
+
+func (simnet *Simnet) randomNode() Contact {
+	simnet.spawned.RLock()
+	defer simnet.spawned.RUnlock()
+	index, _ := RandU32(0, uint32(len(simnet.nodes)))
+	return simnet.nodes[index]
 }
 
 // Initialize listening loop which spawns goroutines.
