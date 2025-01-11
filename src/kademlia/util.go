@@ -45,7 +45,6 @@ func RelativeDistance(nodeA [5]uint32, nodeB [5]uint32) [5]uint32 {
 }
 
 // Returns true if node A is closer to the target than node B, returns false if node B is closer to target than node A.
-// Returns an error if node A and B are the same distance from the target.
 func CloserNode(nodeA [5]uint32, nodeB [5]uint32, target [5]uint32) bool {
 	distA := RelativeDistance(nodeA, target)
 	distB := RelativeDistance(nodeB, target)
@@ -139,6 +138,7 @@ func RemoveDuplicateContacts(set *[]Contact) {
 	}
 }
 
+// Returns true if the slice contains a node with provided ID.
 func SliceContains(id [5]uint32, slice *[]Contact) bool {
 	for _, node := range *slice {
 		if node.ID() == id {
@@ -146,4 +146,15 @@ func SliceContains(id [5]uint32, slice *[]Contact) bool {
 		}
 	}
 	return false
+}
+
+// Returns true if slice B contains all nodes from slice A.
+func SliceContainsAll(sliceA *[]Contact, sliceB *[]Contact) bool {
+	for _, node := range *sliceA {
+		contained := SliceContains(node.ID(), sliceB)
+		if !contained {
+			return false
+		}
+	}
+	return true
 }

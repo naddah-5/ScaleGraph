@@ -2,15 +2,14 @@ package kademlia
 
 import (
 	"fmt"
-	"log"
 	"time"
 )
 
 const (
 	KEYSPACE      = 160 // the number of buckets
-	KBUCKETVOLUME = 5   // K, number of contacts per bucket
-	REPLICATION   = 2   // alpha
-	CONCURRENCY   = 2
+	KBUCKETVOLUME = 20   // K, number of contacts per bucket
+	REPLICATION   = 4   // alpha
+	CONCURRENCY   = 10
 	PORT          = 8080
 	DEBUG         = true
 	POINT_DEBUG   = true
@@ -44,13 +43,7 @@ func (node *Node) Start(done chan [5]uint32) {
 		return
 	} else {
 		node.Ping(node.masterNode.IP())
-		time.Sleep(time.Millisecond * 10)
-		res := node.FindNode(node.Contact.ID())
-		findNodeRes := "Find Node on entry result:\n"
-		for _, val := range res {
-			findNodeRes += fmt.Sprintf("%s\n", val.Display())
-		}
-		log.Println(findNodeRes)
+		node.FindNode(node.Contact.ID())
 		done <- node.ID()
 	}
 }
@@ -72,7 +65,7 @@ func (node *Node) Debug(mode bool) {
 }
 
 func (node *Node) Display() string {
-	res := fmt.Sprintf("node ID routing table state: %v\tnode IP: %v", node.IP(), node.ID())
+	res := fmt.Sprintf("node ID routing table state: node IP %v\tnode ID: %v", node.IP(), node.ID())
 	res += node.RoutingTable.Display()
 	return res
 }

@@ -20,63 +20,59 @@ func (node *Node) Ping(address [4]byte) {
 
 func (node *Node) FindNode(target [5]uint32) []Contact {
 	initNodes, _ := node.FindXClosest(CONCURRENCY, target)
-	return node.findNodeRec(initNodes, target)
+	found := node.findNodeLoop(initNodes, target)
+	return found
 }
 
-func (node *Node) findNodeRec(prevContactList []Contact, target [5]uint32) []Contact {
-	contactList := make([]Contact, 0)
+func (node *Node) findNodeLoop(prevContactList []Contact, target [5]uint32) []Contact {
+	contactList := make([]Contact, 0, REPLICATION)
 	respChan := make(chan []Contact, 64)
 
-	// Launch parallel queries to initial nodes.
-	for _, tar := range prevContactList {
-		rpc := GenerateRPC(node.Contact)
-		rpc.FindNode(tar.IP(), target)
-		go node.nodeQuery(rpc, respChan)
-	}
-
-	// Extract results from parallel query.
-	for i := range prevContactList {
-		if node.debug {
-			log.Printf("[DEBUG] - here %d", i)
-		}
-		resp, ok := <-respChan
-		if ok {
-			contactList = append(contactList, resp...)
-		}
-	}
-
-	SortContactsByDistance(&contactList, target)
-	if node.debug {
-		pRes := fmt.Sprintf("found nodes:\n")
-		for _, n := range contactList {
-			pRes += fmt.Sprintf("%s\n", n.Display())
-		}
-		pRes += fmt.Sprintf("input nodes [DEBUG]:\n")
+	for {
+		// Launch parallel queries to initial nodes.
 		for _, n := range prevContactList {
-			pRes += fmt.Sprintf("%s\n", n.Display())
+			rpc := GenerateRPC(node.Contact)
+			rpc.FindNode(n.IP(), target)
+			go node.nodeQuery(rpc, respChan)
 		}
-		log.Printf(pRes)
-	}
 
-	if node.debug {
-		log.Println("[DEBUG] - here")
-	}
-	// makes sure there is something in the lists to compare, prevents nil pointer.
-	safetyGuard := len(prevContactList) > 0 && len(contactList) > 0
-	if !safetyGuard {
-		return prevContactList
-	}
+		// Extract results from parallel query.
+		for range prevContactList {
+			resp, ok := <-respChan
+			if ok {
+				contactList = append(contactList, resp...)
+			}
+		}
 
-	precision := SliceContains(prevContactList[0].ID(), &contactList)
-	if precision {
-		return contactList
-	} else if len(contactList) == 0 {
-		return prevContactList
+		// Process the found contacts
+		SortContactsByDistance(&contactList, target)
+		RemoveDuplicateContacts(&contactList)
+		if len(contactList) > CONCURRENCY {
+			contactList = contactList[:CONCURRENCY]
+		}
+
+		if node.debug {
+			pRes := fmt.Sprintf("found nodes:\n")
+			for _, n := range contactList {
+				pRes += fmt.Sprintf("%s\n", n.Display())
+			}
+			pRes += fmt.Sprintf("input nodes [DEBUG]:\n")
+			for _, n := range prevContactList {
+				pRes += fmt.Sprintf("%s\n", n.Display())
+			}
+			log.Printf(pRes)
+		}
+
+		closer := CloserNode(contactList[0].ID(), prevContactList[0].ID(), target)
+		if !closer {
+			return contactList
+		} else if len(contactList) == 0 {
+			return prevContactList
+		}
+		prevContactList = nil
+		prevContactList = contactList
+		contactList = make([]Contact, 0, REPLICATION)
 	}
-	if node.debug {
-		log.Printf("[DEBUG] - entering deeper find node reccursion\n")
-	}
-	return node.findNodeRec(contactList, target)
 }
 
 // Sends the given RPC and returns the reponse to the provided channel.

@@ -429,7 +429,7 @@ func TestMergeContactsByDistanceDuplicates(t *testing.T) {
 
 func TestSliceContainsTrue(t *testing.T) {
 	testName := "TestSliceContainsTrue"
-	verbose := true
+	verbose := false
 	verbosePrint := fmt.Sprintf("[%s]", testName)
 	testSlice := make([]Contact, 0)
 	for range 10 {
@@ -465,7 +465,7 @@ func TestSliceContainsTrue(t *testing.T) {
 
 func TestSliceContainsFalse(t *testing.T) {
 	testName := "TestSliceContainsFalse"
-	verbose := true
+	verbose := false
 	verbosePrint := fmt.Sprintf("[%s]\n", testName)
 	testSlice := make([]Contact, 0)
 	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 3})
@@ -493,13 +493,13 @@ func TestSliceContainsFalse(t *testing.T) {
 	invalidID := [5]uint32{132, 231, 421, 412, 411}
 
 	if verbose {
-		verbosePrint += fmt.Sprintf("test slice:\n")
+		verbosePrint += fmt.Sprintf("\ntest slice:\n")
 		for _, node := range testSlice {
 			verbosePrint += fmt.Sprintf("node id - %v\n", node.ID())
 		}
 	}
 	if verbose {
-		verbosePrint +=  fmt.Sprintf("looking for invalid ID: %v\n", invalidID)
+		verbosePrint += fmt.Sprintf("looking for invalid ID: %v\n", invalidID)
 	}
 
 	res := SliceContains(invalidID, &testSlice)
@@ -512,5 +512,54 @@ func TestSliceContainsFalse(t *testing.T) {
 			verbosePrint += fmt.Sprintf("incorrect possitive for node ID %v", invalidID)
 		}
 		log.Println(verbosePrint)
+	}
+}
+
+func TestSliceContainsAllTrue(t *testing.T) {
+	testName := "TestSliceContainsAllTrue"
+	testSlice := make([]Contact, 0)
+	for range 10 {
+		testSlice = append(testSlice, NewRandomContact())
+	}
+
+	res := SliceContainsAll(&testSlice, &testSlice)
+	if !res {
+		log.Printf("[%s] - failed to correctly match the same slice as containing its own nodes", testName)
+		t.Fail()
+	}
+}
+
+// Astronomically low chance for a false negative.
+func TestSliceContainsAllFalse(t *testing.T) {
+	testName := "TestSliceContainsAllFalse"
+	verbose := false
+	verPrint := fmt.Sprintf("[%s]\n", testName)
+	testSliceA := make([]Contact, 0)
+	testSliceB := make([]Contact, 0)
+	for range 10 {
+		testSliceA = append(testSliceA, NewRandomContact())
+		testSliceB = append(testSliceB, NewRandomContact())
+	}
+
+	if verbose {
+		verPrint += fmt.Sprintf("testSliceA\n")
+		for _, n := range testSliceA {
+			verPrint += fmt.Sprintf("%v\n", n.ID())
+		}
+		verPrint += fmt.Sprintf("\n")
+		verPrint += fmt.Sprintf("testSliceB\n")
+		for _, n := range testSliceB {
+			verPrint += fmt.Sprintf("%v\n", n.ID())
+		}
+
+	}
+
+	if verbose {
+		log.Println(verPrint)
+	}
+	res := SliceContainsAll(&testSliceA, &testSliceB)
+	if res {
+		log.Printf("[%s] - incorrectly matched two different slices.", testName)
+		t.Fail()
 	}
 }
