@@ -84,8 +84,9 @@ func (rpc *RPC) Pong(receiver [4]byte) {
 }
 
 // Used to get a random existing node in the network from the simulated network.
-func (rpc *RPC) Enter() {
+func (rpc *RPC) Enter(ip [4]byte) {
 	rpc.cmd = ENTER
+	rpc.receiver = ip
 }
 
 func (rpc *RPC) FindNode(receiver [4]byte, targetNode [5]uint32) {

@@ -69,8 +69,8 @@ func (simnet *Simnet) SpawnNode(done chan [5]uint32) *Node {
 
 // Generates a new node with random values attaches it to the server and returns a pointer to it.
 func (simnet *Simnet) GenerateRandomNode() *Node {
-	simnet.spawned.Lock()
 	simnet.chanTable.Lock()
+	simnet.spawned.Lock()
 	defer simnet.spawned.Unlock()
 	defer simnet.chanTable.Unlock()
 
@@ -101,6 +101,7 @@ func (simnet *Simnet) GenerateRandomNode() *Node {
 	return newNode
 }
 
+// Returns contact information for a random node in the network.
 func (simnet *Simnet) randomNode() Contact {
 	simnet.spawned.RLock()
 	defer simnet.spawned.RUnlock()
@@ -143,6 +144,13 @@ func (simnet *Simnet) Route(rpc RPC) {
 	if !ok {
 		log.Printf("[ERROR] - could not locate node channel for node IP %v RPC %s", rpc.receiver, rpc.Display())
 		return
+	}
+	if rpc.cmd == ENTER {
+		simnet.spawned.RLock()
+		defer simnet.spawned.RUnlock()
+		node := simnet.randomNode()
+		rpc.foundNodes = append(rpc.foundNodes, node)
+		rpc.response = true
 	}
 	routeChan <- rpc
 	return

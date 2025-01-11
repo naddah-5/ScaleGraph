@@ -19,6 +19,7 @@ func (node *Node) Handler(rpc RPC) {
 	}
 }
 
+
 // Response logic for an incoming ping RPC.
 // Simply respond with a ping marked as a response.
 func (node *Node) handlePing(rpc RPC) {

@@ -7,6 +7,25 @@ import (
 
 // Protocol handles the logic for sending RPC's
 
+// Critical in order to reduce the risk of dead networks on start up.
+// A dead network occurs when one or more nodes know of the network but is not known of by the network.
+func (node *Node) Enter() (Contact, error) {
+	rpc := GenerateRPC(node.Contact)
+	rpc.Enter(node.ip)
+	res, err := node.Send(rpc)
+	if err != nil {
+		return NewContact([4]byte{0, 0, 0, 0}, RandomID()), err
+	}
+	if len(res.foundNodes) == 0 {
+		log.Printf("[PANIC] - nil error prevented")
+	}
+	if res.foundNodes[0].IP() == [4]byte{0, 0, 0, 0} {
+		return res.foundNodes[0], err
+	}
+	node.AddContact(res.foundNodes[0])
+	return res.foundNodes[0], nil
+}
+
 // Logic for sending a ping RPC.
 func (node *Node) Ping(address [4]byte) {
 	rpc := GenerateRPC(node.Contact)
@@ -63,9 +82,12 @@ func (node *Node) findNodeLoop(prevContactList []Contact, target [5]uint32) []Co
 			log.Printf(pRes)
 		}
 
-		closer := CloserNode(contactList[0].ID(), prevContactList[0].ID(), target)
-		if !closer {
-			return contactList
+		if len(contactList) > 0 && len(prevContactList) > 0 {
+			// closer := CloserNode(contactList[0].ID(), prevContactList[0].ID(), target)
+			closer := prevContactList[0].ID() == contactList[0].ID()
+			if !closer {
+				return contactList
+			}
 		} else if len(contactList) == 0 {
 			return prevContactList
 		}

@@ -2,14 +2,15 @@ package kademlia
 
 import (
 	"fmt"
+	"log"
 	"time"
 )
 
 const (
 	KEYSPACE      = 160 // the number of buckets
-	KBUCKETVOLUME = 20   // K, number of contacts per bucket
-	REPLICATION   = 4   // alpha
-	CONCURRENCY   = 10
+	KBUCKETVOLUME = 2  // K, number of contacts per bucket
+	REPLICATION   = 20   // alpha
+	CONCURRENCY   = 4
 	PORT          = 8080
 	DEBUG         = true
 	POINT_DEBUG   = true
@@ -37,13 +38,17 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 	}
 }
 
+// Starts up the node, joining the network via the "Enter", and "Find node" protocols.
 func (node *Node) Start(done chan [5]uint32) {
 	go node.Network.Listen(node)
 	if node.Contact.IP() == node.masterNode.IP() {
 		return
 	} else {
-		node.Ping(node.masterNode.IP())
-		node.FindNode(node.Contact.ID())
+		entry, err := node.Enter()
+		if err != nil {
+			log.Println(err.Error())
+		}
+		node.FindNode(entry.ID())
 		done <- node.ID()
 	}
 }

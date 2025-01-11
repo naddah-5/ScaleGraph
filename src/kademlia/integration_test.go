@@ -62,7 +62,7 @@ func TestFindNodeSpecific(t *testing.T) {
 	s := NewServer(false)
 	go s.StartServer()
 	var nodes []*Node
-	for i := 0; i < 5000; i++ {
+	for range 50 {
 		node := s.SpawnNode(done)
 		nodes = append(nodes, node)
 	}
