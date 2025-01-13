@@ -24,10 +24,12 @@ func (node *Node) Enter() {
 		log.Printf("%v - {ENTER} received illegal entry point", node.ID())
 	}
 	entryNode := res.foundNodes[0]
+	branchNode := res.foundNodes[1]
 	node.Ping(entryNode.IP())
+	node.Ping(node.masterNode.IP())
 
 	node.FindNode(node.Contact.ID())
-	node.AddContact(res.foundNodes[0])
+	node.FindNode(branchNode.ID())
 }
 
 // Logic for sending a ping RPC.
@@ -44,7 +46,7 @@ func (node *Node) Ping(address [4]byte) {
 }
 
 func (node *Node) FindNode(target [5]uint32) []Contact {
-	initNodes, _ := node.FindXClosest(CONCURRENCY, target)
+	initNodes, _ := node.FindXClosest(REPLICATION, target)
 	found := node.findNodeLoop(initNodes, target)
 	return found
 }
@@ -73,7 +75,7 @@ func (node *Node) findNodeLoop(prevContactList []Contact, target [5]uint32) []Co
 		SortContactsByDistance(&contactList, target)
 		RemoveDuplicateContacts(&contactList)
 		if len(contactList) > CONCURRENCY {
-			contactList = contactList[:CONCURRENCY]
+			contactList = contactList[:REPLICATION]
 		}
 
 		if node.debug {

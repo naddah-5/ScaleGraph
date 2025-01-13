@@ -7,13 +7,13 @@ import (
 
 const (
 	KEYSPACE      = 160 // the number of buckets
-	KBUCKETVOLUME = 2   // K, number of contacts per bucket
-	REPLICATION   = 20  // alpha
-	CONCURRENCY   = 4
+	KBUCKETVOLUME = 20   // K, number of contacts per bucket
+	REPLICATION   = 10  // alpha
+	CONCURRENCY   = 10
 	PORT          = 8080
 	DEBUG         = true
 	POINT_DEBUG   = true
-	TIMEOUT       = 1 * time.Second
+	TIMEOUT       = 500 * time.Millisecond
 )
 
 type Node struct {

@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"slices"
 	"sync"
+	"time"
 )
 
 // Record and all active IDs and IPs as well as pairwise connections.
@@ -45,7 +46,7 @@ func NewServer(debugMode bool, dropPercent float32) *Simnet {
 			ip:    make(map[[4]byte]bool),
 			nodes: make([]Contact, 0),
 		},
-		listener:    make(chan RPC, 64),
+		listener:    make(chan RPC, 512),
 		serverID:    [5]uint32{0, 0, 0, 0, 0},
 		serverIP:    [4]byte{0, 0, 0, 0},
 		dropPercent: dropPercent,
@@ -73,8 +74,8 @@ func (simnet *Simnet) DropRoll() bool {
 	return false
 }
 
-func (simnet *Simnet) MasterNode() *Node {
-	return simnet.masterNode
+func (simnet *Simnet) MasterNode() Contact {
+	return simnet.masterNodeContact
 }
 
 func (simnet *Simnet) SpawnNode(done chan [5]uint32) *Node {
@@ -84,7 +85,7 @@ func (simnet *Simnet) SpawnNode(done chan [5]uint32) *Node {
 }
 
 // Removes node from simnet records and sends a shutdown signal to it.
-func (simnet *Simnet) ShudownNode(node *Node) {
+func (simnet *Simnet) ShutdownNode(node *Node) {
 	simnet.chanTable.Lock()
 	simnet.spawned.Lock()
 	defer simnet.chanTable.Unlock()
@@ -98,6 +99,54 @@ func (simnet *Simnet) ShudownNode(node *Node) {
 		simnet.spawned.nodes = slices.Delete(simnet.spawned.nodes, i, i+1)
 	}
 	node.shutdown <- struct{}{}
+}
+
+func (simnet *Simnet) SpawnCluster(size int, done chan struct{}) []*Node {
+	nodes := make([]*Node, 0, size)
+	clusterDone := make(chan [5]uint32, 64)
+	missingNodes := size
+
+	// Spawn the missing nodes.
+	log.Printf("Launching cluster of size: %d", size)
+	for missingNodes > 0 {
+		cluster := make([]*Node, 0, missingNodes)
+		for range missingNodes {
+			node := simnet.SpawnNode(clusterDone)
+			cluster = append(cluster, node)
+		}
+		for range cluster {
+			<-clusterDone
+		}
+		time.Sleep(time.Millisecond * 100)
+
+		// Verify visible nodes by looping through the cluster and checking that they can be found from the master node.
+		// If a node can not be found it is shut down.
+		for _, n := range cluster {
+			simnet.masterNode.FindNode(n.ID())
+		}
+		removeIndecies := make([]int, 0)
+		for i, n := range cluster {
+			visRes := simnet.masterNode.FindNode(n.ID())
+			if len(visRes) > 0 {
+				if visRes[0].ID() != n.ID() {
+					simnet.ShutdownNode(n)
+					removeIndecies = append(removeIndecies, i)
+				}
+			}
+		}
+
+		// Clear out all shut down nodes from the created cluster.
+		slices.Reverse(removeIndecies)
+		for _, i := range removeIndecies {
+			cluster = slices.Delete(cluster, i, i+1)
+		}
+		nodes = append(nodes, cluster...)
+		cluster = nil
+		missingNodes = size - len(nodes)
+		log.Printf("Launching cluster: missing %d nodes", missingNodes)
+	}
+	done <- struct{}{}
+	return nodes
 }
 
 // Generates a new node with random values attaches it to the server and returns a pointer to it.
@@ -130,7 +179,7 @@ func (simnet *Simnet) GenerateRandomNode() *Node {
 
 	nodeReceiver := make(chan RPC, 128)
 	simnet.chanTable.content[ip] = nodeReceiver
-	newNode := NewNode(id, ip, nodeReceiver, simnet.listener, simnet.serverIP, simnet.masterNodeContact, false)
+	newNode := NewNode(id, ip, nodeReceiver, simnet.listener, simnet.serverIP, simnet.MasterNode(), false)
 	return newNode
 }
 
@@ -148,9 +197,6 @@ func (simnet *Simnet) StartServer() {
 	go simnet.masterNode.Start(make(chan [5]uint32, 64))
 	for {
 		rpc := <-simnet.listener
-		if simnet.debug {
-			log.Printf("[DEBUG] - simnet queue: %d", len(simnet.listener))
-		}
 		go simnet.Route(rpc)
 	}
 }
@@ -176,18 +222,20 @@ func (simnet *Simnet) Route(rpc RPC) {
 
 	routeChan, ok := simnet.chanTable.content[rpc.receiver]
 	if !ok {
-		log.Printf("[ERROR] - could not locate node channel for node IP %v RPC %s", rpc.receiver, rpc.Display())
+		if simnet.debug {
+			log.Printf("[ERROR] - could not locate node channel for node IP %v RPC %s", rpc.receiver, rpc.Display())
+		}
 		return
 	}
 
 	if rpc.cmd == ENTER {
 		simnet.spawned.RLock()
 		defer simnet.spawned.RUnlock()
-		node := simnet.randomNode()
-		for node.ID() == [5]uint32{0, 0, 0, 0, 0} {
-			node = simnet.masterNodeContact
-		}
-		rpc.foundNodes = append(rpc.foundNodes, node)
+		nodes := make([]Contact, 0, 2)
+		nodes = append(nodes, simnet.randomNode())
+		nodes = append(nodes, simnet.randomNode())
+
+		rpc.foundNodes = nodes
 		rpc.response = true
 	}
 

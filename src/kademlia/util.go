@@ -9,8 +9,10 @@ import (
 // Returns a randomly generated id.
 func RandomID() [5]uint32 {
 	var res [5]uint32
-	for i := 0; i < 5; i++ {
-		res[i] = rand.Uint32()
+	for res == [5]uint32{0, 0, 0, 0, 0} {
+		for i := 0; i < 5; i++ {
+			res[i] = rand.Uint32()
+		}
 	}
 	return res
 }

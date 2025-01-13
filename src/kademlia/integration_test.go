@@ -96,6 +96,9 @@ func TestMassiveFindNodeSpecific(t *testing.T) {
 	}
 	testName := "TestMassiveFindNodeSpecific"
 	verbose := true
+	if verbose {
+		log.Printf("[%s] - starting test\n", testName)
+	}
 
 	mass := 10
 	failCounter := 0
@@ -107,25 +110,20 @@ func TestMassiveFindNodeSpecific(t *testing.T) {
 			t.Fail()
 		}
 	}
-	log.Printf("failed %d of %d times", failCounter, mass)
+	log.Printf("\nfailed %d of %d times", failCounter, mass)
 }
 
 func findNodeSpecific(verbose bool, testName string) bool {
-	done := make(chan [5]uint32, 64)
+	done := make(chan struct{}, 64)
 	verPrint := fmt.Sprintf("[%s]\n", testName)
 	s := NewServer(false, 0.0)
 	go s.StartServer()
-	var nodes []*Node
-	for i := 0; i < 50; i++ {
-		node := s.SpawnNode(done)
-		nodes = append(nodes, node)
-	}
-	for range nodes {
-		<-done
-	}
+	nodes := s.SpawnCluster(5000, done)
+	<-done
+
 	firstNode := nodes[0]
 	lastNode := nodes[len(nodes)-1]
-	time.Sleep(time.Millisecond * 5000)
+	time.Sleep(time.Millisecond * 500)
 	res := firstNode.FindNode(lastNode.ID())
 	if verbose {
 		verPrint += fmt.Sprintf("Looking for %v\n", lastNode.ID())
@@ -133,6 +131,7 @@ func findNodeSpecific(verbose bool, testName string) bool {
 		for _, rNode := range res {
 			verPrint += fmt.Sprintf("%v\n", rNode.Display())
 		}
+		log.Println(verPrint)
 	}
 
 	if !SliceContains(lastNode.ID(), &res) {
@@ -158,31 +157,30 @@ func TestFindNodeVisibleNodes(t *testing.T) {
 	}
 	verbose := true
 	testName := "TestFindVisibleNodes"
-	done := make(chan [5]uint32, 64)
+	done := make(chan struct{}, 64)
 	verPrint := fmt.Sprintf("[%s]\n", testName)
-	testSize := 500
+	testSize := 1000
 	s := NewServer(false, 0.0)
 	go s.StartServer()
-	var nodes []*Node
-	for range testSize {
-		node := s.SpawnNode(done)
-		nodes = append(nodes, node)
-	}
-	for range nodes {
-		<-done
-	}
-	time.Sleep(time.Millisecond * 10000)
-	origin := nodes[0]
+	nodes := s.SpawnCluster(testSize, done)
+	<-done
+
+	time.Sleep(time.Millisecond * 100)
 	lostNodes := 0
-	for _, node := range nodes {
-		res := origin.FindNode(node.ID())
-		if res[0].ID() != node.ID() {
-			lostNodes++
-			verPrint += fmt.Sprintf("Failed to locate node: %v\n", node.ID())
-			t.Fail()
+	for i, origin := range nodes {
+		if verbose {
+			fmt.Printf("\rSearching from node %d", i)
+		}
+		for _, node := range nodes {
+			res := origin.FindNode(node.ID())
+			if res[0].ID() != node.ID() {
+				lostNodes++
+				verPrint += fmt.Sprintf("Failed to locate node: %v\n", node.ID())
+				t.Fail()
+			}
 		}
 	}
-	verPrint += fmt.Sprintf("failed to locate %d out of %d nodes", lostNodes, testSize)
+	verPrint += fmt.Sprintf("failed to locate %d nodes", lostNodes)
 	if verbose {
 		log.Printf(verPrint)
 	}
