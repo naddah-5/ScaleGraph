@@ -2,14 +2,13 @@ package kademlia
 
 import (
 	"fmt"
-	"log"
 	"time"
 )
 
 const (
 	KEYSPACE      = 160 // the number of buckets
-	KBUCKETVOLUME = 2  // K, number of contacts per bucket
-	REPLICATION   = 20   // alpha
+	KBUCKETVOLUME = 2   // K, number of contacts per bucket
+	REPLICATION   = 20  // alpha
 	CONCURRENCY   = 4
 	PORT          = 8080
 	DEBUG         = true
@@ -22,6 +21,7 @@ type Node struct {
 	Network
 	RoutingTable
 	controller chan RPC // the channel for internal network, new rpc's are to be sent here for handling
+	shutdown   chan struct{}
 	debug      bool
 }
 
@@ -34,6 +34,7 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 		Contact:      me,
 		Network:      *net,
 		RoutingTable: *router,
+		shutdown:     make(chan struct{}),
 		debug:        debug,
 	}
 }
@@ -44,11 +45,7 @@ func (node *Node) Start(done chan [5]uint32) {
 	if node.Contact.IP() == node.masterNode.IP() {
 		return
 	} else {
-		entry, err := node.Enter()
-		if err != nil {
-			log.Println(err.Error())
-		}
-		node.FindNode(entry.ID())
+		node.Enter()
 		done <- node.ID()
 	}
 }
@@ -57,6 +54,11 @@ func (node *Node) Start(done chan [5]uint32) {
 func (node *Node) Send(rpc RPC) (RPC, error) {
 	res, err := node.Network.Send(rpc)
 	if err != nil {
+		// If the contact fails to respond and exists in the routing table, drop it.
+		con, ipErr := node.FindByIP(rpc.receiver)
+		if ipErr == nil {
+			node.RemoveContact(con)
+		}
 		return res, err
 	} else {
 		go node.AddContact(res.sender)

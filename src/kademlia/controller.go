@@ -25,10 +25,7 @@ func (node *Node) Handler(rpc RPC) {
 func (node *Node) handlePing(rpc RPC) {
 	resp := GenerateResponse(rpc.id, node.Contact)
 	resp.Pong(rpc.sender.IP())
-	_, err := node.Send(resp)
-	if err != nil {
-		log.Printf("[ERROR] - %v\n%s", node.ID(), err.Error())
-	}
+	node.Send(resp)
 }
 
 func (node *Node) handleFindNode(rpc RPC) {

@@ -39,6 +39,19 @@ func (bucket *Bucket) AddContact(contact Contact) error {
 	return nil
 }
 
+// Searches the bucket for any node with a matching IP address and returns it if found.
+// Otherwise returns a nil contact and an error.
+func (bucket *Bucket) FindByIP(ip [4]byte) (Contact, error) {
+	bucket.Lock()
+	defer bucket.Unlock()
+	for _, c := range bucket.content {
+		if c.IP() == ip {
+			return c, nil
+		}
+	}
+	return Contact{}, errors.New("no match")
+}
+
 // Removes contact from bucket if it is present.
 func (bucket *Bucket) RemoveContact(contact Contact) {
 	bucket.Lock()

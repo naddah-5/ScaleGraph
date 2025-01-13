@@ -121,11 +121,15 @@ func (net *Network) Send(rpc RPC) (RPC, error) {
 // Returns an error if the channel closes.
 func (net *Network) Listen(node *Node) error {
 	for {
-		rpc, ok := <-net.listener
-		if !ok {
-			return errors.New("server down")
+		select {
+		case <-node.shutdown:
+			return nil
+		case rpc, ok := <-net.listener:
+			if !ok {
+				return errors.New("server down")
+			}
+			go net.route(node, rpc)
 		}
-		go net.route(node, rpc)
 	}
 }
 

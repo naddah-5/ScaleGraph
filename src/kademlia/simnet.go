@@ -3,6 +3,8 @@ package kademlia
 import (
 	"fmt"
 	"log"
+	"math/rand"
+	"slices"
 	"sync"
 )
 
@@ -22,30 +24,32 @@ type chanTable struct {
 // Simulated network that handles routing between nodes.
 // Additionally keeps track of all active nodes.
 type Simnet struct {
-	spawned
 	chanTable
+	spawned
 	listener          chan RPC
 	serverID          [5]uint32
 	serverIP          [4]byte
 	masterNode        *Node
 	masterNodeContact Contact
+	dropPercent       float32
 	debug             bool
 }
 
-func NewServer(debugMode bool) *Simnet {
+func NewServer(debugMode bool, dropPercent float32) *Simnet {
 	s := Simnet{
+		chanTable: chanTable{
+			content: make(map[[4]byte]chan RPC),
+		},
 		spawned: spawned{
 			id:    make(map[[5]uint32]bool),
 			ip:    make(map[[4]byte]bool),
 			nodes: make([]Contact, 0),
 		},
-		chanTable: chanTable{
-			content: make(map[[4]byte]chan RPC),
-		},
-		listener: make(chan RPC, 64),
-		serverID: [5]uint32{0, 0, 0, 0, 0},
-		serverIP: [4]byte{0, 0, 0, 0},
-		debug:    debugMode,
+		listener:    make(chan RPC, 64),
+		serverID:    [5]uint32{0, 0, 0, 0, 0},
+		serverIP:    [4]byte{0, 0, 0, 0},
+		dropPercent: dropPercent,
+		debug:       debugMode,
 	}
 
 	// Generate master node and attach it to the server.
@@ -57,6 +61,18 @@ func NewServer(debugMode bool) *Simnet {
 	return &s
 }
 
+// Roll the RNG to determine if the rpc should be dropped.
+func (simnet *Simnet) DropRoll() bool {
+	if simnet.dropPercent == 0.0 {
+		return false
+	}
+	roll := rand.Float32() < simnet.dropPercent
+	if roll {
+		return true
+	}
+	return false
+}
+
 func (simnet *Simnet) MasterNode() *Node {
 	return simnet.masterNode
 }
@@ -65,6 +81,23 @@ func (simnet *Simnet) SpawnNode(done chan [5]uint32) *Node {
 	newNode := simnet.GenerateRandomNode()
 	go newNode.Start(done)
 	return newNode
+}
+
+// Removes node from simnet records and sends a shutdown signal to it.
+func (simnet *Simnet) ShudownNode(node *Node) {
+	simnet.chanTable.Lock()
+	simnet.spawned.Lock()
+	defer simnet.chanTable.Unlock()
+	defer simnet.spawned.Unlock()
+
+	delete(simnet.chanTable.content, node.IP())
+	delete(simnet.spawned.ip, node.IP())
+	delete(simnet.spawned.id, node.ID())
+	i := slices.Index(simnet.spawned.nodes, node.Contact)
+	if i != -1 {
+		simnet.spawned.nodes = slices.Delete(simnet.spawned.nodes, i, i+1)
+	}
+	node.shutdown <- struct{}{}
 }
 
 // Generates a new node with random values attaches it to the server and returns a pointer to it.
@@ -140,17 +173,29 @@ func (simnet *Simnet) ListKnownIPChannels() string {
 func (simnet *Simnet) Route(rpc RPC) {
 	simnet.chanTable.RLock()
 	defer simnet.chanTable.RUnlock()
+
 	routeChan, ok := simnet.chanTable.content[rpc.receiver]
 	if !ok {
 		log.Printf("[ERROR] - could not locate node channel for node IP %v RPC %s", rpc.receiver, rpc.Display())
 		return
 	}
+
 	if rpc.cmd == ENTER {
 		simnet.spawned.RLock()
 		defer simnet.spawned.RUnlock()
 		node := simnet.randomNode()
+		for node.ID() == [5]uint32{0, 0, 0, 0, 0} {
+			node = simnet.masterNodeContact
+		}
 		rpc.foundNodes = append(rpc.foundNodes, node)
 		rpc.response = true
+	}
+
+	if simnet.DropRoll() {
+		if simnet.debug {
+			log.Printf("Dropping RPC: %v\n", rpc.id)
+		}
+		return
 	}
 	routeChan <- rpc
 	return

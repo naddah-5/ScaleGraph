@@ -58,6 +58,16 @@ func (router *RoutingTable) RemoveContact(contact Contact) {
 	router.table[index].RemoveContact(contact)
 }
 
+func (router *RoutingTable) FindByIP(ip [4]byte) (Contact, error) {
+	for _, b := range router.table {
+		res, err := b.FindByIP(ip)
+		if err == nil {
+			return res, nil
+		}
+	}
+	return Contact{}, errors.New("no matching contact")
+}
+
 func (router *RoutingTable) FindXClosest(x int, target [5]uint32) ([]Contact, error) {
 	res := make([]Contact, 0, x)
 	index, err := router.BucketIndex(target)

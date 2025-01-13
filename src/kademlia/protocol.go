@@ -9,21 +9,25 @@ import (
 
 // Critical in order to reduce the risk of dead networks on start up.
 // A dead network occurs when one or more nodes know of the network but is not known of by the network.
-func (node *Node) Enter() (Contact, error) {
+func (node *Node) Enter() {
 	rpc := GenerateRPC(node.Contact)
 	rpc.Enter(node.ip)
 	res, err := node.Send(rpc)
 	if err != nil {
-		return NewContact([4]byte{0, 0, 0, 0}, RandomID()), err
+		log.Printf("%v - {ENTER} did not receive entry point", node.ID())
+		return
 	}
 	if len(res.foundNodes) == 0 {
 		log.Printf("[PANIC] - nil error prevented")
 	}
 	if res.foundNodes[0].IP() == [4]byte{0, 0, 0, 0} {
-		return res.foundNodes[0], err
+		log.Printf("%v - {ENTER} received illegal entry point", node.ID())
 	}
+	entryNode := res.foundNodes[0]
+	node.Ping(entryNode.IP())
+
+	node.FindNode(node.Contact.ID())
 	node.AddContact(res.foundNodes[0])
-	return res.foundNodes[0], nil
 }
 
 // Logic for sending a ping RPC.
@@ -32,7 +36,9 @@ func (node *Node) Ping(address [4]byte) {
 	rpc.Ping(address)
 	res, err := node.Send(rpc)
 	if err != nil {
-		log.Printf("[ERROR] - %s", err.Error())
+		if node.debug {
+			log.Printf("%v - [ERROR] RPC %v %s", node.ID(), rpc.id, err.Error())
+		}
 	}
 	node.AddContact(res.sender)
 }
@@ -83,8 +89,7 @@ func (node *Node) findNodeLoop(prevContactList []Contact, target [5]uint32) []Co
 		}
 
 		if len(contactList) > 0 && len(prevContactList) > 0 {
-			// closer := CloserNode(contactList[0].ID(), prevContactList[0].ID(), target)
-			closer := prevContactList[0].ID() == contactList[0].ID()
+			closer := CloserNode(contactList[0].ID(), prevContactList[0].ID(), target)
 			if !closer {
 				return contactList
 			}
@@ -103,12 +108,14 @@ func (node *Node) findNodeLoop(prevContactList []Contact, target [5]uint32) []Co
 func (node *Node) nodeQuery(rpc RPC, respChan chan []Contact) {
 	resp, err := node.Send(rpc)
 	if err != nil {
-		log.Printf("[ERROR] - %s\nin node %v with rpc:\n%s\n", err.Error(), node.ID(), rpc.Display())
+		if node.debug {
+			log.Printf("[ERROR] - %s\nin node %v with rpc:\n%s\n", err.Error(), node.ID(), rpc.Display())
+		}
 		respChan <- resp.foundNodes
 		return
 	}
 	for _, n := range resp.foundNodes {
-		go node.AddContact(n)
+		go node.Ping(n.IP())
 	}
 	respChan <- resp.foundNodes
 	return

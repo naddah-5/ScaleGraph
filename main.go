@@ -12,7 +12,7 @@ func main() {
 
 func script() {
 	done := make(chan [5]uint32, 64)
-	s := kademlia.NewServer(true)
+	s := kademlia.NewServer(true, 0.0)
 	masterNode := s.MasterNode()
 	go s.StartServer()
 	var nodes []*kademlia.Node
