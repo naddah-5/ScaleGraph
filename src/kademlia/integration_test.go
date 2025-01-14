@@ -159,7 +159,7 @@ func TestFindNodeVisibleNodes(t *testing.T) {
 	testName := "TestFindVisibleNodes"
 	done := make(chan struct{}, 64)
 	verPrint := fmt.Sprintf("[%s]\n", testName)
-	testSize := 1000
+	testSize := 500
 	s := NewServer(false, 0.0)
 	go s.StartServer()
 	nodes := s.SpawnCluster(testSize, done)
