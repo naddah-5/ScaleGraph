@@ -7,7 +7,10 @@ import (
 )
 
 func main() {
-	script()
+	res := kademlia.IntegrationTestFindNodeVisibleNodes()
+	if !res {
+		log.Println("[TESTING FAILED]")
+	}
 }
 
 func script() {

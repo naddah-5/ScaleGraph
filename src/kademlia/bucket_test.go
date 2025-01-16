@@ -9,7 +9,8 @@ func TestAddContact(t *testing.T) {
 	testName := "TestAddContact"
 	verbose := false
 	testBucketSize := 10
-	bucket := NewBucket(testBucketSize)
+	me := NewRandomContact()
+	bucket := NewBucket(testBucketSize, me)
 	for i := 0; i < testBucketSize; i++ {
 		bucket.AddContact(NewRandomContact())
 	}
@@ -22,6 +23,23 @@ func TestAddContact(t *testing.T) {
 	}
 
 	con := NewRandomContact()
+	distantID := [5]uint32{0,0,0,0,0}
+	for i := range distantID {
+		distantID[i] = ^(distantID[i] ^ me.id[i])
+	}
+	if verbose {
+		log.Printf("changing id: %v to %v", con.ID(), distantID)
+	}
+	con.id = distantID
+	if verbose {
+		log.Printf("new id: %v", con.ID())
+		log.Printf("distance to home node: ")
+		var dist [5]uint32
+		for i := range dist {
+			dist[i] = con.id[i]^me.id[i]
+		}
+		log.Printf("%v\n", dist)
+	}
 	err := bucket.AddContact(con)
 	if err == nil {
 		log.Printf("[%s] - should not be able to add contact %v\n", testName, con)
@@ -40,7 +58,7 @@ func TestRemoveContact(t *testing.T) {
 	testName := "TestRemoveContact"
 	verbose := false
 	testBucketSize := 10
-	bucket := NewBucket(testBucketSize)
+	bucket := NewBucket(testBucketSize, NewRandomContact())
 	for i := 0; i < testBucketSize-1; i++ {
 		bucket.AddContact(NewRandomContact())
 	}
@@ -69,7 +87,7 @@ func TestRemoveContact1(t *testing.T) {
 	testName := "TestRemoveContact1"
 	verbose := false
 	testBucketSize := 10
-	bucket := NewBucket(testBucketSize)
+	bucket := NewBucket(testBucketSize, NewRandomContact())
 	con := NewRandomContact()
 	bucket.AddContact(con)
 	for i := 0; i < testBucketSize-1; i++ {
@@ -98,7 +116,7 @@ func TestRemoveContact2(t *testing.T) {
 	testName := "TestRemoveContact2"
 	verbose := false
 	testBucketSize := 10
-	bucket := NewBucket(testBucketSize)
+	bucket := NewBucket(testBucketSize, NewRandomContact())
 	for i := 0; i < testBucketSize/2; i++ {
 		bucket.AddContact(NewRandomContact())
 	}
@@ -130,7 +148,7 @@ func TestRemoveContact3(t *testing.T) {
 	testName := "TestRemoveContact3"
 	verbose := false
 	testBucketSize := 10
-	bucket := NewBucket(testBucketSize)
+	bucket := NewBucket(testBucketSize, NewRandomContact())
 	for i := 0; i < testBucketSize; i++ {
 		bucket.AddContact(NewRandomContact())
 	}
@@ -158,7 +176,7 @@ func TestFindXClosest(t *testing.T) {
 	testName := "TestFindXClosest"
 	verbose := false
 	testBucketSize := 10
-	bucket := NewBucket(testBucketSize)
+	bucket := NewBucket(testBucketSize, NewRandomContact())
 	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
 	nodeB := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1})
 	nodeC := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 5, 0})
@@ -205,7 +223,7 @@ func TestFindContact(t *testing.T) {
 	testName := "TestFindContact"
 	verbose := false
 	testBucketSize := 10
-	bucket := NewBucket(testBucketSize)
+	bucket := NewBucket(testBucketSize, NewRandomContact())
 	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
 	nodeB := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1})
 	nodeC := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 5, 0})
@@ -248,7 +266,7 @@ func TestFindContact1(t *testing.T) {
 	testName := "TestFindContact"
 	verbose := false
 	testBucketSize := 10
-	bucket := NewBucket(testBucketSize)
+	bucket := NewBucket(testBucketSize, NewRandomContact())
 	nodeA := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 1, 0, 0})
 	nodeB := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 0, 1})
 	nodeC := NewContact([4]byte{0, 0, 0, 0}, [5]uint32{0, 0, 0, 5, 0})

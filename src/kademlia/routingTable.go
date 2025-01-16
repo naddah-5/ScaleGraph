@@ -6,20 +6,20 @@ import (
 )
 
 type RoutingTable struct {
-	homeNode [5]uint32
+	homeNode Contact
 	table    []*Bucket
 	keySpace int
 }
 
 // Creates and populates a new routing table with buckets.
-func NewRoutingTable(homeNode [5]uint32, keySpace int, kBucket int) *RoutingTable {
+func NewRoutingTable(homeNode Contact, keySpace int, kBucket int) *RoutingTable {
 	router := RoutingTable{
 		homeNode: homeNode,
 		table:    make([]*Bucket, 0),
 		keySpace: keySpace,
 	}
 	for i := 0; i < keySpace; i++ {
-		router.table = append(router.table, NewBucket(kBucket))
+		router.table = append(router.table, NewBucket(kBucket, homeNode))
 	}
 	return &router
 }
@@ -27,7 +27,7 @@ func NewRoutingTable(homeNode [5]uint32, keySpace int, kBucket int) *RoutingTabl
 // Returns the bucket index for target ID.
 // If index is out of scope, i.e. the home node, returns an error.
 func (router *RoutingTable) BucketIndex(target [5]uint32) (int, error) {
-	index := DistPrefixLength(target, router.homeNode)
+	index := DistPrefixLength(target, router.homeNode.ID())
 	if index < 0 || index > 159 {
 		return 0, errors.New("invalid index")
 	}

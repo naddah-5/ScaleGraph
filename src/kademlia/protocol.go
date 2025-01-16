@@ -30,6 +30,7 @@ func (node *Node) Enter() {
 
 	node.FindNode(node.Contact.ID())
 	node.FindNode(branchNode.ID())
+	node.FindNode(node.masterNode.ID())
 }
 
 // Logic for sending a ping RPC.

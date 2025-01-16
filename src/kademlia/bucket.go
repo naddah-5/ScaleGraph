@@ -8,35 +8,44 @@ import (
 )
 
 type Bucket struct {
+	homeNode Contact
 	content  []Contact
 	capacity int
 	sync.RWMutex
 }
 
-func NewBucket(maxCapacity int) *Bucket {
+func NewBucket(maxCapacity int, homeNode Contact) *Bucket {
 	bucket := Bucket{
+		homeNode: homeNode,
 		content:  make([]Contact, 0, maxCapacity),
 		capacity: maxCapacity,
 	}
 	return &bucket
 }
 
-// Adds given contact if there is empty capacity in bucket.
+// Adds given contact if there is empty capacity in bucket or it is closer to the home node than another node.
 // Otherwise returns an error.
 func (bucket *Bucket) AddContact(contact Contact) error {
 	bucket.Lock()
 	defer bucket.Unlock()
 
-	if len(bucket.content) == bucket.capacity {
-		return errors.New("full bucket")
-	}
 	for _, v := range bucket.content {
 		if v.ID() == contact.ID() {
-			return nil
+			return errors.New("cannot add two instances of a contact to a single bucket")
 		}
 	}
 	bucket.content = append(bucket.content, contact)
-	return nil
+	SortContactsByDistance(&bucket.content, bucket.homeNode.ID())
+	var err error
+	if len(bucket.content) > bucket.capacity {
+		if bucket.content[len(bucket.content)-1].ID() == contact.ID() {
+			err = errors.New("contact not added")
+		}
+	} else {
+		err = nil
+	}
+	bucket.content = bucket.content[:min(bucket.capacity, len(bucket.content))]
+	return err
 }
 
 // Searches the bucket for any node with a matching IP address and returns it if found.
@@ -89,6 +98,8 @@ func (bucket *Bucket) FindContact(target [5]uint32) (Contact, error) {
 }
 
 func (bucket *Bucket) Display() string {
+	bucket.Lock()
+	defer bucket.Unlock()
 	res := ""
 	for _, val := range bucket.content {
 		res += fmt.Sprintf("%s\n", val.Display())

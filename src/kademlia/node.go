@@ -29,7 +29,7 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 	controller := make(chan RPC)
 	net := NewNetwork(id, listener, sender, controller, serverIP, masterNode, false)
 	me := NewContact(ip, id)
-	router := NewRoutingTable(id, KEYSPACE, KBUCKETVOLUME)
+	router := NewRoutingTable(me, KEYSPACE, KBUCKETVOLUME)
 	return &Node{
 		Contact:      me,
 		Network:      *net,

@@ -8,7 +8,8 @@ import (
 func TestRoutingTableFindXClosestOrder(t *testing.T) {
 	testName := "TestRoutingTableFindXClosestOrder"
 	verbose := false
-	router := NewRoutingTable([5]uint32{0, 0, 0, 0, 0}, 160, 10)
+	me := NewContact(RandomIP(), [5]uint32{0,0,0,0,0})
+	router := NewRoutingTable(me, 160, 10)
 	for i := 0; i < 10000; i++ {
 		router.AddContact(NewRandomContact())
 	}
@@ -81,7 +82,8 @@ func TestRoutingTableFindXClosestOrder(t *testing.T) {
 func TestRoutingTableFindXClosestSpecificOrder(t *testing.T) {
 	testName := "TestRoutingTableFindXClosestSpecificOrder"
 	verbose := false
-	router := NewRoutingTable([5]uint32{0, 0, 0, 0, 0}, 160, 10)
+	me := NewContact(RandomIP(), [5]uint32{0,0,0,0,0})
+	router := NewRoutingTable(me, 160, 10)
 	for i := 0; i < 10000; i++ {
 		router.AddContact(NewRandomContact())
 	}
@@ -171,7 +173,7 @@ func TestRoutingTableDisplay(t *testing.T) {
 	testName := "TestRoutingTableDisplay"
 	verbose := false
 	if verbose {
-		rt := NewRoutingTable(RandomID(), KEYSPACE, KBUCKETVOLUME)
+		rt := NewRoutingTable(NewRandomContact(), KEYSPACE, KBUCKETVOLUME)
 		for range 10 {
 			rt.AddContact(NewRandomContact())
 		}

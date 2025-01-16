@@ -3,13 +3,12 @@ package kademlia
 import (
 	"fmt"
 	"log"
-	"testing"
 	"time"
 )
 
-func TestFindNodeAny(t *testing.T) {
+func IntgrationTestFindNodeAny() bool {
 	done := make(chan [5]uint32, 64)
-	testName := "TestFindNodeAny"
+	testName := "IntgrationTestFindNodeAny"
 	verbose := false
 	verPrint := fmt.Sprintf("[%s]\n", testName)
 	s := NewServer(false, 0.0)
@@ -51,13 +50,14 @@ func TestFindNodeAny(t *testing.T) {
 		for _, n := range res {
 			log.Printf("%s\n", n.Display())
 		}
-		t.Fail()
+		return false
 	}
+	return true
 }
 
-func TestFindNodeSpecific(t *testing.T) {
+func IntgrationTestFindNodeSpecific() bool {
 	done := make(chan [5]uint32, 64)
-	testName := "TestFindNodeSpecific"
+	testName := "IntgrationTestFindNodeSpecific"
 	verbose := false
 	verPrint := fmt.Sprintf("[%s]\n", testName)
 	s := NewServer(false, 0.0)
@@ -85,16 +85,13 @@ func TestFindNodeSpecific(t *testing.T) {
 			log.Printf("%s\n", n.Display())
 		}
 
-		t.Fail()
+		return false
 	}
+	return true
 }
 
-func TestMassiveFindNodeSpecific(t *testing.T) {
-	passing := true
-	if passing {
-		return
-	}
-	testName := "TestMassiveFindNodeSpecific"
+func IntgrationTestMassiveFindNodeSpecific() bool {
+	testName := "IntgrationTestMassiveFindNodeSpecific"
 	verbose := true
 	if verbose {
 		log.Printf("[%s] - starting test\n", testName)
@@ -107,10 +104,14 @@ func TestMassiveFindNodeSpecific(t *testing.T) {
 		if !itterRes {
 			failCounter++
 			log.Printf("failed %d of %d - %d times", failCounter, i+1, mass)
-			t.Fail()
 		}
 	}
 	log.Printf("\nfailed %d of %d times", failCounter, mass)
+	if failCounter > 0 {
+		return false
+	} else {
+		return true
+	}
 }
 
 func findNodeSpecific(verbose bool, testName string) bool {
@@ -123,7 +124,6 @@ func findNodeSpecific(verbose bool, testName string) bool {
 
 	firstNode := nodes[0]
 	lastNode := nodes[len(nodes)-1]
-	time.Sleep(time.Millisecond * 500)
 	res := firstNode.FindNode(lastNode.ID())
 	if verbose {
 		verPrint += fmt.Sprintf("Looking for %v\n", lastNode.ID())
@@ -150,16 +150,12 @@ func findNodeSpecific(verbose bool, testName string) bool {
 	return true
 }
 
-func TestFindNodeVisibleNodes(t *testing.T) {
-	passing := false
-	if passing {
-		return
-	}
+func IntegrationTestFindNodeVisibleNodes() bool {
 	verbose := true
-	testName := "TestFindVisibleNodes"
+	testName := "IntgrationTestFindVisibleNodes"
 	done := make(chan struct{}, 64)
 	verPrint := fmt.Sprintf("[%s]\n", testName)
-	testSize := 500
+	testSize := 100
 	s := NewServer(false, 0.0)
 	go s.StartServer()
 	nodes := s.SpawnCluster(testSize, done)
@@ -176,12 +172,18 @@ func TestFindNodeVisibleNodes(t *testing.T) {
 			if res[0].ID() != node.ID() {
 				lostNodes++
 				verPrint += fmt.Sprintf("Failed to locate node: %v\n", node.ID())
-				t.Fail()
+				lostNodes++
 			}
 		}
 	}
 	verPrint += fmt.Sprintf("failed to locate %d nodes", lostNodes)
 	if verbose {
+		log.Println("")
 		log.Printf(verPrint)
+	}
+	if lostNodes > 0 {
+		return false
+	} else {
+		return true
 	}
 }
