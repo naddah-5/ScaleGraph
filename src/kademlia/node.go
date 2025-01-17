@@ -2,24 +2,26 @@ package kademlia
 
 import (
 	"fmt"
+	"main/src/scalegraph"
 	"time"
 )
 
 const (
 	KEYSPACE      = 160 // the number of buckets
-	KBUCKETVOLUME = 20   // K, number of contacts per bucket
+	KBUCKETVOLUME = 20  // K, number of contacts per bucket
 	REPLICATION   = 10  // alpha
 	CONCURRENCY   = 10
 	PORT          = 8080
 	DEBUG         = true
 	POINT_DEBUG   = true
-	TIMEOUT       = 500 * time.Millisecond
+	TIMEOUT       = 50 * time.Millisecond
 )
 
 type Node struct {
 	Contact
 	Network
 	RoutingTable
+	scalegraph scalegraph.Scalegraph
 	controller chan RPC // the channel for internal network, new rpc's are to be sent here for handling
 	shutdown   chan struct{}
 	debug      bool
@@ -34,6 +36,7 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 		Contact:      me,
 		Network:      *net,
 		RoutingTable: *router,
+		scalegraph:   *scalegraph.NewVault(),
 		shutdown:     make(chan struct{}),
 		debug:        debug,
 	}
@@ -69,6 +72,11 @@ func (node *Node) Send(rpc RPC) (RPC, error) {
 func (node *Node) Debug(mode bool) {
 	node.debug = mode
 	node.Network.Debug(mode)
+}
+
+func (node *Node) AddAccount(id [5]uint32) error {
+
+	return nil
 }
 
 func (node *Node) Display() string {
