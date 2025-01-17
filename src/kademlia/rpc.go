@@ -8,11 +8,12 @@ const (
 	NO_CMD cmd = iota
 	PING
 	PONG
-	STORE_WALLET
 	ENTER
 	FIND_NODE
 	FOUND_NODES
-	FIND_WALLET
+	STORE_ACCOUNT
+	STORED_ACCOUNT
+	FIND_ACCOUNT
 	PROPOSE_TRANSACTION
 	ACCEPT_TRANSACTION
 	SEND
@@ -34,10 +35,12 @@ func (c cmd) String() string {
 		return "FIND_NODE"
 	case FOUND_NODES:
 		return "FOUND_NODES"
-	case STORE_WALLET:
-		return "STORE_WALLET"
-	case FIND_WALLET:
-		return "FIND_WALLET"
+	case STORE_ACCOUNT:
+		return "STORE_ACCOUNT"
+	case STORED_ACCOUNT:
+		return "STORED_ACCOUNT"
+	case FIND_ACCOUNT:
+		return "FIND_ACCOUNT"
 	}
 	return "unknown"
 }
@@ -50,6 +53,8 @@ type RPC struct {
 	receiver       [4]byte
 	findNodeTarget [5]uint32
 	foundNodes     []Contact
+	accountID      [5]uint32
+	storeAccSucc   bool
 }
 
 // Generate a fresh send RPC, for a response RPC use GenerateResponse instead.
@@ -100,6 +105,17 @@ func (rpc *RPC) FoundNodes(receiver [4]byte, target [5]uint32, nodes []Contact) 
 	rpc.receiver = receiver
 	rpc.findNodeTarget = target
 	rpc.foundNodes = nodes
+}
+
+func (rpc *RPC) StoreAccount(accID [5]uint32) {
+	rpc.cmd = STORE_ACCOUNT
+	rpc.accountID = accID
+}
+
+func (rpc *RPC) StoredAccount(accID [5]uint32, success bool) {
+	rpc.cmd = STORED_ACCOUNT
+	rpc.accountID = accID
+	rpc.storeAccSucc = success
 }
 
 func (rpc *RPC) Display() string {

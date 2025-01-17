@@ -6,22 +6,16 @@ import (
 	"time"
 )
 
-func IntgrationTestFindNodeAny() bool {
-	done := make(chan [5]uint32, 64)
-	testName := "IntgrationTestFindNodeAny"
+func IntegrationTestFindNodeAny() bool {
+	done := make(chan struct{}, 64)
+	testName := "IntegrationTestFindNodeAny"
 	verbose := false
 	verPrint := fmt.Sprintf("[%s]\n", testName)
 	s := NewServer(false, 0.0)
 	go s.StartServer()
-	var nodes []*Node
-	for i := 0; i < 5; i++ {
-		node := s.SpawnNode(done)
-		nodes = append(nodes, node)
-	}
-	for range nodes {
-		<-done
-	}
-	time.Sleep(time.Millisecond * 1000)
+	nodes := s.SpawnCluster(50, done)
+	<-done
+	time.Sleep(time.Millisecond * 50)
 	firstNode := nodes[0]
 	lastNode := nodes[len(nodes)-1]
 	if verbose {
@@ -55,21 +49,15 @@ func IntgrationTestFindNodeAny() bool {
 	return true
 }
 
-func IntgrationTestFindNodeSpecific() bool {
-	done := make(chan [5]uint32, 64)
-	testName := "IntgrationTestFindNodeSpecific"
+func IntegrationTestFindNodeSpecific() bool {
+	done := make(chan struct{}, 64)
+	testName := "IntegrationTestFindNodeSpecific"
 	verbose := false
 	verPrint := fmt.Sprintf("[%s]\n", testName)
 	s := NewServer(false, 0.0)
 	go s.StartServer()
-	var nodes []*Node
-	for range 50 {
-		node := s.SpawnNode(done)
-		nodes = append(nodes, node)
-	}
-	for range nodes {
-		<-done
-	}
+	nodes := s.SpawnCluster(50, done)
+	<-done
 	firstNode := nodes[0]
 	lastNode := nodes[len(nodes)-1]
 	time.Sleep(time.Second * 1)
@@ -90,8 +78,8 @@ func IntgrationTestFindNodeSpecific() bool {
 	return true
 }
 
-func IntgrationTestMassiveFindNodeSpecific() bool {
-	testName := "IntgrationTestMassiveFindNodeSpecific"
+func IntegrationTestMassiveFindNodeSpecific() bool {
+	testName := "IntegrationTestMassiveFindNodeSpecific"
 	verbose := true
 	if verbose {
 		log.Printf("[%s] - starting test\n", testName)
@@ -152,7 +140,7 @@ func findNodeSpecific(verbose bool, testName string) bool {
 
 func IntegrationTestFindNodeVisibleNodes() bool {
 	verbose := true
-	testName := "IntgrationTestFindVisibleNodes"
+	testName := "IntegrationTestFindVisibleNodes"
 	done := make(chan struct{}, 64)
 	verPrint := fmt.Sprintf("[%s]\n", testName)
 	testSize := 100
@@ -186,4 +174,23 @@ func IntegrationTestFindNodeVisibleNodes() bool {
 	} else {
 		return true
 	}
+}
+
+func IntegrationTestStoreAndFindAccount() bool {
+	verbose := true
+	testName := "IntegrationTestFindVisibleNodes"
+	done := make(chan struct{}, 64)
+	verPrint := fmt.Sprintf("[%s]\n", testName)
+	testSize := 100
+	s := NewServer(false, 0.0)
+	go s.StartServer()
+	nodes := s.SpawnCluster(testSize, done)
+	<-done
+
+	if verbose {
+	verPrint += fmt.Sprintf("%s, %v", testName, nodes[0].ID())
+	}
+	time.Sleep(time.Millisecond * 100)
+
+	return true
 }

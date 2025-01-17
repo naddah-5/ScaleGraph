@@ -14,7 +14,7 @@ const (
 	PORT          = 8080
 	DEBUG         = true
 	POINT_DEBUG   = true
-	TIMEOUT       = 50 * time.Millisecond
+	TIMEOUT       = 100 * time.Millisecond
 )
 
 type Node struct {
@@ -75,7 +75,10 @@ func (node *Node) Debug(mode bool) {
 }
 
 func (node *Node) AddAccount(id [5]uint32) error {
-
+	err := node.scalegraph.AddAccount(id)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -84,3 +87,4 @@ func (node *Node) Display() string {
 	res += node.RoutingTable.Display()
 	return res
 }
+

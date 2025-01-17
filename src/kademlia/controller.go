@@ -12,7 +12,7 @@ func (node *Node) Handler(rpc RPC) {
 	switch rpc.cmd {
 	case PING:
 		node.handlePing(rpc)
-	case STORE_WALLET:
+	case STORE_ACCOUNT:
 		node.handleStoreWallet(rpc)
 	case FIND_NODE:
 		node.handleFindNode(rpc)

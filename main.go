@@ -7,10 +7,11 @@ import (
 )
 
 func main() {
-	res := kademlia.IntegrationTestFindNodeVisibleNodes()
+	res := kademlia.IntegrationTestFindNodeSpecific()
 	if !res {
 		log.Println("[TESTING FAILED]")
 	}
+	return
 }
 
 func script() {
@@ -26,8 +27,6 @@ func script() {
 	nodes = append(nodes, s.SpawnNode(done))
 	debugNode := nodes[len(nodes)-1]
 	debugNode.Debug(true)
-	// debugNode := masterNode
-	// time.Sleep(time.Millisecond * 15000)
 	for i := range nodes {
 		cID := <-done
 		log.Printf("%v finished, %d channels done", cID, i+1)

@@ -124,3 +124,9 @@ func (node *Node) nodeQuery(rpc RPC, respChan chan []Contact) {
 	return
 
 }
+
+func (node *Node) FindAccount(accID [5]uint32) []Contact {
+	closeNodes := node.FindNode(accID)
+	
+	return closeNodes
+}
