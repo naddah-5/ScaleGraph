@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	res := kademlia.IntegrationTestFindNodeSpecific()
+	res := kademlia.IntegrationTestStoreAndFindAccount()
 	if !res {
 		log.Println("[TESTING FAILED]")
 	}

@@ -14,6 +14,7 @@ const (
 	STORE_ACCOUNT
 	STORED_ACCOUNT
 	FIND_ACCOUNT
+	FOUND_ACCOUNT
 	PROPOSE_TRANSACTION
 	ACCEPT_TRANSACTION
 	SEND
@@ -41,26 +42,30 @@ func (c cmd) String() string {
 		return "STORED_ACCOUNT"
 	case FIND_ACCOUNT:
 		return "FIND_ACCOUNT"
+	case FOUND_ACCOUNT:
+		return "FOUND_ACCOUNT"
 	}
 	return "unknown"
 }
 
 type RPC struct {
-	id             [5]uint32
-	cmd            cmd
-	response       bool
-	sender         Contact
-	receiver       [4]byte
-	findNodeTarget [5]uint32
-	foundNodes     []Contact
-	accountID      [5]uint32
-	storeAccSucc   bool
+	id              [5]uint32
+	cmd             cmd
+	response        bool
+	sender          Contact
+	receiver        [4]byte
+	findNodeTarget  [5]uint32
+	foundNodes      []Contact
+	accountID       [5]uint32
+	storeAccSucc    bool
+	findAccountSucc bool
 }
 
 // Generate a fresh send RPC, for a response RPC use GenerateResponse instead.
-func GenerateRPC(sender Contact) RPC {
+func GenerateRPC(receiver [4]byte, sender Contact) RPC {
 	rpc := RPC{
 		id:       RandomID(),
+		receiver: receiver,
 		response: false,
 		sender:   sender,
 	}
@@ -68,9 +73,10 @@ func GenerateRPC(sender Contact) RPC {
 }
 
 // Generates a fresh response RPC.
-func GenerateResponse(id [5]uint32, sender Contact) RPC {
+func GenerateResponse(id [5]uint32, receiver [4]byte, sender Contact) RPC {
 	rpc := RPC{
 		id:       id,
+		receiver: receiver,
 		response: true,
 		sender:   sender,
 	}
@@ -78,31 +84,26 @@ func GenerateResponse(id [5]uint32, sender Contact) RPC {
 }
 
 // Set a RPC as a ping.
-func (rpc *RPC) Ping(receiver [4]byte) {
+func (rpc *RPC) Ping() {
 	rpc.cmd = PING
-	rpc.receiver = receiver
 }
 
-func (rpc *RPC) Pong(receiver [4]byte) {
+func (rpc *RPC) Pong() {
 	rpc.cmd = PONG
-	rpc.receiver = receiver
 }
 
 // Used to get a random existing node in the network from the simulated network.
-func (rpc *RPC) Enter(ip [4]byte) {
+func (rpc *RPC) Enter() {
 	rpc.cmd = ENTER
-	rpc.receiver = ip
 }
 
-func (rpc *RPC) FindNode(receiver [4]byte, targetNode [5]uint32) {
+func (rpc *RPC) FindNode(targetNode [5]uint32) {
 	rpc.cmd = FIND_NODE
-	rpc.receiver = receiver
 	rpc.findNodeTarget = targetNode
 }
 
-func (rpc *RPC) FoundNodes(receiver [4]byte, target [5]uint32, nodes []Contact) {
+func (rpc *RPC) FoundNodes(target [5]uint32, nodes []Contact) {
 	rpc.cmd = FOUND_NODES
-	rpc.receiver = receiver
 	rpc.findNodeTarget = target
 	rpc.foundNodes = nodes
 }
@@ -116,6 +117,17 @@ func (rpc *RPC) StoredAccount(accID [5]uint32, success bool) {
 	rpc.cmd = STORED_ACCOUNT
 	rpc.accountID = accID
 	rpc.storeAccSucc = success
+}
+
+func (rpc *RPC) FindAccount(accID [5]uint32) {
+	rpc.cmd = FIND_ACCOUNT
+	rpc.accountID = accID
+}
+
+func (rpc *RPC) FoundAccount(accID [5]uint32, success bool) {
+	rpc.cmd = FOUND_ACCOUNT
+	rpc.accountID = accID
+	rpc.findAccountSucc = success
 }
 
 func (rpc *RPC) Display() string {

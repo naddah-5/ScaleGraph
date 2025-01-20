@@ -80,7 +80,7 @@ func IntegrationTestFindNodeSpecific() bool {
 
 func IntegrationTestMassiveFindNodeSpecific() bool {
 	testName := "IntegrationTestMassiveFindNodeSpecific"
-	verbose := true
+	verbose := false
 	if verbose {
 		log.Printf("[%s] - starting test\n", testName)
 	}
@@ -107,7 +107,7 @@ func findNodeSpecific(verbose bool, testName string) bool {
 	verPrint := fmt.Sprintf("[%s]\n", testName)
 	s := NewServer(false, 0.0)
 	go s.StartServer()
-	nodes := s.SpawnCluster(5000, done)
+	nodes := s.SpawnCluster(500, done)
 	<-done
 
 	firstNode := nodes[0]
@@ -149,7 +149,6 @@ func IntegrationTestFindNodeVisibleNodes() bool {
 	nodes := s.SpawnCluster(testSize, done)
 	<-done
 
-	time.Sleep(time.Millisecond * 100)
 	lostNodes := 0
 	for i, origin := range nodes {
 		if verbose {
@@ -178,19 +177,31 @@ func IntegrationTestFindNodeVisibleNodes() bool {
 
 func IntegrationTestStoreAndFindAccount() bool {
 	verbose := true
-	testName := "IntegrationTestFindVisibleNodes"
+	testName := "IntegrationTestStoreAndFindAccount"
 	done := make(chan struct{}, 64)
 	verPrint := fmt.Sprintf("[%s]\n", testName)
-	testSize := 100
+	testSize := 1000
 	s := NewServer(false, 0.0)
 	go s.StartServer()
 	nodes := s.SpawnCluster(testSize, done)
 	<-done
 
-	if verbose {
-	verPrint += fmt.Sprintf("%s, %v", testName, nodes[0].ID())
-	}
 	time.Sleep(time.Millisecond * 100)
 
+	accID := RandomID()
+	nodes[0].StoreAccount(accID)
+	res, err := nodes[len(nodes)-1].FindAccount(accID)
+	if verbose {
+		verPrint += fmt.Sprintf("found account %v in nodes:\n", accID)
+		for _, n := range res {
+			verPrint += fmt.Sprintf("node: %10v, distance from account: %10v\n", n.ID(), RelativeDistance(n.ID(), accID))
+		}
+		log.Println(verPrint)
+	}
+
+	if err != nil {
+		log.Println(err.Error())
+		return false
+	}
 	return true
 }

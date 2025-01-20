@@ -46,7 +46,7 @@ func NewServer(debugMode bool, dropPercent float32) *Simnet {
 			ip:    make(map[[4]byte]bool),
 			nodes: make([]Contact, 0),
 		},
-		listener:    make(chan RPC, 512),
+		listener:    make(chan RPC, 2048),
 		serverID:    [5]uint32{0, 0, 0, 0, 0},
 		serverIP:    [4]byte{0, 0, 0, 0},
 		dropPercent: dropPercent,

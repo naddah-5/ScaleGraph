@@ -142,8 +142,10 @@ func (net *Network) route(node *Node, rpc RPC) {
 	if rpc.response {
 		respChan, err := net.RetrieveChan(rpc.id)
 		if err != nil {
-			errMSg := fmt.Sprintf("[ERROR] - possible time out\n error: %s", err.Error())
-			log.Println(errMSg)
+			if node.debug {
+				errMSg := fmt.Sprintf("[ERROR] - possible time out\n error: %s", err.Error())
+				log.Println(errMSg)
+			}
 			return
 		}
 		go net.DropChan(rpc.id)

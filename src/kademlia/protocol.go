@@ -1,6 +1,7 @@
 package kademlia
 
 import (
+	"errors"
 	"fmt"
 	"log"
 )
@@ -10,8 +11,8 @@ import (
 // Critical in order to reduce the risk of dead networks on start up.
 // A dead network occurs when one or more nodes know of the network but is not known of by the network.
 func (node *Node) Enter() {
-	rpc := GenerateRPC(node.Contact)
-	rpc.Enter(node.ip)
+	rpc := GenerateRPC(node.IP(), node.Contact)
+	rpc.Enter()
 	res, err := node.Send(rpc)
 	if err != nil {
 		log.Printf("%v - {ENTER} did not receive entry point", node.ID())
@@ -35,8 +36,8 @@ func (node *Node) Enter() {
 
 // Logic for sending a ping RPC.
 func (node *Node) Ping(address [4]byte) {
-	rpc := GenerateRPC(node.Contact)
-	rpc.Ping(address)
+	rpc := GenerateRPC(address, node.Contact)
+	rpc.Ping()
 	res, err := node.Send(rpc)
 	if err != nil {
 		if node.debug {
@@ -59,9 +60,9 @@ func (node *Node) findNodeLoop(prevContactList []Contact, target [5]uint32) []Co
 	for {
 		// Launch parallel queries to initial nodes.
 		for _, n := range prevContactList {
-			rpc := GenerateRPC(node.Contact)
-			rpc.FindNode(n.IP(), target)
-			go node.nodeQuery(rpc, respChan)
+			rpc := GenerateRPC(n.IP(), node.Contact)
+			rpc.FindNode(target)
+			go node.findNodeQuery(rpc, respChan)
 		}
 
 		// Extract results from parallel query.
@@ -108,7 +109,7 @@ func (node *Node) findNodeLoop(prevContactList []Contact, target [5]uint32) []Co
 // Sends the given RPC and returns the reponse to the provided channel.
 // If the RPC times out or returns an error, returns an empty contact.
 // NOTE that you must assert the type of the result from respChan.
-func (node *Node) nodeQuery(rpc RPC, respChan chan []Contact) {
+func (node *Node) findNodeQuery(rpc RPC, respChan chan []Contact) {
 	resp, err := node.Send(rpc)
 	if err != nil {
 		if node.debug {
@@ -125,8 +126,42 @@ func (node *Node) nodeQuery(rpc RPC, respChan chan []Contact) {
 
 }
 
-func (node *Node) FindAccount(accID [5]uint32) []Contact {
+func (node *Node) StoreAccount(accID [5]uint32) {
+	validators := node.FindNode(accID)
+	for _, n := range validators {
+		rpc := GenerateRPC(n.IP(), node.Contact)
+		rpc.StoreAccount(accID)
+	}
+}
+
+func (node *Node) FindAccount(accID [5]uint32) ([]Contact, error) {
 	closeNodes := node.FindNode(accID)
-	
-	return closeNodes
+	respChan := make(chan bool, REPLICATION)
+	for _, n := range closeNodes {
+		node.findAccountQuery(n.IP(), respChan, accID)
+	}
+	foundAccountNodes := 0
+	for range len(closeNodes) {
+		_, ok := <-respChan
+		if !ok {
+			continue
+		} else {
+			foundAccountNodes++
+		}
+	}
+	if foundAccountNodes == REPLICATION {
+		return closeNodes, nil
+	} else {
+		return closeNodes, errors.New(fmt.Sprintf("Failed to locate all nodes containing account: %v", accID))
+	}
+}
+
+func (node *Node) findAccountQuery(target [4]byte, respChan chan bool, accID [5]uint32) {
+	rpc := GenerateRPC(target, node.Contact)
+	rpc.FindAccount(accID)
+	res, err := node.Send(rpc)
+	if err == nil {
+		respChan <- res.findAccountSucc
+	}
+	respChan <- false
 }
