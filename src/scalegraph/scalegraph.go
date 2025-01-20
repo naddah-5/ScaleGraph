@@ -13,10 +13,10 @@ type Scalegraph struct {
 }
 
 func NewVault() *Scalegraph {
-	vaul := Scalegraph{
+	scale := Scalegraph{
 		content: make(map[[5]uint32]bool),
 	}
-	return &vaul
+	return &scale
 }
 
 func (scale *Scalegraph) AddAccount(id [5]uint32) error {

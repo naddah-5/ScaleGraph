@@ -198,10 +198,31 @@ func IntegrationTestStoreAndFindAccount() bool {
 		}
 		log.Println(verPrint)
 	}
-
 	if err != nil {
 		log.Println(err.Error())
 		return false
 	}
+
+	nodeCon := make([]Contact, len(nodes))
+	for _, n := range nodes {
+		nodeCon = append(nodeCon, n.Contact)
+	}
+	SortContactsByDistance(&nodeCon, accID)
+	valPrint := fmt.Sprintf("the %d closest nodes to account %v in test:\n", REPLICATION, accID)
+	for i := range REPLICATION {
+		valPrint += fmt.Sprintf("node: %10v, distance from account: %10v\n", nodeCon[i].ID(), RelativeDistance(nodeCon[i].ID(), accID))
+	}
+	log.Println(valPrint)
+
+	matches := "matching nodes\n"
+	for i, n := range res {
+		if n.ID() != nodeCon[i].ID() {
+			matches += fmt.Sprintf("nodes at index %d do not match\n", i)
+		} else {
+			matches += fmt.Sprintf("nodes at index %d match\n", i)
+		}
+	}
+	log.Println(matches)
+
 	return true
 }

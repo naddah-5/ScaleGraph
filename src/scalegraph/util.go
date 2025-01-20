@@ -26,3 +26,9 @@ func RandomID() [5]uint32 {
 	}
 	return res
 }
+
+func Hash(data string) []byte {
+	var hash []byte
+
+	return hash
+}
