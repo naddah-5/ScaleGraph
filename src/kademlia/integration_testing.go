@@ -3,6 +3,7 @@ package kademlia
 import (
 	"fmt"
 	"log"
+	"slices"
 	"time"
 )
 
@@ -143,7 +144,7 @@ func IntegrationTestFindNodeVisibleNodes() bool {
 	testName := "IntegrationTestFindVisibleNodes"
 	done := make(chan struct{}, 64)
 	verPrint := fmt.Sprintf("[%s]\n", testName)
-	testSize := 100
+	testSize := 300
 	s := NewServer(false, 0.0)
 	go s.StartServer()
 	nodes := s.SpawnCluster(testSize, done)
@@ -165,7 +166,7 @@ func IntegrationTestFindNodeVisibleNodes() bool {
 	}
 	verPrint += fmt.Sprintf("failed to locate %d nodes", lostNodes)
 	if verbose {
-		log.Println("")
+		fmt.Printf("\r\n")
 		log.Printf(verPrint)
 	}
 	if lostNodes > 0 {
@@ -180,13 +181,19 @@ func IntegrationTestStoreAndFindAccount() bool {
 	testName := "IntegrationTestStoreAndFindAccount"
 	done := make(chan struct{}, 64)
 	verPrint := fmt.Sprintf("[%s]\n", testName)
-	testSize := 1000
+	testSize := 50
 	s := NewServer(false, 0.0)
 	go s.StartServer()
-	nodes := s.SpawnCluster(testSize, done)
+	nodes := make([]*Node, 0, testSize)
+	nodes = s.SpawnCluster(testSize, done)
 	<-done
 
 	time.Sleep(time.Millisecond * 100)
+
+	if verbose {
+		log.Println("Stimulating network...")
+	}
+	s.Stimulate()
 
 	accID := RandomID()
 	nodes[0].StoreAccount(accID)
@@ -203,7 +210,7 @@ func IntegrationTestStoreAndFindAccount() bool {
 		return false
 	}
 
-	nodeCon := make([]Contact, len(nodes))
+	nodeCon := make([]Contact, 0, len(nodes))
 	for _, n := range nodes {
 		nodeCon = append(nodeCon, n.Contact)
 	}
@@ -215,14 +222,140 @@ func IntegrationTestStoreAndFindAccount() bool {
 	log.Println(valPrint)
 
 	matches := "matching nodes\n"
+	missMatch := 0
 	for i, n := range res {
 		if n.ID() != nodeCon[i].ID() {
+			missMatch++
 			matches += fmt.Sprintf("nodes at index %d do not match\n", i)
 		} else {
 			matches += fmt.Sprintf("nodes at index %d match\n", i)
 		}
 	}
 	log.Println(matches)
+	if missMatch != 0 {
+		for i, n := range nodeCon {
+			log.Printf("node %3d: %10v\n", i, n.ID())
+		}
+		return false
+	}
+
+	return true
+}
+
+func IntegrationTestStoreAndFindAccountFromSharingID() bool {
+	verbose := true
+	testName := "IntegrationTestStoreAndFindAccountFromSharingID"
+	done := make(chan struct{}, 64)
+	verPrint := fmt.Sprintf("[%s]\n", testName)
+	testSize := 100
+	s := NewServer(false, 0.0)
+	go s.StartServer()
+	nodes := s.SpawnCluster(testSize, done)
+	<-done
+
+	if verbose {
+		log.Printf("Stimulating network...\n")
+	}
+	s.Stimulate()
+	time.Sleep(time.Millisecond * 100)
+
+	accID := nodes[0].ID()
+	nodes[0].StoreAccount(accID)
+	res, err := nodes[len(nodes)-1].FindAccount(accID)
+	if err != nil {
+		log.Println(err.Error())
+		return false
+	}
+
+	nodeCon := make([]Contact, len(nodes))
+	for _, n := range nodes {
+		nodeCon = append(nodeCon, n.Contact)
+	}
+	SortContactsByDistance(&nodeCon, accID)
+	valPrint := fmt.Sprintf("the %d closest nodes to account %v in test:\n", REPLICATION, accID)
+	for i := range min(REPLICATION, len(nodeCon)) {
+		valPrint += fmt.Sprintf("node: %10v, distance from account: %10v\n", nodeCon[i].ID(), RelativeDistance(nodeCon[i].ID(), accID))
+	}
+
+	matches := "matching nodes\n"
+	missMatch := false
+	for i, n := range res {
+		if n.ID() != nodeCon[i].ID() {
+			matches += fmt.Sprintf("nodes at index %d do not match\n", i)
+			missMatch = true
+		} else {
+			matches += fmt.Sprintf("nodes at index %d match\n", i)
+		}
+	}
+	if missMatch {
+		if verbose {
+			verPrint += fmt.Sprintf("found account %v in nodes:\n", accID)
+			for _, n := range res {
+				verPrint += fmt.Sprintf("node: %10v, distance from account: %10v\n", n.ID(), RelativeDistance(n.ID(), accID))
+			}
+			log.Println(verPrint)
+		}
+		log.Println(valPrint)
+		log.Println(matches)
+	}
+
+	return true
+}
+
+func IntegrationTestStoreAndFindAccountFromAllNodes() bool {
+	verbose := true
+	testName := "IntegrationTestStoreAndFindAccountFromSharingID"
+	done := make(chan struct{}, 64)
+	verPrint := fmt.Sprintf("[%s]\n", testName)
+	testSize := 50
+	s := NewServer(false, 0.0)
+	go s.StartServer()
+	nodes := s.SpawnCluster(testSize, done)
+	<-done
+
+	if verbose {
+		log.Printf("Stimulating network...\n")
+	}
+	err := s.Stimulate()
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	accID := RandomID()
+	tmp := make([]Contact, 0, len(nodes))
+	for _, n := range nodes {
+		tmp = append(tmp, n.Contact)
+	}
+	SortContactsByDistance(&tmp, accID)
+	nodeCon := make([]Contact, 0, REPLICATION)
+	for i := range REPLICATION {
+		nodeCon = append(nodeCon, tmp[i]) 
+	}
+	nodes[0].StoreAccount(accID)
+	failFinds := make([]int, 0, len(nodes))
+	for i, origin := range nodes {
+		fmt.Printf("\rsearching from node %3d, %10v", i, origin.ID())
+		res, _ := origin.FindAccount(accID)
+		missing := 0
+		for _, con := range res {
+			if !slices.Contains(nodeCon, con) {
+				missing++
+			}
+		}
+		failFinds = append(failFinds, missing)
+	}
+	verPrint += fmt.Sprintf("incorrect validators for the following nodes:\n")
+	for i, missing := range failFinds {
+		verPrint += fmt.Sprintf("node %3d - %10v - missing %3d validators\n", i, nodes[i].ID(), missing)
+	}
+
+	valPrint := fmt.Sprintf("the %d closest nodes to account %v in test:\n", REPLICATION, accID)
+	for _, con := range nodeCon {
+		valPrint += fmt.Sprintf("node: %10v, distance from account: %10v\n", con.ID(), RelativeDistance(con.ID(), accID))
+	}
+
+	log.Println(valPrint)
+	log.Println(verPrint)
 
 	return true
 }

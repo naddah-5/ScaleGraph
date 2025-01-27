@@ -111,3 +111,11 @@ func (rt *RoutingTable) Display() string {
 	}
 	return res
 }
+
+func (rt *RoutingTable) AllContacts() []Contact {
+	res := make([]Contact, 0, 64)
+	for _, bucket := range rt.table {
+		res = append(res, bucket.DumpBucket()...)
+	}
+	return res
+}

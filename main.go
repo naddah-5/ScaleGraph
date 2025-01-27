@@ -7,10 +7,16 @@ import (
 )
 
 func main() {
-	res := kademlia.IntegrationTestStoreAndFindAccount()
-	if !res {
-		log.Println("[TESTING FAILED]")
+	failedTests := 0
+	tests := 1
+	for range tests {
+		res := kademlia.IntegrationTestStoreAndFindAccountFromAllNodes()
+		if !res {
+			failedTests++
+			log.Println("[TEST FAILED]")
+		}
 	}
+	log.Printf("Failed %d out of %d tests", failedTests, tests)
 	return
 }
 

@@ -106,3 +106,11 @@ func (bucket *Bucket) Display() string {
 	}
 	return res
 }
+
+func (bucket *Bucket) DumpBucket() []Contact {
+	bucket.Lock()
+	defer bucket.Unlock()
+	con := make([]Contact, 0, KBUCKETVOLUME)
+	con = append(con, bucket.content...)
+	return con
+}

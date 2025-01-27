@@ -64,7 +64,7 @@ func (node *Node) Send(rpc RPC) (RPC, error) {
 		}
 		return res, err
 	} else {
-		go node.AddContact(res.sender)
+		node.AddContact(res.sender)
 		return res, nil
 	}
 }
@@ -80,6 +80,14 @@ func (node *Node) AddAccount(id [5]uint32) error {
 		return err
 	}
 	return nil
+}
+
+func (node *Node) ClearDeadContacts() {
+	contacts := node.RoutingTable.AllContacts()
+	for _, con := range contacts {
+		go node.Ping(con.IP())
+	}
+	time.Sleep(TIMEOUT)
 }
 
 func (node *Node) Display() string {

@@ -35,7 +35,7 @@ func (node *Node) Enter() {
 }
 
 // Logic for sending a ping RPC.
-func (node *Node) Ping(address [4]byte) {
+func (node *Node) Ping(address [4]byte) bool {
 	rpc := GenerateRPC(address, node.Contact)
 	rpc.Ping()
 	res, err := node.Send(rpc)
@@ -43,8 +43,11 @@ func (node *Node) Ping(address [4]byte) {
 		if node.debug {
 			log.Printf("%v - [ERROR] RPC %v %s", node.ID(), rpc.id, err.Error())
 		}
+		return false
+	} else {
+		node.AddContact(res.sender)
+		return true
 	}
-	node.AddContact(res.sender)
 }
 
 func (node *Node) FindNode(target [5]uint32) []Contact {
@@ -92,12 +95,24 @@ func (node *Node) findNodeLoop(prevContactList []Contact, target [5]uint32) []Co
 			log.Printf(pRes)
 		}
 
+		// If none of the new contacts are closer to the target than in the previous itteration
+		// return the previous itterations contact list.
 		if len(contactList) > 0 && len(prevContactList) > 0 {
-			closer := CloserNode(contactList[0].ID(), prevContactList[0].ID(), target)
-			if !closer {
-				return contactList
+			sameDist := 0
+			for i := range contactList {
+				if i == len(prevContactList) {
+					break
+				}
+				closer := CloserNode(contactList[i].ID(), prevContactList[i].ID(), target)
+				if !closer {
+					sameDist++
+				}
+			}
+			if len(contactList) == sameDist {
+				return prevContactList
 			}
 		} else if len(contactList) == 0 {
+			// If there are no new contacts in the new contact list, return the previous contact list.
 			return prevContactList
 		}
 		prevContactList = nil
@@ -126,8 +141,11 @@ func (node *Node) findNodeQuery(rpc RPC, respChan chan []Contact) {
 
 }
 
+// Searches for the closest nodes to the account and sends a store account RPC to them.
 func (node *Node) StoreAccount(accID [5]uint32) {
 	validators := node.FindNode(accID)
+	// validators = append(validators, node.Contact)
+	// SortContactsByDistance(&validators, accID)
 	for _, n := range validators {
 		rpc := GenerateRPC(n.IP(), node.Contact)
 		rpc.StoreAccount(accID)

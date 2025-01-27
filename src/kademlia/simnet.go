@@ -1,6 +1,7 @@
 package kademlia
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -11,9 +12,10 @@ import (
 
 // Record and all active IDs and IPs as well as pairwise connections.
 type spawned struct {
-	id    map[[5]uint32]bool
-	ip    map[[4]byte]bool
-	nodes []Contact
+	id          map[[5]uint32]bool
+	ip          map[[4]byte]bool
+	nodes       []Contact
+	nodePointer []*Node
 	sync.RWMutex
 }
 
@@ -56,6 +58,7 @@ func NewServer(debugMode bool, dropPercent float32) *Simnet {
 	// Generate master node and attach it to the server.
 	s.masterNode = s.GenerateRandomNode()
 	s.masterNodeContact = NewContact(s.masterNode.ip, s.masterNode.id)
+	s.spawned.nodePointer = append(s.spawned.nodePointer, s.masterNode)
 	// looks stupid but the master node should know that it is in fact the master node.
 	s.masterNode.masterNode = s.masterNodeContact
 
@@ -97,6 +100,10 @@ func (simnet *Simnet) ShutdownNode(node *Node) {
 	i := slices.Index(simnet.spawned.nodes, node.Contact)
 	if i != -1 {
 		simnet.spawned.nodes = slices.Delete(simnet.spawned.nodes, i, i+1)
+	}
+	p := slices.Index(simnet.spawned.nodePointer, node)
+	if p != -1 {
+		simnet.spawned.nodePointer = slices.Delete(simnet.spawned.nodePointer, p, p+1)
 	}
 	node.shutdown <- struct{}{}
 }
@@ -145,8 +152,47 @@ func (simnet *Simnet) SpawnCluster(size int, done chan struct{}) []*Node {
 		missingNodes = size - len(nodes)
 		log.Printf("Launching cluster: missing %d nodes", missingNodes)
 	}
+	if len(nodes) != size {
+		panic("spawned cluster of incorrect size!")
+	}
 	done <- struct{}{}
 	return nodes
+}
+
+func (simnet *Simnet) Stimulate() error {
+	simnet.spawned.Lock()
+	nodes := make([]*Node, 0, len(simnet.nodePointer))
+	nodes = append(nodes, simnet.nodePointer...)
+	simnet.spawned.Unlock()
+
+	for _, origin := range nodes {
+		origin.ClearDeadContacts()
+	}
+	time.Sleep(TIMEOUT)
+
+	lostNodes := 0
+	for _, origin := range nodes {
+		for _, target := range nodes {
+			res := origin.FindNode(target.ID())
+			if res[0].ID() != target.ID() {
+				lostNodes++
+			}
+		}
+	}
+	if lostNodes != 0 {
+		return errors.New(fmt.Sprintf("Failed to locate %d nodes", lostNodes))
+	} else {
+		return nil
+	}
+}
+
+func (simnet *Simnet) AllNodePointers() []*Node {
+	simnet.spawned.Lock()
+	defer simnet.spawned.Unlock()
+
+	res := make([]*Node, 0, len(simnet.spawned.nodePointer))
+	res = append(res, simnet.spawned.nodePointer...)
+	return res
 }
 
 // Generates a new node with random values attaches it to the server and returns a pointer to it.
@@ -180,6 +226,7 @@ func (simnet *Simnet) GenerateRandomNode() *Node {
 	nodeReceiver := make(chan RPC, 128)
 	simnet.chanTable.content[ip] = nodeReceiver
 	newNode := NewNode(id, ip, nodeReceiver, simnet.listener, simnet.serverIP, simnet.MasterNode(), false)
+	simnet.nodePointer = append(simnet.nodePointer, newNode)
 	return newNode
 }
 
