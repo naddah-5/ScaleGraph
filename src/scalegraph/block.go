@@ -1,22 +1,35 @@
 package scalegraph
 
+import "fmt"
+
 type Block struct {
-	Transaction
 	id     [5]uint32
 	prevID [5]uint32
+	*Transaction
 }
 
-func FirstBlock() *Block {
+func FirstBlock(id [5]uint32, trx *Transaction) *Block {
 	block := Block{
-		id: RandomID(),
+		id:          id,
+		prevID:      [5]uint32{0, 0, 0, 0, 0},
+		Transaction: trx,
 	}
 	return &block
 }
 
-func (block *Block) NewBlock(trx *Transaction) *Block {
+func (block *Block) NewBlock(id [5]uint32, trx *Transaction) *Block {
 	b := Block{
-		id:     RandomID(),
-		prevID: block.id,
+		id:          id,
+		prevID:      block.id,
+		Transaction: trx,
 	}
 	return &b
+}
+
+func (block *Block) Display() string {
+	disp := ""
+	disp += fmt.Sprintf("block id: %10v\nprevious block id: %10v\n", block.id, block.prevID)
+	disp += fmt.Sprintf(block.Transaction.Display())
+
+	return disp
 }

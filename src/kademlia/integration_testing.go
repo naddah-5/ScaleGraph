@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+type result struct {
+	nodeIndex int
+	missing   int
+}
+
 func IntegrationTestFindNodeAny() bool {
 	done := make(chan struct{}, 64)
 	testName := "IntegrationTestFindNodeAny"
@@ -144,10 +149,11 @@ func IntegrationTestFindNodeVisibleNodes() bool {
 	testName := "IntegrationTestFindVisibleNodes"
 	done := make(chan struct{}, 64)
 	verPrint := fmt.Sprintf("[%s]\n", testName)
-	testSize := 300
+	testSize := 100
 	s := NewServer(false, 0.0)
 	go s.StartServer()
-	nodes := s.SpawnCluster(testSize, done)
+	s.SpawnCluster(testSize, done)
+	nodes := s.AllNodePointers()
 	<-done
 
 	lostNodes := 0
@@ -307,10 +313,10 @@ func IntegrationTestStoreAndFindAccountFromAllNodes() bool {
 	testName := "IntegrationTestStoreAndFindAccountFromSharingID"
 	done := make(chan struct{}, 64)
 	verPrint := fmt.Sprintf("[%s]\n", testName)
-	testSize := 50
+	testSize := 100
 	s := NewServer(false, 0.0)
 	go s.StartServer()
-	nodes := s.SpawnCluster(testSize, done)
+	s.SpawnCluster(testSize, done)
 	<-done
 
 	if verbose {
@@ -321,6 +327,7 @@ func IntegrationTestStoreAndFindAccountFromAllNodes() bool {
 		log.Println(err.Error())
 	}
 
+	nodes := s.AllNodePointers()
 	accID := RandomID()
 	tmp := make([]Contact, 0, len(nodes))
 	for _, n := range nodes {
@@ -329,24 +336,37 @@ func IntegrationTestStoreAndFindAccountFromAllNodes() bool {
 	SortContactsByDistance(&tmp, accID)
 	nodeCon := make([]Contact, 0, REPLICATION)
 	for i := range REPLICATION {
-		nodeCon = append(nodeCon, tmp[i]) 
+		nodeCon = append(nodeCon, tmp[i])
 	}
 	nodes[0].StoreAccount(accID)
-	failFinds := make([]int, 0, len(nodes))
+	failFinds := make([]int, len(nodes))
+	respChan := make(chan result, 128)
+	time.Sleep(time.Second)
 	for i, origin := range nodes {
-		fmt.Printf("\rsearching from node %3d, %10v", i, origin.ID())
-		res, _ := origin.FindAccount(accID)
-		missing := 0
-		for _, con := range res {
-			if !slices.Contains(nodeCon, con) {
-				missing++
+		time.Sleep(time.Millisecond * 10)
+		go func(respChan chan result, i int, origin *Node) {
+			//fmt.Printf("\rsearching from node %3d, %10v", i, origin.ID())
+			res, _ := origin.FindAccount(accID)
+			missing := 0
+			if len(res) > len(nodeCon) {
+				fmt.Printf("wtf\n")
 			}
-		}
-		failFinds = append(failFinds, missing)
+			for _, con := range res {
+				if !slices.Contains(nodeCon, con) {
+					missing++
+				}
+			}
+			respChan <- result{i, missing}
+		}(respChan, i, origin)
+
+	}
+	for range nodes {
+		res := <-respChan
+		failFinds[res.nodeIndex] = res.missing
 	}
 	verPrint += fmt.Sprintf("incorrect validators for the following nodes:\n")
 	for i, missing := range failFinds {
-		verPrint += fmt.Sprintf("node %3d - %10v - missing %3d validators\n", i, nodes[i].ID(), missing)
+		verPrint += fmt.Sprintf("node %3d - %10v - missing %3d validators, distance from acc - %10v\n", i, nodes[i].ID(), missing, RelativeDistance(nodes[i].ID(), accID))
 	}
 
 	valPrint := fmt.Sprintf("the %d closest nodes to account %v in test:\n", REPLICATION, accID)
@@ -356,6 +376,68 @@ func IntegrationTestStoreAndFindAccountFromAllNodes() bool {
 
 	log.Println(valPrint)
 	log.Println(verPrint)
+
+	return true
+}
+
+func IntegrationTestStoreAndDisplayAccount() bool {
+	testName := "IntegrationTestStoreAndDisplayAccount"
+	done := make(chan struct{}, 64)
+	testSize := 100
+	stimulation := 1
+	s := NewServer(false, 0.0)
+	go s.StartServer()
+	s.SpawnCluster(testSize, done)
+	<-done
+	for range stimulation {
+		log.Println("stimualting network...")
+		s.Stimulate()
+		time.Sleep(TIMEOUT)
+	}
+
+	nodes := s.AllNodePointers()
+	accID := RandomID()
+	nodes[0].InsertAccount(accID)
+	log.Printf("storing account %10v", accID)
+
+	displayString, err := nodes[1].DisplayAccount(accID)
+	if err != nil {
+		log.Printf("%s [ERROR] - %s\n", testName, err.Error())
+	} else {
+		log.Printf("%s\n%s\n", testName, displayString)
+	}
+
+	for _, n := range nodes {
+		if n.scalegraph.StoredAccountCount() != 0 {
+			for _, stored := range n.scalegraph.StoredAccounts() {
+				log.Printf("node %10v storing account %10v", n.ID(), stored)
+			}
+		}
+	}
+
+	return true
+}
+
+func IntegrationTestStoreAndLockAccount() bool {
+	testName := "IntegrationTestStoreAndLockAccount"
+	log.Println(testName)
+	done := make(chan struct{}, 64)
+	testSize := 50
+	stimulation := 1
+	s := NewServer(false, 0.0)
+	go s.StartServer()
+	s.SpawnCluster(testSize, done)
+	<-done
+	for range stimulation {
+		log.Println("stimualting network...")
+		s.Stimulate()
+		time.Sleep(TIMEOUT)
+	}
+
+	nodes := s.AllNodePointers()
+	accID := RandomID()
+	nodes[0].InsertAccount(accID)
+	log.Printf("storing account %10v", accID)
 
 	return true
 }

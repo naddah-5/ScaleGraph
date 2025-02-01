@@ -36,7 +36,7 @@ func NewNode(id [5]uint32, ip [4]byte, listener chan RPC, sender chan RPC, serve
 		Contact:      me,
 		Network:      *net,
 		RoutingTable: *router,
-		scalegraph:   *scalegraph.NewVault(),
+		scalegraph:   *scalegraph.NewScaleGraph(),
 		shutdown:     make(chan struct{}),
 		debug:        debug,
 	}

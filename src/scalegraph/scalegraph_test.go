@@ -8,7 +8,7 @@ import (
 func TestScalegraphDisplay(t *testing.T) {
 	testName := "TestScalegraphDisplay"
 	verbose := false
-	sg := NewVault()
+	sg := NewScaleGraph()
 	for range 5 {
 		sg.AddAccount(RandomID())
 	}

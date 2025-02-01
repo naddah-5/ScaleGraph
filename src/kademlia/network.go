@@ -98,10 +98,10 @@ func (net *Network) Send(rpc RPC) (RPC, error) {
 		net.sender <- rpc
 		return rpc, nil
 	} else {
-		rpc.id = RandomID()
 		respChan, err := net.Add(rpc.id)
 		if err != nil {
 			log.Printf("[ERROR] - %s", err.Error())
+			return rpc, err
 		}
 		net.sender <- rpc
 		if net.debug {
@@ -154,6 +154,6 @@ func (net *Network) route(node *Node, rpc RPC) {
 		if net.debug {
 			log.Printf("[DEBUG]\nNode %v - routing rpc %v to handler", node.ID(), rpc.id)
 		}
-		node.Handler(rpc)
+		node.Handler(&rpc)
 	}
 }

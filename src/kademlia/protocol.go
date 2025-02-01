@@ -141,6 +141,17 @@ func (node *Node) findNodeQuery(rpc RPC, respChan chan []Contact) {
 
 }
 
+func (node *Node) InsertAccount(accID [5]uint32) {
+	inertionPoint := node.FindNode(accID)
+	if len(inertionPoint) == 0 {
+		log.Printf("failed to insert account %10v", accID)
+	} else {
+		rpc := GenerateRPC(inertionPoint[0].IP(), node.Contact)
+		rpc.InsertAccount(accID)
+		node.Send(rpc)
+	}
+}
+
 // Searches for the closest nodes to the account and sends a store account RPC to them.
 func (node *Node) StoreAccount(accID [5]uint32) {
 	validators := node.FindNode(accID)
@@ -149,6 +160,7 @@ func (node *Node) StoreAccount(accID [5]uint32) {
 	for _, n := range validators {
 		rpc := GenerateRPC(n.IP(), node.Contact)
 		rpc.StoreAccount(accID)
+		node.Send(rpc)
 	}
 }
 
@@ -182,4 +194,46 @@ func (node *Node) findAccountQuery(target [4]byte, respChan chan bool, accID [5]
 		respChan <- res.findAccountSucc
 	}
 	respChan <- false
+}
+
+func (node *Node) DisplayAccount(accID [5]uint32) (string, error) {
+	validators := node.FindNode(accID)
+	log.Printf("found %d validators", len(validators))
+	for _, con := range validators {
+		rpc := GenerateRPC(con.IP(), node.Contact)
+		rpc.DisplayAccount(accID)
+		res, _ := node.Send(rpc)
+		if res.displayString != "" {
+			return res.displayString, nil
+		}
+	}
+	return "", errors.New("did not find account")
+}
+
+func (node *Node) LockAccount(accID [5]uint32) ([]Contact, []chan RPC, chan RPC) {
+	valGroup, _ := node.FindAccount(accID)
+	valChan := make([]chan RPC, 0, REPLICATION)
+	leaderChan := make(chan RPC, REPLICATION)
+
+	for _, val := range valGroup {
+		rpc := GenerateRPC(val.IP(), node.Contact)
+		rpc.OverrideID(RelativeDistance(node.ID(), val.ID()))
+		rpc.LockAccount(accID, leaderChan)
+
+		go node.Send(rpc)
+	}
+
+	for range valGroup {
+		resp, ok := <-leaderChan
+		if !ok {
+			log.Printf("node: %10v, leader chan for account %10v unexpectedly closed\n", node.ID(), accID)
+		} else {
+			if node.debug {
+				log.Printf("node: %10v took lock for account %10v on node %10v\n", node.ID(), accID, resp.sender.ID())
+			}
+		}
+		valChan = append(valChan, resp.lockChan)
+	}
+
+	return valGroup, valChan, leaderChan
 }

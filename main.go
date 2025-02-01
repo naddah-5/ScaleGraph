@@ -8,9 +8,9 @@ import (
 
 func main() {
 	failedTests := 0
-	tests := 1
+	tests := 20
 	for range tests {
-		res := kademlia.IntegrationTestStoreAndFindAccountFromAllNodes()
+		res := kademlia.IntegrationTestStoreAndDisplayAccount()
 		if !res {
 			failedTests++
 			log.Println("[TEST FAILED]")

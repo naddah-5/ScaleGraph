@@ -58,7 +58,6 @@ func NewServer(debugMode bool, dropPercent float32) *Simnet {
 	// Generate master node and attach it to the server.
 	s.masterNode = s.GenerateRandomNode()
 	s.masterNodeContact = NewContact(s.masterNode.ip, s.masterNode.id)
-	s.spawned.nodePointer = append(s.spawned.nodePointer, s.masterNode)
 	// looks stupid but the master node should know that it is in fact the master node.
 	s.masterNode.masterNode = s.masterNodeContact
 
@@ -166,17 +165,25 @@ func (simnet *Simnet) Stimulate() error {
 	simnet.spawned.Unlock()
 
 	for _, origin := range nodes {
-		origin.ClearDeadContacts()
+		go origin.ClearDeadContacts()
 	}
 	time.Sleep(TIMEOUT)
 
 	lostNodes := 0
+	stimulatedNodes := 0
 	for _, origin := range nodes {
 		for _, target := range nodes {
-			res := origin.FindNode(target.ID())
-			if res[0].ID() != target.ID() {
-				lostNodes++
-			}
+			go func() {
+				res := origin.FindNode(target.ID())
+				stimulatedNodes++
+				if len(res) == 0 {
+					lostNodes++
+					return
+				}
+				if res[0].ID() != target.ID() {
+					lostNodes++
+				}
+			}()
 		}
 	}
 	if lostNodes != 0 {

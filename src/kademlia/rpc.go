@@ -1,6 +1,9 @@
 package kademlia
 
-import "fmt"
+import (
+	"fmt"
+	"main/src/scalegraph"
+)
 
 type cmd int
 
@@ -11,19 +14,24 @@ const (
 	ENTER
 	FIND_NODE
 	FOUND_NODES
+	INSERT_ACCOUNT
 	STORE_ACCOUNT
 	STORED_ACCOUNT
 	FIND_ACCOUNT
 	FOUND_ACCOUNT
+	DISPLAY_ACCOUNT
+	DISPLAYED_ACCOUNT
+	LOCK_ACCOUNT
+	LOCKED_ACCOUNT
+	UNLOCK_ACCOUNT
+	START_TRANSACTION
 	PROPOSE_TRANSACTION
 	ACCEPT_TRANSACTION
-	SEND
-	SUBMIT_WALLET
-	SHOW_WALLET
+	APPEND_TRANSACTION
 )
 
-func (c cmd) String() string {
-	switch c {
+func (cmd cmd) String() string {
+	switch cmd {
 	case NO_CMD:
 		return "NO_CMD"
 	case PING:
@@ -36,6 +44,8 @@ func (c cmd) String() string {
 		return "FIND_NODE"
 	case FOUND_NODES:
 		return "FOUND_NODES"
+	case INSERT_ACCOUNT:
+		return "INSERT_ACCOUNT"
 	case STORE_ACCOUNT:
 		return "STORE_ACCOUNT"
 	case STORED_ACCOUNT:
@@ -44,8 +54,26 @@ func (c cmd) String() string {
 		return "FIND_ACCOUNT"
 	case FOUND_ACCOUNT:
 		return "FOUND_ACCOUNT"
+	case DISPLAY_ACCOUNT:
+		return "DISPLAY_ACCOUNT"
+	case DISPLAYED_ACCOUNT:
+		return "DISPLAYED_ACCOUNT"
+	case LOCK_ACCOUNT:
+		return "LOCK_ACCOUNT"
+	case LOCKED_ACCOUNT:
+		return "LOCKED_ACCOUNT"
+	case UNLOCK_ACCOUNT:
+		return "UNLOCK_ACCOUNT"
+	case START_TRANSACTION:
+		return "START_TRANSACTION"
+	case PROPOSE_TRANSACTION:
+		return "PROPOSE_TRANSACTION"
+	case ACCEPT_TRANSACTION:
+		return "ACCEPT_TRANSACTION"
+	case APPEND_TRANSACTION:
+		return "APPEND_TRANSACTION"
 	}
-	return "unknown"
+	return "unknown cmd"
 }
 
 type RPC struct {
@@ -57,8 +85,13 @@ type RPC struct {
 	findNodeTarget  [5]uint32
 	foundNodes      []Contact
 	accountID       [5]uint32
+	displayString   string
 	storeAccSucc    bool
 	findAccountSucc bool
+	lockChan        chan RPC
+	blockID         [5]uint32
+	transaction     scalegraph.Transaction
+	transactionID   [5]uint32
 }
 
 // Generate a fresh send RPC, for a response RPC use GenerateResponse instead.
@@ -70,6 +103,10 @@ func GenerateRPC(receiver [4]byte, sender Contact) RPC {
 		sender:   sender,
 	}
 	return rpc
+}
+
+func (rpc *RPC) OverrideID(newID [5]uint32) {
+	rpc.id = newID
 }
 
 // Generates a fresh response RPC.
@@ -108,6 +145,11 @@ func (rpc *RPC) FoundNodes(target [5]uint32, nodes []Contact) {
 	rpc.foundNodes = nodes
 }
 
+func (rpc *RPC) InsertAccount(accID [5]uint32) {
+	rpc.cmd = INSERT_ACCOUNT
+	rpc.accountID = accID
+}
+
 func (rpc *RPC) StoreAccount(accID [5]uint32) {
 	rpc.cmd = STORE_ACCOUNT
 	rpc.accountID = accID
@@ -130,6 +172,49 @@ func (rpc *RPC) FoundAccount(accID [5]uint32, success bool) {
 	rpc.findAccountSucc = success
 }
 
+func (rpc *RPC) DisplayAccount(accID [5]uint32) {
+	rpc.cmd = DISPLAY_ACCOUNT
+	rpc.accountID = accID
+}
+
+func (rpc *RPC) DisplayedAccount(accID [5]uint32, displayString string) {
+	rpc.cmd = DISPLAYED_ACCOUNT
+	rpc.accountID = accID
+	rpc.displayString = displayString
+}
+
+func (rpc *RPC) LockAccount(accID [5]uint32, lockChan chan RPC) {
+	rpc.cmd = LOCK_ACCOUNT
+	rpc.accountID = accID
+	rpc.lockChan = lockChan
+}
+
+func (rpc *RPC) LockedAccount(accID [5]uint32, lockChan chan RPC) {
+	rpc.cmd = LOCK_ACCOUNT
+	rpc.accountID = accID
+	rpc.lockChan = lockChan
+}
+
+func (rpc *RPC) UnlockAccount(accID [5]uint32) {
+	rpc.cmd = UNLOCK_ACCOUNT
+	rpc.accountID = accID
+}
+
+func (rpc *RPC) StartTransaction(trx scalegraph.Transaction) {
+	rpc.cmd = START_TRANSACTION
+	rpc.transaction = trx
+}
+
+func (rpc *RPC) ProposeTransaction(trx scalegraph.Transaction) {
+	rpc.cmd = PROPOSE_TRANSACTION
+	rpc.transaction = trx
+}
+
+func (rpc *RPC) AcceptTransaction(trxID [5]uint32) {
+	rpc.cmd = ACCEPT_TRANSACTION
+	rpc.transactionID = trxID
+}
+
 func (rpc *RPC) Display() string {
 	rpcString := fmt.Sprintf("id: %v\n", rpc.id)
 	rpcString += fmt.Sprintf("CMD: %s\n", rpc.cmd)
@@ -146,6 +231,13 @@ func (rpc *RPC) Display() string {
 			rpcString += fmt.Sprintf("\n%s", val.Display())
 		}
 		rpcString += "\n"
+	}
+	if rpc.cmd == STORE_ACCOUNT {
+		rpcString += fmt.Sprintf("store account: %10v\n", rpc.accountID)
+	}
+	if rpc.cmd == STORED_ACCOUNT && rpc.response {
+		rpcString += fmt.Sprintf("stored account: %10v\n", rpc.accountID)
+		rpcString += fmt.Sprintf("stored account success: %t", rpc.storeAccSucc)
 	}
 	rpcString += "\n\n"
 
