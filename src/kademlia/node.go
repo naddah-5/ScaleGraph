@@ -22,7 +22,6 @@ type Node struct {
 	Network
 	RoutingTable
 	scalegraph scalegraph.Scalegraph
-	controller chan RPC // the channel for internal network, new rpc's are to be sent here for handling
 	shutdown   chan struct{}
 	debug      bool
 }

@@ -61,10 +61,8 @@ type Network struct {
 	nodeID     [5]uint32
 	listener   chan RPC
 	sender     chan RPC
-	controller chan RPC
 	serverIP   [4]byte
 	masterNode Contact
-	patience   int // Waiting time before giving up on reponse
 	debug      bool
 	*table
 }
@@ -75,7 +73,6 @@ func NewNetwork(id [5]uint32, listener chan RPC, sender chan RPC, controller cha
 		nodeID:     id,
 		listener:   listener,
 		sender:     sender,
-		controller: controller,
 		serverIP:   serverIP,
 		masterNode: master,
 		debug:      debug,

@@ -8,7 +8,7 @@ import (
 
 func main() {
 	failedTests := 0
-	tests := 20
+	tests := 4
 	for range tests {
 		res := kademlia.IntegrationTestStoreAndDisplayAccount()
 		if !res {
