@@ -8,9 +8,11 @@ import (
 )
 
 type result struct {
-	nodeIndex int
-	missing   int
+	nodeIndex    int
+	missingTotal int
+	missingIndex []int
 }
+
 
 func IntegrationTestFindNodeAny() bool {
 	done := make(chan struct{}, 64)
@@ -313,7 +315,9 @@ func IntegrationTestStoreAndFindAccountFromAllNodes() bool {
 	testName := "IntegrationTestStoreAndFindAccountFromSharingID"
 	done := make(chan struct{}, 64)
 	verPrint := fmt.Sprintf("[%s]\n", testName)
-	testSize := 100
+	inspectRoutingTables := false
+	testSize := 200
+	stimulate := 1
 	s := NewServer(false, 0.0)
 	go s.StartServer()
 	s.SpawnCluster(testSize, done)
@@ -322,9 +326,12 @@ func IntegrationTestStoreAndFindAccountFromAllNodes() bool {
 	if verbose {
 		log.Printf("Stimulating network...\n")
 	}
-	err := s.Stimulate()
-	if err != nil {
-		log.Println(err.Error())
+
+	for range stimulate {
+		err := s.Stimulate()
+		if err != nil {
+			log.Println(err.Error())
+		}
 	}
 
 	nodes := s.AllNodePointers()
@@ -356,17 +363,28 @@ func IntegrationTestStoreAndFindAccountFromAllNodes() bool {
 					missing++
 				}
 			}
-			respChan <- result{i, missing}
+			respChan <- result{i, missing, make([]int, 0)}
 		}(respChan, i, origin)
 
 	}
 	for range nodes {
 		res := <-respChan
-		failFinds[res.nodeIndex] = res.missing
+		failFinds[res.nodeIndex] = res.missingTotal
 	}
 	verPrint += fmt.Sprintf("incorrect validators for the following nodes:\n")
 	for i, missing := range failFinds {
-		verPrint += fmt.Sprintf("node %3d - %10v - missing %3d validators, distance from acc - %10v\n", i, nodes[i].ID(), missing, RelativeDistance(nodes[i].ID(), accID))
+		if missing != 0 {
+			verPrint += fmt.Sprintf("node %3d - %10v - missing %3d validators, distance from acc - %10v\n", i, nodes[i].ID(), missing, RelativeDistance(nodes[i].ID(), accID))
+			if inspectRoutingTables {
+				for _, n := range nodes {
+					if n.ID() == nodes[i].ID() {
+						verPrint += fmt.Sprintf("Routing table for node %10d\n", n.ID())
+						verPrint += fmt.Sprintf("%s", n.Display())
+						break
+					}
+				}
+			}
+		}
 	}
 
 	valPrint := fmt.Sprintf("the %d closest nodes to account %v in test:\n", REPLICATION, accID)
@@ -398,6 +416,7 @@ func IntegrationTestStoreAndDisplayAccount() bool {
 	nodes := s.AllNodePointers()
 	accID := RandomID()
 	nodes[0].InsertAccount(accID)
+	time.Sleep(time.Second)
 	log.Printf("storing account %10v", accID)
 
 	displayString, err := nodes[1].DisplayAccount(accID)
@@ -440,4 +459,85 @@ func IntegrationTestStoreAndLockAccount() bool {
 	log.Printf("storing account %10v", accID)
 
 	return true
+}
+
+func IntegrationNodeLookupDataGathering(testSize int) (int, []int) {
+	verbose := true
+	testName := "IntegrationTestStoreAndFindAccountFromSharingID"
+	done := make(chan struct{}, 64)
+	verPrint := fmt.Sprintf("[%s]\n", testName)
+	stimulate := 1
+	s := NewServer(false, 0.0)
+	go s.StartServer()
+	s.SpawnCluster(testSize, done)
+	<-done
+
+	if verbose && stimulate > 0 {
+		log.Printf("Stimulating network...\n")
+	}
+
+	for range stimulate {
+		s.Stimulate()
+	}
+
+	nodes := s.AllNodePointers()
+	missingValidators := make([][]int, len(nodes))
+	accID := RandomID()
+	tmp := make([]Contact, 0, len(nodes))
+	for _, n := range nodes {
+		tmp = append(tmp, n.Contact)
+	}
+	SortContactsByDistance(&tmp, accID)
+	nodeCon := make([]Contact, 0, REPLICATION)
+	for i := range REPLICATION {
+		nodeCon = append(nodeCon, tmp[i])
+	}
+	nodes[0].StoreAccount(accID)
+	respChan := make(chan result, 128)
+	time.Sleep(time.Second)
+	for i, origin := range nodes {
+		time.Sleep(time.Millisecond * 10)
+		go func(respChan chan result, i int, origin *Node) {
+			res, _ := origin.FindAccount(accID)
+			missingIndecies := make([]int, 0)
+			for i, con := range res {
+				if !slices.Contains(nodeCon, con) {
+					missingIndecies = append(missingIndecies, i)
+				}
+			}
+			respChan <- result{i, 1, missingIndecies}
+		}(respChan, i, origin)
+
+	}
+	for range nodes {
+		res := <-respChan
+		missingValidators[res.nodeIndex] = res.missingIndex
+	}
+	verPrint += fmt.Sprintf("incorrect validators for the following nodes:\n")
+	missingAVal := 0
+	for i, missing := range missingValidators {
+		if len(missing) != 0 {
+			missingAVal++
+			verPrint += fmt.Sprintf("node %3d - %10v - missing %3d validators, indecies: %v\n", i, nodes[i].ID(), len(missing), missing)
+		}
+	}
+
+	//valPrint := fmt.Sprintf("the %d closest nodes to account %v in test:\n", REPLICATION, accID)
+	// for _, con := range nodeCon {
+	// 	valPrint += fmt.Sprintf("node: %10v, distance from account: %10v\n", con.ID(), RelativeDistance(con.ID(), accID))
+	// }
+
+	//log.Println(valPrint)
+	//log.Println(verPrint)
+
+	testRes := make([]int, REPLICATION)
+
+	for _, datum := range missingValidators {
+		for _, missing := range datum {
+			testRes[missing]++
+		}
+	}
+
+
+	return missingAVal, testRes
 }

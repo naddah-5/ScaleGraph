@@ -142,11 +142,11 @@ func (node *Node) findNodeQuery(rpc RPC, respChan chan []Contact) {
 }
 
 func (node *Node) InsertAccount(accID [5]uint32) {
-	inertionPoint := node.FindNode(accID)
-	if len(inertionPoint) == 0 {
+	isnertionPoint := node.FindNode(accID)
+	if len(isnertionPoint) == 0 {
 		log.Printf("failed to insert account %10v", accID)
 	} else {
-		rpc := GenerateRPC(inertionPoint[0].IP(), node.Contact)
+		rpc := GenerateRPC(isnertionPoint[0].IP(), node.Contact)
 		rpc.InsertAccount(accID)
 		node.Send(rpc)
 	}

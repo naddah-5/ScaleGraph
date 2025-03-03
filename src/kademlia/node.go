@@ -9,8 +9,8 @@ import (
 const (
 	KEYSPACE      = 160 // the number of buckets
 	KBUCKETVOLUME = 20  // K, number of contacts per bucket
-	REPLICATION   = 10  // alpha
-	CONCURRENCY   = REPLICATION
+	REPLICATION   = 20 // alpha
+	CONCURRENCY   = 3
 	PORT          = 8080
 	DEBUG         = true
 	POINT_DEBUG   = true
